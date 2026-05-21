@@ -206,20 +206,20 @@
       libusb1
 
       # Graphics & Windowing
-      xorg.libX11
-      xorg.libXcomposite
-      xorg.libXdamage
-      xorg.libXext
-      xorg.libXfixes
-      xorg.libXi
-      xorg.libXrandr
-      xorg.libXrender
-      xorg.libXtst
-      xorg.libxcb
-      xorg.libICE
-      xorg.libSM
-      xorg.libxshmfence
-      xorg.libxkbfile
+      libx11
+      libxcomposite
+      libxdamage
+      libxext
+      libxfixes
+      libxi
+      libxrandr
+      libxrender
+      libxtst
+      libxcb
+      libice
+      libsm
+      libxshmfence
+      libxkbfile
       libGL
       libva
       mesa
