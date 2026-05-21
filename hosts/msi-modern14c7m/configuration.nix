@@ -176,7 +176,7 @@
     enable = true;
     libraries = with pkgs; [
       # Core/System
-      stdenv.cc.cc
+      stdenv.cc.cc.lib
       zlib
       zstd
       curl
