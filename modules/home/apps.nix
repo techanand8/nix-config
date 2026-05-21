@@ -27,5 +27,6 @@
     sushi
     # --- AI ---
     antigravity-fhs
+    kiro-fhs
   ];
 }

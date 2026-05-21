@@ -5,8 +5,16 @@
   # These handle writable folders, theme syncing, and permanent fixes.
   home.activation = {
     setupAmbxst = config.lib.dag.entryAfter [ "writeBoundary" ] ''
-      $DRY_RUN_CMD mkdir -p $VERBOSE_ARG $HOME/.config/ambxst/colors $HOME/.config/ghostty $HOME/.local/bin
+      $DRY_RUN_CMD mkdir -p $VERBOSE_ARG $HOME/.config/ambxst/colors $HOME/.config/ghostty $HOME/.local/bin $HOME/.cache/oh-my-zsh/completions $HOME/.cargo/bin
       $DRY_RUN_CMD chmod -R u+rw $VERBOSE_ARG $HOME/.config/ambxst
+      
+      # Fix oh-my-zsh completions permission issues (ensure writable cache)
+      $DRY_RUN_CMD chmod -R u+rw $VERBOSE_ARG $HOME/.cache/oh-my-zsh
+      
+      # Ensure cargo directory exists and has correct permissions
+      if [ -d "$HOME/.cargo" ]; then
+        $DRY_RUN_CMD chmod -R u+rw $VERBOSE_ARG $HOME/.cargo
+      fi
       
       # Sync Ghostty colors with current theme
       if [ -f "$HOME/.local/bin/sync_ghostty.sh" ]; then

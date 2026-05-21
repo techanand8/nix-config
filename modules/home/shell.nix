@@ -6,6 +6,12 @@
   programs.fish.enable = true;
   programs.home-manager.enable = true;
 
+  # Ensure user local binaries and Cargo binaries are in the PATH
+  home.sessionPath = [
+    "${config.home.homeDirectory}/.local/bin"
+    "${config.home.homeDirectory}/.cargo/bin"
+  ];
+
   # Zsh Configuration (The Professional Pro Environment)
   programs.zsh = {
     enable = true;
@@ -15,7 +21,7 @@
 
     oh-my-zsh = {
       enable = true;
-      plugins = [ "git" "sudo" "docker" "extract" ];
+      plugins = [ "git" "sudo" "docker" "extract" "cargo" "rust" ];
       theme = "robbyrussell"; # Starship will override this anyway
     };
 
