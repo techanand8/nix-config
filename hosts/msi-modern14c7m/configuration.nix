@@ -36,26 +36,42 @@
     enable = true;
     maxGenerations = 10;
     enableEditor = false;
+    efiSupport = true;
+    # Ensures it works even on laptops with "forgetful" UEFI entries
+    efiInstallAsRemovable = true;
 
     style = {
       # Adding your Anime image as the background!
       wallpapers = [ ../../modules/system/plymouth/boot_wallpaper.jpg ];
-      interface = {
-        brandingColor = "39FF14"; # Neon Green Branding
-      };
+      wallpaperStyle = "stretched";
     };
 
-    # Custom palette adjusted for the background image
+    # Custom palette and graphics settings
     extraConfig = ''
-      # Neon Green highlight for the selected entry
-      MENU_TEXT_SELECT_BACK_COLOR=39FF14
-      MENU_TEXT_SELECT_COLOR=000000
+      # Force graphics mode for wallpaper support
+      GRAPHICS=yes
+      INTERFACE_RESOLUTION=1920x1080
       
-      # Maroon for the rest of the text
-      MENU_TEXT_COLOR=800000
+      # Branding
+      INTERFACE_BRANDING=MAYANK NIXOS
+      INTERFACE_BRANDING_COLOUR=39FF14
       
-      # Background color for areas not covered by the image
-      MENU_BACK_COLOR=000000
+      # Selection highlight
+      MENU_TEXT_SELECT_BACK_COLOUR=39FF14
+      MENU_TEXT_SELECT_COLOUR=000000
+      
+      # Standard text (Maroon)
+      MENU_TEXT_COLOUR=800000
+      
+      # Help text at the bottom
+      INTERFACE_HELP_COLOUR=39FF14
+      
+      # Background color (black)
+      BACKDROP=000000
+
+      # Terminal styling (Semi-transparent black)
+      TERM_FOREGROUND=39FF14
+      TERM_BACKGROUND=80000000
     '';
   };
   boot.loader.efi.canTouchEfiVariables = true;

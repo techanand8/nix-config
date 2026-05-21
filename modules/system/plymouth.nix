@@ -31,8 +31,9 @@ in
   # Enable systemd in initrd for faster and smoother transition
   boot.initrd.systemd.enable = true;
 
-  # Ensure amdgpu is loaded early for Plymouth
+  # Ensure amdgpu is loaded as early as possible for early KMS
   boot.initrd.kernelModules = [ "amdgpu" ];
+  boot.initrd.availableKernelModules = [ "amdgpu" "xhci_pci" "nvme" "usb_storage" "sd_mod" ];
 
   boot.kernelParams = [
     "quiet"
@@ -44,8 +45,9 @@ in
     "udev.log_priority=3"
     "vt.global_cursor_default=0"
     "fbcon=nodefer" # Prevents framebuffer console from deferred takeover
+    "amdgpu.fastboot=1" # Experimental: skip unnecessary mode sets
   ];
 
-  # Fast boot by reducing timeout
-  boot.loader.timeout = 0;
+  # Boot timeout - set to a reasonable value to see the menu
+  boot.loader.timeout = 5;
 }
