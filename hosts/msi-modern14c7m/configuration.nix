@@ -204,6 +204,7 @@
     xhost
     usbutils
     ripgrep
+    imagemagick
 
     # --- SECURE VPN & CORPORATE NETWORK CONNECTIVITY ---
     openconnect # Cisco AnyConnect, GlobalProtect, Fortinet CLI client
