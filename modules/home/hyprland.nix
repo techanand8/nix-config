@@ -173,6 +173,7 @@
       hl.bind("SUPER + ALT + Left", hl.dsp.exec_cmd("resizeactive -50 0"))
       hl.bind("SUPER + ALT + Down", hl.dsp.exec_cmd("resizeactive 0 50"))
       hl.bind("SUPER + ALT + Up", hl.dsp.exec_cmd("resizeactive 0 -50"))
+      hl.bind("Print", hl.dsp.exec_cmd("ambxst run screenshot"))
     '';
   };
 }
