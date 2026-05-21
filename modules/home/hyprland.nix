@@ -45,7 +45,7 @@
               touchpad = {
                   natural_scroll = true,
                   disable_while_typing = true,
-                  tap-to-click = true,
+                  "tap_to_click" = true,
                   clickfinger_behavior = true,
                   scroll_factor = 0.5,
               },
