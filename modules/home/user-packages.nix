@@ -44,5 +44,7 @@
     kitty
     alacritty
     ghostty
+    neovide
   ];
 }
+

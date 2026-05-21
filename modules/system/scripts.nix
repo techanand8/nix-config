@@ -84,7 +84,7 @@ let
         # Auto-Push to GitHub (Professional Automation)
         if git remote | grep -q "origin"; then
             log "Synchronizing with GitHub repository..."
-            git push origin master || info "Push skipped (check SSH/Remote settings)"
+            git push origin main || info "Push skipped (check SSH/Remote settings)"
         fi
 
         success "System configuration applied and synchronized successfully."

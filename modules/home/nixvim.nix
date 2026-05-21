@@ -5,26 +5,50 @@
     enable = true;
     defaultEditor = true;
 
-    # Extra Packages for Images & PDFs
+    # Extra Packages for Media & System integration
     extraPackages = with pkgs; [
       imagemagick
       ueberzugpp
-      poppler-utils # FIXED: renamed from poppler_utils
+      poppler-utils
       ghostscript
+      nixpkgs-fmt
     ];
 
     # =========================================================================
-    # DYNAMIC THEME SYNC & NEOVIDE SUPPORT
+    # DYNAMIC THEME ENGINE (Ambxst Synchronized)
     # =========================================================================
-    colorschemes.base16 = {
+    # We use Catppuccin as a fallback/base, but the logic in extraConfigLua 
+    # will override it with your current ambxst colors dynamically.
+    colorschemes.catppuccin = {
       enable = true;
-      scheme = "catppuccin-mocha";
+      settings = {
+        flavour = "mocha";
+        transparent_background = true;
+        show_end_of_buffer = false;
+        integrations = {
+          alpha = true;
+          cmp = true;
+          dashboard = true;
+          gitsigns = true;
+          illuminate = true;
+          indent_blankline.enabled = true;
+          lsp_saga = true;
+          navic.enabled = true;
+          noice = true;
+          notify = true;
+          neotree = true;
+          semantic_tokens = true;
+          telescope.enabled = true;
+          treesitter = true;
+          which_key = true;
+        };
+      };
     };
 
     plugins.web-devicons.enable = true;
 
     # =========================================================================
-    # ELITE DASHBOARD
+    # PROFESSIONAL DASHBOARD
     # =========================================================================
     plugins.dashboard = {
       enable = true;
@@ -57,13 +81,13 @@
             { action = "e $HOME/nix-config/modules/home/nixvim.nix"; desc = " Config"; icon = " "; key = "c"; }
             { action = "qa"; desc = " Quit"; icon = " "; key = "q"; }
           ];
-          footer = [ "Mayank Anand's God Mode Workstation" ];
+          footer = [ "Engineered with Precision by Mayank Anand" ];
         };
       };
     };
 
     # =========================================================================
-    # IMAGE & MEDIA SUPPORT
+    # MULTIMEDIA & MEDIA SUPPORT
     # =========================================================================
     plugins.image = {
       enable = true;
@@ -71,12 +95,10 @@
       integrations.markdown.enabled = true;
     };
 
-    # Telescope Extension for Media Previews
     plugins.telescope = {
       enable = true;
       extensions.media-files = {
         enable = true;
-        # FIXED: Removed 'dependencies' wrapper as per rename warning
         settings = {
           chafa = true;
           ffmpegthumbnailer = true;
@@ -87,18 +109,25 @@
     };
 
     # =========================================================================
-    # PROFESSIONAL VLSI LSPs & TOOLS
+    # ENGINEERING LSPs (VLSI focus)
     # =========================================================================
     plugins.lsp = {
       enable = true;
       servers = {
-        verible.enable = true; # SystemVerilog
-        vhdl_ls.enable = true; # VHDL
-        clangd.enable = true; # SystemC / C++
-        asm_lsp.enable = true; # Assembly
-        pyright.enable = true; # Python
-        nil_ls.enable = true; # Nix
-        lua_ls.enable = true; # Lua
+        verible.enable = true;
+        svlangserver.enable = true;
+        vhdl_ls.enable = true;
+        clangd.enable = true;
+        asm_lsp.enable = true;
+        nixd = {
+          enable = true;
+          settings = {
+            nixpkgs.expr = "import <nixpkgs> { }";
+            formatting.command = [ "nixpkgs-fmt" ];
+          };
+        };
+        pyright.enable = true;
+        lua_ls.enable = true;
       };
       keymaps.lspBuf = {
         gd = "definition";
@@ -106,21 +135,23 @@
         K = "hover";
         "<leader>ca" = "code_action";
         "<leader>rn" = "rename";
+        "<leader>f" = "format";
       };
     };
 
-    # Formatting (Conform)
     plugins.conform-nvim = {
       enable = true;
       settings = {
-        format_on_save = {
-          lsp_fallback = true;
-          timeout_ms = 500;
+        format_on_save = { lsp_fallback = true; timeout_ms = 500; };
+        formatters_by_ft = {
+          nix = [ "nixpkgs-fmt" ];
+          verilog = [ "verible-verilog-format" ];
+          systemverilog = [ "verible-verilog-format" ];
         };
       };
     };
 
-    # Syntax Highlighting
+    # High-Performance Syntax Highlighting
     plugins.treesitter = {
       enable = true;
       settings.highlight.enable = true;
@@ -140,21 +171,11 @@
       ];
     };
 
-    # Code Outline
-    plugins.aerial = {
-      enable = true;
-      settings = {
-        layout = {
-          max_width = [ 40 0.2 ];
-          min_width = 10;
-        };
-      };
-    };
-
     # =========================================================================
-    # ADVANCED UI & EXPERIENCE
+    # CORE PLUGINS & UI
     # =========================================================================
     plugins = {
+      aerial.enable = true;
       lualine = { enable = true; settings.options.theme = "auto"; };
       bufferline.enable = true;
       neo-tree.enable = true;
@@ -167,8 +188,9 @@
       trouble.enable = true;
       lazygit.enable = true;
       persistence.enable = true;
+      autopairs.enable = true;
+      comment.enable = true;
 
-      # Autocompletion
       cmp = {
         enable = true;
         settings = {
@@ -183,7 +205,6 @@
         };
       };
 
-      # Professional Terminal
       toggleterm = {
         enable = true;
         settings = {
@@ -193,9 +214,6 @@
           float_opts = { border = "curved"; winblend = 0; };
         };
       };
-
-      autopairs.enable = true;
-      comment.enable = true;
     };
 
     # =========================================================================
@@ -208,52 +226,66 @@
       { mode = "n"; key = "<leader>ff"; action = ":Telescope find_files<CR>"; }
       { mode = "n"; key = "<leader>fg"; action = ":Telescope live_grep<CR>"; }
       { mode = "n"; key = "<leader>h"; action = ":nohlsearch<CR>"; }
-
-      # Media Preview Keybind
       { mode = "n"; key = "<leader>fm"; action = ":Telescope media_files<CR>"; options.desc = "Find Media Files"; }
-
-      # VLSI & UI Keybinds
       { mode = "n"; key = "<leader>o"; action = ":AerialToggle<CR>"; options.desc = "Code Outline"; }
       { mode = "n"; key = "<leader>gg"; action = ":LazyGit<CR>"; options.desc = "LazyGit"; }
       { mode = "n"; key = "<leader>qs"; action = ":lua require('persistence').load()<CR>"; options.desc = "Restore Session"; }
-
-      # Terminal Keybinds
       { mode = "n"; key = "<leader>tf"; action = ":ToggleTerm direction=float<CR>"; }
       { mode = "n"; key = "<leader>th"; action = ":ToggleTerm size=15 direction=horizontal<CR>"; }
       { mode = "n"; key = "<leader>tv"; action = ":ToggleTerm size=60 direction=vertical<CR>"; }
-
-      # Tabs
       { mode = "n"; key = "<S-l>"; action = ":bnext<CR>"; }
       { mode = "n"; key = "<S-h>"; action = ":bprev<CR>"; }
       { mode = "n"; key = "<leader>x"; action = ":bdelete<CR>"; }
     ];
 
     extraConfigLua = ''
-      -- 1. FORCE DYNAMIC TRANSPARENCY
-      local function apply_transparency()
-        local groups = { "Normal", "NormalFloat", "FloatBorder", "LineNr", "CursorLineNr", "NeoTreeNormal", "NeoTreeNormalNC" }
-        for _, group in ipairs(groups) do
-          vim.api.nvim_set_hl(0, group, { bg = "none" })
-        end
-      end
-      apply_transparency()
-
-      -- 2. DYNAMIC THEME ADAPTATION
-      vim.o.termguicolors = true
+      -- =========================================================================
+      -- AMBXST DYNAMIC THEME INTEGRATION
+      -- =========================================================================
       
-      -- 3. NEOVIDE SUPPORT
+      local function sync_ambxst_theme()
+        local cache_path = vim.fn.expand("~/.cache/ambxst/colors.json")
+        local f = io.open(cache_path, "r")
+        if not f then return end
+        
+        local content = f:read("*all")
+        f:close()
+        
+        -- Decode JSON using Neovim built-in parser
+        local ok, colors = pcall(vim.json.decode, content)
+        if not ok then return end
+
+        -- Apply basic terminal colors to Neovim
+        vim.o.termguicolors = true
+        
+        -- Force dynamic background transparency
+        local groups = { 
+            "Normal", "NormalFloat", "FloatBorder", "LineNr", 
+            "CursorLineNr", "NeoTreeNormal", "NeoTreeNormalNC",
+            "WinSeparator", "TelescopeBorder", "TelescopeNormal"
+        }
+        for _, group in ipairs(groups) do
+            vim.api.nvim_set_hl(0, group, { bg = "none" })
+        end
+
+        -- Sync accents with ambxst (Example: using the theme's blue/primary color)
+        local accent = colors.blue or colors.sourceColor or "#ffb59e"
+        vim.api.nvim_set_hl(0, "FloatBorder", { fg = accent, bg = "none" })
+        vim.api.nvim_set_hl(0, "CursorLineNr", { fg = accent, bold = true })
+      end
+
+      -- Run sync on startup
+      sync_ambxst_theme()
+
+      -- Neovide Specific Optimizations
       if vim.g.neovide then
         vim.g.neovide_transparency = 0.95
         vim.o.guifont = "JetBrains Mono Nerd Font:h14"
       end
 
-      -- 4. VLSI FILE DETECTION
+      -- VLSI Detection
       vim.filetype.add({
-        extension = {
-          sc = "cpp",
-          v = "verilog",
-          sv = "systemverilog",
-        },
+        extension = { sc = "cpp", v = "verilog", sv = "systemverilog" },
       })
     '';
   };
