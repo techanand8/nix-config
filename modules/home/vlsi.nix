@@ -14,5 +14,6 @@
     ngspice
     ghdl
     opencl-headers
+    netlistsvg
   ];
 }
