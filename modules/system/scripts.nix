@@ -30,7 +30,7 @@ let
     CYAN='\033[1;36m'
     NC='\033[0m'
 
-    function log() { echo -e "''${C_SECONDARY}󰣚  [SYSTEM]''${NC} $1"; }
+    function log() { echo -e "''${C_SECONDARY}  [SYSTEM]''${NC} $1"; }
     function error() { echo -e "''${RED}󰅚  [ERROR]''${NC} $1"; exit 1; }
     function success() { echo -e "''${C_SUCCESS}󰄬  [SUCCESS]''${NC} $1"; }
     function info() { echo -e "''${C_HIGHLIGHT}󰌢  [INFO]''${NC} $1"; }
@@ -56,7 +56,7 @@ let
         echo -e "  ''${C_PRIMARY}󱄅''${NC}  ''${C_WHITE}M A Y A N K   A N A N D''${NC}  ''${C_MUTED}│''${NC}  ''${C_SECONDARY}''${NC}  ''${C_GOLD}ELITE NIXOS WORKSTATION''${NC}"
         echo -e "  ''${C_MUTED}──────────────────────────────────────────────────────────────────────''${NC}"
         echo -e "  ''${C_HIGHLIGHT}  Host:''${NC} ''${C_WHITE}''$HOSTNAME''${NC}         ''${C_HIGHLIGHT}󰓅  Uptime:''${NC} ''${C_WHITE}''$uptime_str''${NC}"
-        echo -e "  ''${C_HIGHLIGHT}󰣚  Kernel:''${NC} ''${C_WHITE}''$(uname -r)''${NC}       ''${C_HIGHLIGHT}  Status:''${NC} ''${C_SUCCESS}Online''${NC}"
+        echo -e "  ''${C_HIGHLIGHT}  Kernel:''${NC} ''${C_WHITE}''$(uname -r)''${NC}       ''${C_HIGHLIGHT}  Status:''${NC} ''${C_SUCCESS}Online''${NC}"
         echo -e "  ''${C_MUTED}──────────────────────────────────────────────────────────────────────''${NC}"
         echo -e ""
         echo -e "  ''${C_SECONDARY}Usage:''${NC} ''${C_WHITE}mayank''${NC} ''${C_GOLD}<command>''${NC}"
@@ -71,7 +71,7 @@ let
         echo -e "    ''${C_WHITE}clean''${NC}     ''${C_MUTED}❯''${NC} Perform deep garbage collection & Nix store hard-linking"
         echo -e "    ''${C_WHITE}check''${NC}     ''${C_MUTED}❯''${NC} Audit syntactical health and config integrity"
         echo -e ""
-        echo -e "  ''${C_PRIMARY}󰣚  DEVELOPMENT UTILITIES''${NC}"
+        echo -e "  ''${C_PRIMARY}  DEVELOPMENT UTILITIES''${NC}"
         echo -e "    ''${C_WHITE}edit''${NC}      ''${C_MUTED}❯''${NC} Open workstation Nix configuration in Neovim"
         echo -e "    ''${C_WHITE}search''${NC}    ''${C_MUTED}❯''${NC} Efficiently query Nixpkgs software registry"
         echo -e "    ''${C_WHITE}shell''${NC}     ''${C_MUTED}❯''${NC} Initialize isolated, ephemeral package environments"
