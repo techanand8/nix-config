@@ -26,6 +26,6 @@
     verible # Google's SystemVerilog developer tools (linter/formatter)
     veryl # Modern hardware design language (SV alternative)
     sby # Front-end driver for Yosys-based formal verification (formerly symbiyosys)
-    wavedrom # Digital waveform generator & renderer
+    python3Packages.wavedrom # Digital waveform generator & renderer (Python CLI package)
   ];
 }
