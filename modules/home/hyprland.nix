@@ -64,6 +64,8 @@
       local home_dir = os.getenv("HOME")
       hl.env("XCURSOR_SIZE", "24")
       hl.env("HYPRCURSOR_SIZE", "24")
+      hl.env("XCURSOR_THEME", "Bibata-Modern-Classic")
+      hl.env("HYPRCURSOR_THEME", "Bibata-Modern-Classic")
       hl.env("GDK_BACKEND", "wayland,x11")
       hl.env("QT_QPA_PLATFORM", "wayland;xcb")
       hl.env("SDL_VIDEODRIVER", "wayland,x11")
@@ -174,5 +176,14 @@
       hl.bind("SUPER + ALT + Up", hl.dsp.exec_cmd("resizeactive 0 -50"))
       hl.bind("Print", hl.dsp.exec_cmd("ambxst run screenshot"))
     '';
+  };
+
+  # Premium Modern Material Cursor Theme
+  home.pointerCursor = {
+    gtk.enable = true;
+    x11.enable = true;
+    package = pkgs.bibata-cursors;
+    name = "Bibata-Modern-Classic";
+    size = 24;
   };
 }
