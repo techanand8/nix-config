@@ -73,19 +73,28 @@ let
         # Format code
         if command -v nixpkgs-fmt &> /dev/null; then nixpkgs-fmt $CONFIG_DIR; fi
         
-        # Git Tracking (Secure God-Mode Logic)
+        # Git Tracking (Secure Stealth Logic)
         cd $CONFIG_DIR
-        # 1. Track everything so Nix can see it (required for Flakes)
-        git add --all
         
-        # 2. Commit everything EXCEPT the secrets file
+        # 1. Force-stage secrets so Nix can evaluate them
+        git add -f hosts/msi-modern14c7m/variables.nix &> /dev/null || true
+        git add --all &> /dev/null || true
+        
+        # 2. Commit everything EXCEPT the secrets file to keep history clean
         GEN=$(nixos-rebuild list-generations | grep current | awk '{print $1}')
-        git commit -m "System Update - Generation $GEN - $(date '+%Y-%m-%d %H:%M')" -- hosts/msi-modern14c7m/variables.nix.example modules/ .gitignore flake.nix flake.lock README.md || true
+        git commit -m "System Update - Generation $GEN - $(date '+%Y-%m-%d %H:%M')" \
+            -- flake.nix flake.lock hosts/msi-modern14c7m/variables.nix.example modules/ README.md .gitignore || true
         
-        # 3. Apply Rebuild
-        sudo nixos-rebuild switch --flake $CONFIG_DIR#$HOSTNAME --no-reexec || error "Rebuild process failed."
+        # 3. Execute Rebuild
+        sudo nixos-rebuild switch --flake $CONFIG_DIR#$HOSTNAME --no-reexec || {
+            git reset hosts/msi-modern14c7m/variables.nix &> /dev/null || true
+            error "Rebuild process failed."
+        }
         
-        # Auto-Push to GitHub (Professional Automation)
+        # 4. Immediately unstage secrets so they are never pushed
+        git reset hosts/msi-modern14c7m/variables.nix &> /dev/null || true
+        
+        # Auto-Push to GitHub
         if git remote | grep -q "origin"; then
             log "Synchronizing with GitHub repository..."
             git push origin main || info "Push skipped (check SSH/Remote settings)"
