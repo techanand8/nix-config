@@ -169,7 +169,6 @@
     wireguard-tools # Modern WireGuard VPN tools
     networkmanager-openvpn # OpenVPN NetworkManager GUI integration
     networkmanager-openconnect # Cisco/GlobalProtect NetworkManager GUI integration
-    globalprotect-openconnect # Palo Alto GlobalProtect client
   ];
 
   programs.firefox.enable = true;
