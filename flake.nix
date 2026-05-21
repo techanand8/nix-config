@@ -37,9 +37,9 @@
     in
     {
       nixosConfigurations.msi-modern14c7m = nixpkgs.lib.nixosSystem {
+        inherit pkgs;
         specialArgs = { inherit inputs vars; };
         modules = [
-          { nixpkgs.hostPlatform = system; }
           # Setup the default CachyOS package overlays
           { nixpkgs.overlays = [ inputs.nix-cachyos-kernel.overlays.pinned ]; }
 
