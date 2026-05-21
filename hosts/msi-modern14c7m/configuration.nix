@@ -161,6 +161,15 @@
     vmware-workstation
     distrobox
     xhost
+
+    # --- SECURE VPN & CORPORATE NETWORK CONNECTIVITY ---
+    openconnect # Cisco AnyConnect, GlobalProtect, Fortinet CLI client
+    openfortivpn # Fortinet SSL VPN client
+    openvpn # OpenVPN protocol client
+    wireguard-tools # Modern WireGuard VPN tools
+    networkmanager-openvpn # OpenVPN NetworkManager GUI integration
+    networkmanager-openconnect # Cisco/GlobalProtect NetworkManager GUI integration
+    globalprotect-openconnect # Palo Alto GlobalProtect client
   ];
 
   programs.firefox.enable = true;
