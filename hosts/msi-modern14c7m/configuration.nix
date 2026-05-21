@@ -171,18 +171,6 @@
   # Enable envfs to dynamically resolve shebangs like #!/bin/bash, #!/usr/bin/env, etc.
   services.envfs.enable = true;
 
-  # Create physical shell symlinks for Zsh & Bash to ensure absolute shebang safety across standard/legacy scripts
-  system.activationScripts.shell-symlinks = {
-    text = ''
-      mkdir -p /bin /usr/bin
-      ln -sf ${pkgs.bash}/bin/bash /bin/bash
-      ln -sf ${pkgs.bash}/bin/bash /usr/bin/bash
-      ln -sf ${pkgs.zsh}/bin/zsh /bin/zsh
-      ln -sf ${pkgs.zsh}/bin/zsh /usr/bin/zsh
-    '';
-    deps = [ ];
-  };
-
   # Enable nix-ld to run unpatched dynamic binaries
   programs.nix-ld = {
     enable = true;

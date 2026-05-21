@@ -21,7 +21,7 @@
 
     oh-my-zsh = {
       enable = true;
-      plugins = [ "git" "sudo" "docker" "extract" "cargo" "rust" ];
+      plugins = [ "git" "sudo" "docker" "extract" "rust" ];
       theme = "robbyrussell"; # Starship will override this anyway
     };
 
