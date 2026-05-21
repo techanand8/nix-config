@@ -12,7 +12,7 @@ let
     HOSTNAME="msi-modern14c7m"
     EDITOR="nvim"
 
-    # Elite Theme Colors (256-color & truecolor supported terminals like Ghostty/Kitty)
+    # Premium Theme Colors (256-color & truecolor supported terminals like Ghostty/Kitty)
     C_PRIMARY='\033[38;5;208m'   # Coral Orange
     C_SECONDARY='\033[38;5;99m'  # Royal Soft Purple
     C_HIGHLIGHT='\033[38;5;43m'  # Vibrant Teal

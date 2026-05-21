@@ -142,7 +142,7 @@
       hl.window_rule({ match = { class = "pentablet" }, center = true })
       hl.window_rule({ match = { class = "pentablet" }, size = { "800", "600" } })
 
-      -- ############ ELITE POLKIT PROMPT (High-End UI) ############
+      -- ############ PREMIUM POLKIT PROMPT (High-End UI) ############
       -- This makes your password prompt look like a professional OS element
       hl.window_rule({ match = { class = "hyprpolkitagent" }, float = true })
       hl.window_rule({ match = { class = "hyprpolkitagent" }, size = { "450", "250" } })
