@@ -9,6 +9,7 @@
     ../../modules/system/xppen.nix
     ../../modules/system/fonts.nix
     ../../modules/system/vivado.nix
+    ../../modules/system/plymouth.nix
   ];
 
   # --- SYSTEM OPTIMIZATIONS ---
