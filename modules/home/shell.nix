@@ -27,6 +27,9 @@
 
     # Smart completion and CD functions
     initContent = ''
+      # Dynamically inject local bin and Cargo bin into shell path
+      export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+
       source ${pkgs.zsh-fzf-tab}/share/fzf-tab/fzf-tab.zsh
       
       # Pro CD function with auto-ls and zoxide fallback
