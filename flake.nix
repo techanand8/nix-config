@@ -32,17 +32,17 @@
   outputs = { self, nixpkgs, home-manager, nixos-hardware, hyprland, ambxst, nixvim, nix-cachyos-kernel, ... }@inputs:
     let
       system = "x86_64-linux";
-      pkgs = nixpkgs.legacyPackages.${system};
       vars = import ./hosts/msi-modern14c7m/variables.nix;
     in
     {
       nixosConfigurations.msi-modern14c7m = nixpkgs.lib.nixosSystem {
-        inherit pkgs;
-        specialArgs = { inherit inputs vars; };
+        specialArgs = { inherit inputs vars system; };
         modules = [
-          # Setup the default CachyOS package overlays
-          { nixpkgs.overlays = [ inputs.nix-cachyos-kernel.overlays.pinned ]; }
-
+          {
+            nixpkgs.hostPlatform = system;
+            nixpkgs.config.allowUnfree = true;
+            nixpkgs.overlays = [ inputs.nix-cachyos-kernel.overlays.pinned ];
+          }
           ./hosts/msi-modern14c7m/configuration.nix
           nixos-hardware.nixosModules.common-cpu-amd
           nixos-hardware.nixosModules.common-gpu-amd

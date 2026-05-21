@@ -286,8 +286,5 @@
     ];
   };
 
-  # Allow Unfree
-  nixpkgs.config.allowUnfree = true;
-
   system.stateVersion = vars.stateVersion;
 }
