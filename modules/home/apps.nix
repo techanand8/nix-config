@@ -25,5 +25,7 @@
     nautilus
     nautilus-python
     sushi
+    # --- AI ---
+    antigravity-fhs
   ];
 }
