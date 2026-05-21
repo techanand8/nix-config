@@ -73,26 +73,22 @@ let
         # Format code
         if command -v nixpkgs-fmt &> /dev/null; then nixpkgs-fmt $CONFIG_DIR; fi
         
-        # Git Tracking (Secure Stealth Logic)
+        # Git Tracking (Secure Professional Logic)
         cd $CONFIG_DIR
         
-        # 1. Force-stage secrets so Nix can evaluate them
-        git add -f hosts/msi-modern14c7m/variables.nix &> /dev/null || true
-        git add --all &> /dev/null || true
+        # 1. Mark secrets as 'intent-to-add' so Nix can see them
+        # This makes the file 'tracked' but not 'staged' for commit
+        git add -N hosts/msi-modern14c7m/variables.nix &> /dev/null || true
         
-        # 2. Commit everything EXCEPT the secrets file to keep history clean
-        GEN=$(nixos-rebuild list-generations | grep current | awk '{print $1}')
-        git commit -m "System Update - Generation $GEN - $(date '+%Y-%m-%d %H:%M')" \
-            -- flake.nix flake.lock hosts/msi-modern14c7m/variables.nix.example modules/ README.md .gitignore || true
+        # 2. Stage everything else (respecting .gitignore)
+        git add . &> /dev/null || true
         
-        # 3. Execute Rebuild
-        sudo nixos-rebuild switch --flake $CONFIG_DIR#$HOSTNAME --no-reexec || {
-            git reset hosts/msi-modern14c7m/variables.nix &> /dev/null || true
-            error "Rebuild process failed."
-        }
+        # 3. Commit only the staged files
+        GEN=$(nixos-rebuild list-generations | grep current | awk '{print $1}' || echo "N/A")
+        git commit -m "System Update - Generation $GEN - $(date '+%Y-%m-%d %H:%M')" || true
         
-        # 4. Immediately unstage secrets so they are never pushed
-        git reset hosts/msi-modern14c7m/variables.nix &> /dev/null || true
+        # 4. Execute Rebuild
+        sudo nixos-rebuild switch --flake $CONFIG_DIR#$HOSTNAME --no-reexec || error "Rebuild process failed."
         
         # Auto-Push to GitHub
         if git remote | grep -q "origin"; then
