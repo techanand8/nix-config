@@ -167,6 +167,83 @@
   programs.ambxst.enable = true;
   programs.zsh.enable = true;
 
+  # --- FHS, NIX-LD, & ENVIRONMENT SCRIPTS SUPPORT ---
+  # Enable envfs to dynamically resolve shebangs like #!/bin/bash, #!/usr/bin/env, etc.
+  services.envfs.enable = true;
+
+  # Create physical shell symlinks for Zsh & Bash to ensure absolute shebang safety across standard/legacy scripts
+  system.activationScripts.shell-symlinks = {
+    text = ''
+      mkdir -p /bin /usr/bin
+      ln -sf ${pkgs.bash}/bin/bash /bin/bash
+      ln -sf ${pkgs.bash}/bin/bash /usr/bin/bash
+      ln -sf ${pkgs.zsh}/bin/zsh /bin/zsh
+      ln -sf ${pkgs.zsh}/bin/zsh /usr/bin/zsh
+    '';
+    deps = [ ];
+  };
+
+  # Enable nix-ld to run unpatched dynamic binaries
+  programs.nix-ld = {
+    enable = true;
+    libraries = with pkgs; [
+      # Core/System
+      stdenv.cc.cc
+      zlib
+      zstd
+      curl
+      openssl
+      attr
+      libssh
+      bzip2
+      libxml2
+      acl
+      libsodium
+      util-linux
+      xz
+      systemd
+      libuuid
+      libusb1
+
+      # Graphics & Windowing
+      xorg.libX11
+      xorg.libXcomposite
+      xorg.libXdamage
+      xorg.libXext
+      xorg.libXfixes
+      xorg.libXi
+      xorg.libXrandr
+      xorg.libXrender
+      xorg.libXtst
+      xorg.libxcb
+      xorg.libICE
+      xorg.libSM
+      xorg.libxshmfence
+      xorg.libxkbfile
+      libGL
+      libva
+      mesa
+      libxkbcommon
+      libdrm
+
+      # General Desktop / Audio / Fonts
+      glib
+      gtk3
+      pango
+      cairo
+      atk
+      gdk-pixbuf
+      fontconfig
+      freetype
+      dbus
+      alsa-lib
+      expat
+      pipewire
+      nspr
+      nss
+    ];
+  };
+
   # Allow Unfree
   nixpkgs.config.allowUnfree = true;
 
