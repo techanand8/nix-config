@@ -30,9 +30,34 @@
   boot.tmp.useTmpfs = true;
   boot.tmp.tmpfsSize = "50%"; # Use up to 50% of RAM
 
-  # Bootloader
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.systemd-boot.configurationLimit = 10;
+  # --- BOOTLOADER (Limine - The Pro Choice) ---
+  boot.loader.systemd-boot.enable = false;
+  boot.loader.limine = {
+    enable = true;
+    maxGenerations = 10;
+    enableEditor = false;
+
+    style = {
+      # Adding your Anime image as the background!
+      wallpapers = [ ../../modules/system/plymouth/boot_wallpaper.jpg ];
+      interface = {
+        brandingColor = "39FF14"; # Neon Green Branding
+      };
+    };
+
+    # Custom palette adjusted for the background image
+    extraConfig = ''
+      # Neon Green highlight for the selected entry
+      MENU_TEXT_SELECT_BACK_COLOR=39FF14
+      MENU_TEXT_SELECT_COLOR=000000
+      
+      # Maroon for the rest of the text
+      MENU_TEXT_COLOR=800000
+      
+      # Background color for areas not covered by the image
+      MENU_BACK_COLOR=000000
+    '';
+  };
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest-x86_64-v3;
 
