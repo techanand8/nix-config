@@ -30,6 +30,9 @@
       # Dynamically inject local bin and Cargo bin into shell path
       export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
 
+      # Dynamically load Nix-LD library path to run unpatched pipx/python/binary executables immediately
+      export NIX_LD_LIBRARY_PATH="/run/current-system/sw/share/nix-ld/lib"
+
       source ${pkgs.zsh-fzf-tab}/share/fzf-tab/fzf-tab.zsh
       
       # Pro CD function with auto-ls and zoxide fallback
