@@ -178,12 +178,9 @@
     '';
   };
 
-  # Premium Modern Material Cursor Theme
-  home.pointerCursor = {
-    gtk.enable = true;
-    x11.enable = true;
-    package = pkgs.bibata-cursors;
-    name = "Bibata-Modern-Classic";
-    size = 24;
-  };
+  # Install Bibata Cursors package locally so they can be loaded by Hyprland envs,
+  # but without setting home.pointerCursor globally (so KDE stays untouched).
+  home.packages = [
+    pkgs.bibata-cursors
+  ];
 }
