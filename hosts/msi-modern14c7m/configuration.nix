@@ -172,6 +172,8 @@
     vmware-workstation
     distrobox
     xhost
+    usbutils
+    ripgrep
 
     # --- SECURE VPN & CORPORATE NETWORK CONNECTIVITY ---
     openconnect # Cisco AnyConnect, GlobalProtect, Fortinet CLI client
