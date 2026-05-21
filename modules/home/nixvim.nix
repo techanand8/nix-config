@@ -124,6 +124,10 @@
           settings = {
             nixpkgs.expr = "import <nixpkgs> { }";
             formatting.command = [ "nixpkgs-fmt" ];
+            options = {
+              nixos.expr = "(builtins.getFlake \"$HOME/nix-config\").nixosConfigurations.msi-modern14c7m.options";
+              home_manager.expr = "(builtins.getFlake \"$HOME/nix-config\").nixosConfigurations.msi-modern14c7m.options.home-manager.users.value.mayank-anand";
+            };
           };
         };
         pyright.enable = true;

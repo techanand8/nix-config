@@ -73,12 +73,16 @@ let
         # Format code
         if command -v nixpkgs-fmt &> /dev/null; then nixpkgs-fmt $CONFIG_DIR; fi
         
-        # Git Tracking
+        # Git Tracking (Secure God-Mode Logic)
         cd $CONFIG_DIR
-        git add .
-        GEN=$(nixos-rebuild list-generations | grep current | awk '{print $1}')
-        git commit -m "System Update - Generation $GEN - $(date '+%Y-%m-%d %H:%M')" || true
+        # 1. Track everything so Nix can see it (required for Flakes)
+        git add --all
         
+        # 2. Commit everything EXCEPT the secrets file
+        GEN=$(nixos-rebuild list-generations | grep current | awk '{print $1}')
+        git commit -m "System Update - Generation $GEN - $(date '+%Y-%m-%d %H:%M')" -- hosts/msi-modern14c7m/variables.nix.example modules/ .gitignore flake.nix flake.lock README.md || true
+        
+        # 3. Apply Rebuild
         sudo nixos-rebuild switch --flake $CONFIG_DIR#$HOSTNAME --no-reexec || error "Rebuild process failed."
         
         # Auto-Push to GitHub (Professional Automation)
