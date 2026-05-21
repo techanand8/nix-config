@@ -20,7 +20,7 @@
     surelog # SystemVerilog compiler/elaborator (Full UVM & SV parser support)
     nvc # High-performance VHDL compiler & simulator
     xschem # Schematic capture for VLSI & mixed-signal designs
-    netgen # LVS (Layout Vs Schematic) verification tool
+    # netgen # LVS (Layout Vs Schematic) verification tool (Temporarily disabled due to upstream Python 3.13 pybind11 compile bug)
     svls # SystemVerilog Language Server
     svlint # SystemVerilog linter
     verible # Google's SystemVerilog developer tools (linter/formatter)
