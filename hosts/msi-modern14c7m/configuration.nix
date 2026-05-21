@@ -15,6 +15,16 @@
   services.fstrim.enable = true;
   zramSwap.enable = true; # High-speed compressed RAM swap
   services.power-profiles-daemon.enable = true; # Best power management for Plasma 6
+  services.irqbalance.enable = true; # Distribute hardware interrupts across cores
+  services.fwupd.enable = true; # Enable firmware updates (BIOS, SSD, etc.)
+
+  # Btrfs Maintenance (Prevent bit-rot)
+  services.btrfs.autoScrub.enable = true;
+  services.btrfs.autoScrub.interval = "monthly";
+
+  # Prevent log files from growing indefinitely
+  services.journald.extraConfig = "SystemMaxUse=100M";
+
   # Use RAM for /tmp to speed up rebuilds and save SSD
   boot.tmp.useTmpfs = true;
   boot.tmp.tmpfsSize = "50%"; # Use up to 50% of RAM
@@ -23,7 +33,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.systemd-boot.configurationLimit = 10;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest-x86_64-v3;
 
   # LUKS Encryption (DO NOT CHANGE)
   boot.initrd.luks.devices."luks-6a6e61c8-3a4f-4223-9a31-47a2c6368b03".device = "/dev/disk/by-uuid/6a6e61c8-3a4f-4223-9a31-47a2c6368b03";
@@ -93,7 +103,8 @@
     defaultNetwork.settings.dns_enabled = true;
   };
 
-  # Bluetooth Support
+  # Firmware & Bluetooth Support
+  hardware.enableRedistributableFirmware = true;
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
   hardware.bluetooth.settings = {
@@ -127,8 +138,18 @@
     deps = [ ];
   };
 
-  # Performance tweak for VMware
-  boot.kernelParams = [ "transparent_hugepage=never" "btusb.enable_autosuspend=0" ];
+  # Performance tweak for VMware and VLSI workloads
+  # amd_pstate=active enables hardware-controlled frequency scaling for Ryzen
+  boot.kernelParams = [
+    "transparent_hugepage=never"
+    "btusb.enable_autosuspend=0"
+    "amd_pstate=active"
+  ];
+
+  # Enable the sched-ext framework (CachyOS specialty)
+  # scx_lavd is excellent for interactive smoothness on laptops
+  services.scx.enable = true;
+  services.scx.scheduler = "scx_lavd";
 
   # Users
   users.users."${vars.username}" = {
@@ -144,14 +165,23 @@
   nix.settings = {
     experimental-features = [ "nix-command" "flakes" ];
     auto-optimise-store = true;
+
+    # Allows root, users in the 'wheel' group, and your specific user to specify custom binary caches/substituters
+    trusted-users = [ "root" "@wheel" "${vars.username}" ];
+
     substituters = [
+      "https://cache.nixos.org"
       "https://hyprland.cachix.org"
       "https://nix-community.cachix.org"
-      "https://cache.nixos.org"
+      "https://cache.garnix.io"
+      "https://attic.xuyh0120.win/lantian"
     ];
     trusted-public-keys = [
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
+      "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
     ];
   };
 

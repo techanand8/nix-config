@@ -27,4 +27,16 @@
       };
     };
   };
+
+  # Modern diff viewer for Verilog/VHDL code reviews
+  programs.delta = {
+    enable = true;
+    enableGitIntegration = true;
+    options = {
+      navigate = true;
+      line-numbers = true;
+      side-by-side = true;
+      syntax-theme = "base16-256"; # Clean terminal theme
+    };
+  };
 }

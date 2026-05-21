@@ -24,9 +24,12 @@
       url = "github:nix-community/nixvim";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Official community CachyOS kernel inputs
+    nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
   };
 
-  outputs = { self, nixpkgs, home-manager, nixos-hardware, hyprland, ambxst, nixvim, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, nixos-hardware, hyprland, ambxst, nixvim, nix-cachyos-kernel, ... }@inputs:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
@@ -36,6 +39,10 @@
       nixosConfigurations.msi-modern14c7m = nixpkgs.lib.nixosSystem {
         specialArgs = { inherit inputs vars; };
         modules = [
+          { nixpkgs.hostPlatform = system; }
+          # Setup the default CachyOS package overlays
+          { nixpkgs.overlays = [ inputs.nix-cachyos-kernel.overlays.pinned ]; }
+
           ./hosts/msi-modern14c7m/configuration.nix
           nixos-hardware.nixosModules.common-cpu-amd
           nixos-hardware.nixosModules.common-gpu-amd
