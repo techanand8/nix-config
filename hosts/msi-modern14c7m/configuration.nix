@@ -8,6 +8,7 @@
     ../../modules/system/scripts.nix
     ../../modules/system/xppen.nix
     ../../modules/system/fonts.nix
+    ../../modules/system/vivado.nix
   ];
 
   # --- SYSTEM OPTIMIZATIONS ---

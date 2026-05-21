@@ -75,6 +75,7 @@ let
         echo -e "    ''${C_WHITE}edit''${NC}      ''${C_MUTED}❯''${NC} Open workstation Nix configuration in Neovim"
         echo -e "    ''${C_WHITE}search''${NC}    ''${C_MUTED}❯''${NC} Efficiently query Nixpkgs software registry"
         echo -e "    ''${C_WHITE}shell''${NC}     ''${C_MUTED}❯''${NC} Initialize isolated, ephemeral package environments"
+        echo -e "    ''${C_WHITE}vivado''${NC}    ''${C_MUTED}❯''${NC} Initialize or enter AMD Vivado Ubuntu environment"
         echo -e ""
         echo -e "  ''${C_MUTED}──────────────────────────────────────────────────────────────────────''${NC}"
         echo -e "  ''${C_HIGHLIGHT}󰌢  Type 'man mayank' to access the custom system manual page.''${NC}"
@@ -177,6 +178,41 @@ let
         sudo nixos-rebuild switch --flake $CONFIG_DIR#$HOSTNAME --rollback
         ;;
 
+      vivado)
+        log "Initializing AMD Vivado development container..."
+        
+        # 1. Check if podman or docker is available
+        if ! command -v podman &> /dev/null && ! command -v docker &> /dev/null; then
+            error "No container engine found! Please make sure Podman or Docker is enabled."
+        fi
+
+        # 2. Allow container to access local display (GUI)
+        if command -v xhost &> /dev/null; then
+            xhost +local: &> /dev/null || true
+        fi
+
+        # 3. Create or enter the Ubuntu 22.04 container specifically for Vivado
+        if ! distrobox list | grep -q "vivado-box"; then
+            info "Vivado environment 'vivado-box' not detected."
+            info "Creating a standard, high-compatibility Ubuntu 22.04 Distrobox container..."
+            
+            # Create the container
+            distrobox create --name vivado-box --image ubuntu:22.04 --yes || error "Failed to create 'vivado-box' container."
+            
+            success "Vivado environment 'vivado-box' created successfully!"
+            info "=========================================================================="
+            info "To install and run Vivado, follow these quick steps:"
+            info "  1. Enter the container:  mayank vivado"
+            info "  2. Update and install standard GUI libs inside the container:"
+            info "     sudo apt update && sudo apt install -y libtinfo5 libxrender1 libxtst6 libxi6"
+            info "  3. Run your Vivado installer binary inside the container!"
+            info "=========================================================================="
+        else
+            log "Entering 'vivado-box' container... (Type 'exit' to return to NixOS)"
+            distrobox enter vivado-box
+        fi
+        ;;
+
       *)
         error "Unknown command: $1. Type 'mayank' for usage information."
         ;;
@@ -230,6 +266,10 @@ let
     .B shell [packages]
     Opens an isolated, ephemeral shell containing the requested packages without 
     permanent installation.
+    .TP
+    .B vivado
+    Initializes or enters the high-compatibility Ubuntu 22.04 environment (via Distrobox) 
+    specially optimized for AMD/Xilinx Vivado VLSI and hardware JTAG programming cables.
     .SH FILES
     .I ~/nix-config
     The primary directory for the NixOS flake configuration.
