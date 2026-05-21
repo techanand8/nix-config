@@ -25,7 +25,7 @@
     svlint # SystemVerilog linter
     verible # Google's SystemVerilog developer tools (linter/formatter)
     veryl # Modern hardware design language (SV alternative)
-    symbiyosys # Front-end driver for Yosys-based formal verification
+    sby # Front-end driver for Yosys-based formal verification (formerly symbiyosys)
     wavedrom # Digital waveform generator & renderer
   ];
 }
