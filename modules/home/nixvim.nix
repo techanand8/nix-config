@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, vars, ... }:
 
 {
   programs.nixvim = {
@@ -78,7 +78,7 @@
             { action = "Telescope find_files"; desc = " Find File"; icon = " "; key = "f"; }
             { action = "Telescope oldfiles"; desc = " Recent Files"; icon = " "; key = "r"; }
             { action = "Telescope live_grep"; desc = " Find Text"; icon = " "; key = "g"; }
-            { action = "e $HOME/nix-config/modules/home/nixvim.nix"; desc = " Config"; icon = " "; key = "c"; }
+            { action = "e /home/${vars.username}/nix-config/modules/home/nixvim.nix"; desc = " Config"; icon = " "; key = "c"; }
             { action = "qa"; desc = " Quit"; icon = " "; key = "q"; }
           ];
           footer = [ "Engineered with Precision by Mayank Anand" ];
@@ -115,7 +115,7 @@
       enable = true;
       servers = {
         verible.enable = true;
-        svlangserver.enable = true;
+        svls.enable = true;
         vhdl_ls.enable = true;
         clangd.enable = true;
         asm_lsp.enable = true;

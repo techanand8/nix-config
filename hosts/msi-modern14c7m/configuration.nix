@@ -1,8 +1,5 @@
-{ config, pkgs, inputs, ... }:
+{ config, pkgs, inputs, vars, ... }:
 
-let
-  vars = import ./variables.nix;
-in
 {
   imports = [
     ./hardware-configuration.nix
@@ -114,8 +111,8 @@ in
   # Fix nix-config permissions permanently (Root Level)
   system.activationScripts.fix-nix-config-perms = {
     text = ''
-      chown -R mayank-anand:users /home/mayank-anand/nix-config
-      chmod -R u+rw /home/mayank-anand/nix-config
+      chown -R ${vars.username}:users /home/${vars.username}/nix-config
+      chmod -R u+rw /home/${vars.username}/nix-config
     '';
     deps = [ ];
   };

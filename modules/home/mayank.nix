@@ -1,8 +1,5 @@
-{ config, pkgs, ... }:
+{ config, pkgs, vars, ... }:
 
-let
-  vars = import ../../hosts/msi-modern14c7m/variables.nix;
-in
 {
   # =========================================================================
   # MAIN USER HUB (mayank.nix)

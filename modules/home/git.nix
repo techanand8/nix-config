@@ -1,17 +1,27 @@
-{ config, pkgs, ... }:
+{ config, pkgs, vars, ... }:
 
-let
-  vars = import ../../hosts/msi-modern14c7m/variables.nix;
-in
 {
   # Professional Git Configuration
   programs.git = {
     enable = true;
-    settings = {
-      user = {
-        name = vars.fullName;
-        email = vars.email;
-      };
+    userName = vars.fullName;
+    userEmail = vars.email;
+
+    extraConfig = {
+      init.defaultBranch = "main";
+      push.autoSetupRemote = true;
+      pull.rebase = true;
+      core.editor = "nvim";
+    };
+
+    aliases = {
+      st = "status";
+      co = "checkout";
+      br = "branch";
+      cm = "commit";
+      ps = "push";
+      pl = "pull";
+      lg = "log --oneline --graph --decorate";
     };
   };
 }

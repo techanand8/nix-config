@@ -30,10 +30,11 @@
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
+      vars = import ./hosts/msi-modern14c7m/variables.nix;
     in
     {
       nixosConfigurations.msi-modern14c7m = nixpkgs.lib.nixosSystem {
-        specialArgs = { inherit inputs; };
+        specialArgs = { inherit inputs vars; };
         modules = [
           ./hosts/msi-modern14c7m/configuration.nix
           nixos-hardware.nixosModules.common-cpu-amd
@@ -45,8 +46,8 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.extraSpecialArgs = { inherit inputs; };
-            home-manager.users."mayank-anand" = {
+            home-manager.extraSpecialArgs = { inherit inputs vars; };
+            home-manager.users."${vars.username}" = {
               imports = [
                 nixvim.homeModules.nixvim
                 ./modules/home/mayank.nix

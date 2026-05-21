@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, vars, ... }:
 
 {
   # Basic programs
@@ -15,12 +15,15 @@
 
     oh-my-zsh = {
       enable = true;
-      plugins = [ "git" "sudo" ];
+      plugins = [ "git" "sudo" "docker" "extract" ];
+      theme = "robbyrussell"; # Starship will override this anyway
     };
 
     # Smart completion and CD functions
     initContent = ''
       source ${pkgs.zsh-fzf-tab}/share/fzf-tab/fzf-tab.zsh
+      
+      # Pro CD function with auto-ls and zoxide fallback
       function cd() {
         if [[ "$#" -eq 0 ]]; then
           builtin cd ~ && pwd

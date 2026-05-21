@@ -78,7 +78,7 @@ let
         
         # 1. Mark secrets as 'intent-to-add' so Nix can see them
         # This makes the file 'tracked' but not 'staged' for commit
-        git add -N hosts/msi-modern14c7m/variables.nix &> /dev/null || true
+        git add -N -f hosts/msi-modern14c7m/variables.nix &> /dev/null || true
         
         # 2. Stage everything else (respecting .gitignore)
         git add . &> /dev/null || true

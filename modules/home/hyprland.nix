@@ -22,6 +22,8 @@
       dofile(ambxst_core)
 
       -- 5. Local Modular Overrides
+      dofile(config_dir .. "/hyprland/env.lua")
+      dofile(config_dir .. "/hyprland/input.lua")
       dofile(config_dir .. "/hyprland/execs.lua")
       dofile(config_dir .. "/hyprland/general.lua")
       dofile(config_dir .. "/hyprland/rules.lua")
@@ -29,6 +31,35 @@
     '';
 
     # 2. Modular Files
+    "hypr/hyprland/input.lua".text = ''
+      -- ############ PROFESSIONAL INPUT & TOUCHPAD ############
+      hl.config({
+          input = {
+              kb_layout = "us",
+              follow_mouse = 1,
+              sensitivity = 0,
+              
+              -- Professional typing experience
+              off_window_axis_events = 1,
+              
+              touchpad = {
+                  natural_scroll = true,
+                  disable_while_typing = true,
+                  tap-to-click = true,
+                  clickfinger_behavior = true,
+                  scroll_factor = 0.5,
+              },
+          },
+          
+          -- Cursor behavior
+          cursor = {
+              no_hardware_cursors = false,
+              no_break_fs_vrr = false,
+              min_refresh_rate = 60,
+          },
+      })
+    '';
+
     "hypr/hyprland/env.lua".text = ''
       local home_dir = os.getenv("HOME")
       hl.env("XCURSOR_SIZE", "24")

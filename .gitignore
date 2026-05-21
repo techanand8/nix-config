@@ -1,5 +1,5 @@
 # --- SECRETS & PERSONAL INFO ---
-# This hides your real name, email, and private paths
+# This hides mine real name, email, and private paths
 hosts/msi-modern14c7m/variables.nix
 .local/bin/sync_ghostty.sh
 
