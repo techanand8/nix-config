@@ -96,6 +96,11 @@
   # Bluetooth Support
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
+  hardware.bluetooth.settings = {
+    General = {
+      AutoEnable = true;
+    };
+  };
   services.blueman.enable = true;
 
   # Flatpak & KDE Connect
