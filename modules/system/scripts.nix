@@ -111,7 +111,7 @@ let
         git add . &> /dev/null || true
         
         # 3. Commit only the staged files
-        GEN=$(nixos-rebuild list-generations | grep current | awk '{print $1}' || echo "N/A")
+        GEN=$(sudo nixos-rebuild list-generations | grep current | awk '{print $1}' || echo "N/A")
         git commit -m "System Update - Generation $GEN - $(date '+%Y-%m-%d %H:%M')" || true
         
         # 4. Execute Rebuild

@@ -31,15 +31,15 @@
 
   outputs = { self, nixpkgs, home-manager, nixos-hardware, hyprland, ambxst, nixvim, nix-cachyos-kernel, ... }@inputs:
     let
-      system = "x86_64-linux";
+      hostPlatform = "x86_64-linux";
       vars = import ./hosts/msi-modern14c7m/variables.nix;
     in
     {
       nixosConfigurations.msi-modern14c7m = nixpkgs.lib.nixosSystem {
-        specialArgs = { inherit inputs vars system; };
+        specialArgs = { inherit inputs vars hostPlatform; };
         modules = [
           {
-            nixpkgs.hostPlatform = system;
+            nixpkgs.hostPlatform = hostPlatform;
             nixpkgs.config.allowUnfree = true;
             nixpkgs.overlays = [ inputs.nix-cachyos-kernel.overlays.pinned ];
           }
@@ -54,7 +54,7 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.backupFileExtension = "bak";
-            home-manager.extraSpecialArgs = { inherit inputs vars; };
+            home-manager.extraSpecialArgs = { inherit inputs vars hostPlatform; };
             home-manager.users."${vars.username}" = {
               imports = [
                 nixvim.homeModules.nixvim

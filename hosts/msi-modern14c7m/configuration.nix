@@ -40,39 +40,27 @@
     # Ensures it works even on laptops with "forgetful" UEFI entries
     efiInstallAsRemovable = true;
 
+    # Framebuffer resolution for early boot/Linux GOP graphical handoff (ensures high-res Plymouth)
+    resolution = "1920x1080";
+
     style = {
       # Adding your Anime image as the background!
       wallpapers = [ ../../modules/system/plymouth/boot_wallpaper.jpg ];
       wallpaperStyle = "stretched";
+      backdrop = "000000"; # Black backdrop for centered/tiled cases
+
+      interface = {
+        resolution = "1920x1080"; # High-definition graphical mode for the menu interface
+        branding = "MAYANK NIXOS";
+        brandingColor = "39FF14"; # Neon green accent
+        helpColor = "39FF14"; # Neon green help text
+      };
+
+      graphicalTerminal = {
+        foreground = "39FF14"; # Neon green terminal text
+        background = "80000000"; # Semi-transparent black terminal backdrop (80% opacity)
+      };
     };
-
-    # Custom palette and graphics settings
-    extraConfig = ''
-      # Force graphics mode for wallpaper support
-      GRAPHICS=yes
-      INTERFACE_RESOLUTION=1920x1080
-      
-      # Branding
-      INTERFACE_BRANDING=MAYANK NIXOS
-      INTERFACE_BRANDING_COLOUR=39FF14
-      
-      # Selection highlight
-      MENU_TEXT_SELECT_BACK_COLOUR=39FF14
-      MENU_TEXT_SELECT_COLOUR=000000
-      
-      # Standard text (Maroon)
-      MENU_TEXT_COLOUR=800000
-      
-      # Help text at the bottom
-      INTERFACE_HELP_COLOUR=39FF14
-      
-      # Background color (black)
-      BACKDROP=000000
-
-      # Terminal styling (Semi-transparent black)
-      TERM_FOREGROUND=39FF14
-      TERM_BACKGROUND=80000000
-    '';
   };
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest-x86_64-v3;
