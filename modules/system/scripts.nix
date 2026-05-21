@@ -205,10 +205,12 @@ let
             info "  1. Enter the container:  mayank vivado"
             info "  2. Update and install standard GUI libs inside the container:"
             info "     sudo apt update && sudo apt install -y libtinfo5 libxrender1 libxtst6 libxi6"
-            info "  3. Run your Vivado installer binary inside the container!"
+            info "  3. Run your Vivado installer binary inside the container:"
+            info "     _JAVA_AWT_WM_NONREPARENTING=1 ./FPGAs_AdaptiveSoCs_Unified_SDI_2025.2_1114_2157_Lin64.bin"
             info "=========================================================================="
         else
             log "Entering 'vivado-box' container... (Type 'exit' to return to NixOS)"
+            export _JAVA_AWT_WM_NONREPARENTING=1
             distrobox enter vivado-box
         fi
         ;;
