@@ -12,47 +12,73 @@ let
     HOSTNAME="msi-modern14c7m"
     EDITOR="nvim"
 
-    # Colors for output
-    GREEN='\033[0;32m'
-    BLUE='\033[0;34m'
+    # Elite Theme Colors (256-color & truecolor supported terminals like Ghostty/Kitty)
+    C_PRIMARY='\033[38;5;208m'   # Coral Orange
+    C_SECONDARY='\033[38;5;99m'  # Royal Soft Purple
+    C_HIGHLIGHT='\033[38;5;43m'  # Vibrant Teal
+    C_SUCCESS='\033[38;5;76m'    # Emerald Green
+    C_MUTED='\033[38;5;244m'     # Dim Grey
+    C_WHITE='\033[1;37m'         # Bright White
+    C_GOLD='\033[38;5;220m'      # Warm Gold
+    
+    # Base UI Colors (compat for older shell functions)
+    GREEN='\033[1;32m'
+    BLUE='\033[1;34m'
     YELLOW='\033[1;33m'
-    RED='\033[0;31m'
-    MAGENTA='\033[0;35m'
-    CYAN='\033[0;36m'
-    NC='\033[0m' # No Color
+    RED='\033[1;31m'
+    MAGENTA='\033[1;35m'
+    CYAN='\033[1;36m'
+    NC='\033[0m'
 
-    function log() { echo -e "''${BLUE}[SYSTEM]''${NC} $1"; }
-    function error() { echo -e "''${RED}[ERROR]''${NC} $1"; exit 1; }
-    function success() { echo -e "''${GREEN}[SUCCESS]''${NC} $1"; }
-    function info() { echo -e "''${MAGENTA}[INFO]''${NC} $1"; }
+    function log() { echo -e "''${C_SECONDARY}󰣚  [SYSTEM]''${NC} $1"; }
+    function error() { echo -e "''${RED}󰅚  [ERROR]''${NC} $1"; exit 1; }
+    function success() { echo -e "''${C_SUCCESS}󰄬  [SUCCESS]''${NC} $1"; }
+    function info() { echo -e "''${C_HIGHLIGHT}󰌢  [INFO]''${NC} $1"; }
 
     # Help Menu Function
     function show_help() {
-        echo -e "''${BLUE}󱄅''${NC}  ''${YELLOW}MAYANK ANAND''${NC} | ''${CYAN}PROFESSIONAL WORKSTATION''${NC}"
-        echo -e "''${BLUE}󰌢''${NC}  ''${BLUE}$HOSTNAME''${NC} | ''${MAGENTA}  NixOS Unstable''${NC}"
-        echo -e "''${YELLOW}──────────────────────────────────────────────────''${NC}"
-        echo -e "''${GREEN}󰓅''${NC}  System Uptime: $(uptime -p | sed 's/up //')"
-        echo -e "''${BLUE}󰣚''${NC}  Kernel: $(uname -r)"
-        echo ""
-        echo "Usage: mayank [command]"
-        echo "       mayank --help"
-        echo ""
-        echo -e "''${BLUE}CONFIGURATION:''${NC}"
-        echo "  rebuild   - Apply system changes and auto-record to Git"
-        echo "  update    - Synchronize flake inputs and rebuild system"
-        echo "  rollback  - Instantly revert to the previous generation"
-        echo "  history   - View detailed list of system generations"
-        echo ""
-        echo -e "''${BLUE}MAINTENANCE:''${NC}"
-        echo "  clean     - Deep scrub: GC, store optimize, legacy removal"
-        echo "  check     - Validate configuration health and syntax"
-        echo ""
-        echo -e "''${BLUE}UTILITIES:''${NC}"
-        echo "  edit      - Open configuration in Neovim editor"
-        echo "  search    - Search the Nixpkgs registry for software"
-        echo "  shell     - Open an isolated development environment"
-        echo ""
-        echo "Type 'man mayank' for full system documentation."
+        # Calculate uptime reliably without relying on uptime -p
+        local uptime_all=$(cat /proc/uptime)
+        local uptime_seconds=''${uptime_all%%.*}
+        local days=$((uptime_seconds / 86400))
+        local hours=$(( (uptime_seconds % 86400) / 3600 ))
+        local mins=$(( (uptime_seconds % 3600) / 60 ))
+        local uptime_str=""
+        if [ ''$days -gt 0 ]; then
+            uptime_str+="''$days""d "
+        fi
+        if [ ''$hours -gt 0 ]; then
+            uptime_str+="''$hours""h "
+        fi
+        uptime_str+="''$mins""m"
+
+        echo -e ""
+        echo -e "  ''${C_PRIMARY}󱄅''${NC}  ''${C_WHITE}M A Y A N K   A N A N D''${NC}  ''${C_MUTED}│''${NC}  ''${C_SECONDARY}''${NC}  ''${C_GOLD}ELITE NIXOS WORKSTATION''${NC}"
+        echo -e "  ''${C_MUTED}──────────────────────────────────────────────────────────────────────''${NC}"
+        echo -e "  ''${C_HIGHLIGHT}  Host:''${NC} ''${C_WHITE}''$HOSTNAME''${NC}         ''${C_HIGHLIGHT}󰓅  Uptime:''${NC} ''${C_WHITE}''$uptime_str''${NC}"
+        echo -e "  ''${C_HIGHLIGHT}󰣚  Kernel:''${NC} ''${C_WHITE}''$(uname -r)''${NC}       ''${C_HIGHLIGHT}  Status:''${NC} ''${C_SUCCESS}Online''${NC}"
+        echo -e "  ''${C_MUTED}──────────────────────────────────────────────────────────────────────''${NC}"
+        echo -e ""
+        echo -e "  ''${C_SECONDARY}Usage:''${NC} ''${C_WHITE}mayank''${NC} ''${C_GOLD}<command>''${NC}"
+        echo -e ""
+        echo -e "  ''${C_PRIMARY}󰓅  CONFIGURATION MANAGEMENT''${NC}"
+        echo -e "    ''${C_WHITE}rebuild''${NC}   ''${C_MUTED}❯''${NC} Apply system adjustments & record generation to Git"
+        echo -e "    ''${C_WHITE}update''${NC}    ''${C_MUTED}❯''${NC} Perform flake input upgrade & full system build"
+        echo -e "    ''${C_WHITE}rollback''${NC}  ''${C_MUTED}❯''${NC} Instantly revert system to previous successful generation"
+        echo -e "    ''${C_WHITE}history''${NC}   ''${C_MUTED}❯''${NC} List detailed chronological system generations"
+        echo -e ""
+        echo -e "  ''${C_PRIMARY}󰌢  MAINTENANCE & SECURITY''${NC}"
+        echo -e "    ''${C_WHITE}clean''${NC}     ''${C_MUTED}❯''${NC} Perform deep garbage collection & Nix store hard-linking"
+        echo -e "    ''${C_WHITE}check''${NC}     ''${C_MUTED}❯''${NC} Audit syntactical health and config integrity"
+        echo -e ""
+        echo -e "  ''${C_PRIMARY}󰣚  DEVELOPMENT UTILITIES''${NC}"
+        echo -e "    ''${C_WHITE}edit''${NC}      ''${C_MUTED}❯''${NC} Open workstation Nix configuration in Neovim"
+        echo -e "    ''${C_WHITE}search''${NC}    ''${C_MUTED}❯''${NC} Efficiently query Nixpkgs software registry"
+        echo -e "    ''${C_WHITE}shell''${NC}     ''${C_MUTED}❯''${NC} Initialize isolated, ephemeral package environments"
+        echo -e ""
+        echo -e "  ''${C_MUTED}──────────────────────────────────────────────────────────────────────''${NC}"
+        echo -e "  ''${C_HIGHLIGHT}󰌢  Type 'man mayank' to access the custom system manual page.''${NC}"
+        echo -e ""
     }
 
     # Ensure Git is initialized in the config dir
