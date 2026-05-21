@@ -85,6 +85,7 @@
           hl.exec_cmd("systemctl --user start hyprpolkitagent")
           hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
           hl.exec_cmd("bash $HOME/.local/bin/sync_ghostty.sh")
+          hl.exec_cmd("hyprctl keyword windowrule 'dimaround, hyprpolkitagent'")
           hl.exec_cmd("sleep 5 && distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/xic/xic &")
       end)
     '';
@@ -153,7 +154,6 @@
       hl.window_rule({ match = { class = "hyprpolkitagent" }, stay_focused = true })
       hl.window_rule({ match = { class = "hyprpolkitagent" }, border_size = 2 })
       hl.window_rule({ match = { class = "hyprpolkitagent" }, rounding = 16 })
-      hl.window_rule({ match = { class = "hyprpolkitagent" }, dimaround = true })
       
       -- Force Polkit to use ambxst active border color dynamically
       hl.window_rule({ match = { class = "hyprpolkitagent" }, no_shadow = false })
