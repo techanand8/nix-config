@@ -186,6 +186,9 @@ let
     Performs a deep system maintenance cycle: removes old generations (keeps last 3), 
     collects garbage, and optimizes the Nix store to reclaim disk space.
     .TP
+    .B check
+    Validates the configuration health, integrity, and syntax correctness.
+    .TP
     .B rollback
     Instantly reverts the system to the previous working generation.
     .TP
