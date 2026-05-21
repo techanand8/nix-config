@@ -83,7 +83,6 @@
           hl.exec_cmd("systemctl --user start hyprpolkitagent")
           hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
           hl.exec_cmd("bash $HOME/.local/bin/sync_ghostty.sh")
-          hl.exec_cmd("ambxst")
       end)
     '';
 
