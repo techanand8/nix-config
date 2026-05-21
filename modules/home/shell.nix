@@ -45,6 +45,21 @@
           __zoxide_z "$@" && pwd && ls
         fi
       }
+
+      # Distrobox Safety Guard (Prevents accidental deletion of the Vivado container)
+      function distrobox() {
+        if [[ "$1" == "rm" && "$*" == *"vivado-box"* ]]; then
+          echo -e "\033[1;31m󰅚  [CRITICAL WARNING] You are attempting to delete 'vivado-box'!\033[0m"
+          echo -e "\033[1;33m󰌢  Deleting this container will wipe out your entire Vivado installation files.\033[0m"
+          echo -n "Are you absolutely sure? (Type 'YES-DELETE-VIVADO' to confirm): "
+          read confirm
+          if [[ "$confirm" != "YES-DELETE-VIVADO" ]]; then
+            echo -e "\033[1;32m󰄬  Deletion aborted. Your Vivado container is completely safe!\033[0m"
+            return 1
+          fi
+        fi
+        command distrobox "$@"
+      }
     '';
 
     shellAliases = {
@@ -69,25 +84,25 @@
       anipy-cli = "LD_LIBRARY_PATH=/run/current-system/sw/share/nix-ld/lib anipy-cli";
 
       # --- AMD Vivado & Tcl Shell Wrappers ---
-      vivado = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/vivado";
-      vivado-tcl = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/vivado -mode tcl";
+      vivado = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/vivado";
+      vivado-tcl = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/vivado -mode tcl";
 
       # GUI Mode in specific terminals
-      vivado-ghostty = "ghostty -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/vivado";
-      vivado-kitty = "kitty -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/vivado";
-      vivado-xterm = "xterm -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/vivado";
+      vivado-ghostty = "ghostty -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/vivado";
+      vivado-kitty = "kitty -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/vivado";
+      vivado-xterm = "xterm -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/vivado";
 
       # Interactive Tcl Shell in specific terminals
-      vivado-tcl-ghostty = "ghostty -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/vivado -mode tcl";
-      vivado-tcl-kitty = "kitty -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/vivado -mode tcl";
-      vivado-tcl-xterm = "xterm -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/vivado -mode tcl";
+      vivado-tcl-ghostty = "ghostty -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/vivado -mode tcl";
+      vivado-tcl-kitty = "kitty -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/vivado -mode tcl";
+      vivado-tcl-xterm = "xterm -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/vivado -mode tcl";
 
       # --- Vitis, DocNav, XIC & Uninstaller ---
-      vitis = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vitis/2025.2/bin/vitis";
-      vitis-cli = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vitis/2025.2/bin/vitis -mode cli";
-      docnav = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/DocNav/docnav";
-      xic = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/xic/xic";
-      xuninstall = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/xsetup -uninstall";
+      vitis = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vitis/bin/vitis";
+      vitis-cli = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vitis/bin/vitis -mode cli";
+      docnav = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/DocNav/docnav";
+      xic = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/xic/xic";
+      xuninstall = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/xsetup -uninstall";
 
       # --- XP-Pen Tablet Driver Wrappers ---
       xppen = "env QT_QPA_PLATFORM=xcb pentablet";

@@ -10,6 +10,7 @@
     google-chrome
     telegram-desktop
     discord
+    localsend
 
     # --- Multimedia & Creative ---
     vlc

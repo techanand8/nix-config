@@ -212,10 +212,10 @@ let
             # 4. Extract and copy high-res Xilinx icons to host so launchers render beautifully
             mkdir -p $HOME/.local/share/icons/xilinx
             distrobox enter vivado-box -- bash -c "
-                cp -f /tools/Xilinx/Vivado/2025.2/doc/images/vivado_logo.png \$HOME/.local/share/icons/xilinx/vivado.png 2>/dev/null || true
-                cp -f /tools/Xilinx/Vitis/2025.2/doc/images/vitis_logo.png \$HOME/.local/share/icons/xilinx/vitis.png 2>/dev/null || true
-                cp -f /tools/Xilinx/DocNav/images/docnav.png \$HOME/.local/share/icons/xilinx/docnav.png 2>/dev/null || true
-                cp -f /tools/Xilinx/xic/images/xic.png \$HOME/.local/share/icons/xilinx/xic.png 2>/dev/null || true
+                cp -f /tools/Xilinx/2025.2/Vivado/doc/images/vivado_logo.png \$HOME/.local/share/icons/xilinx/vivado.png 2>/dev/null || true
+                cp -f /tools/Xilinx/2025.2/Vitis/doc/images/vitis_logo.png \$HOME/.local/share/icons/xilinx/vitis.png 2>/dev/null || true
+                cp -f /tools/Xilinx/2025.2/DocNav/images/docnav.png \$HOME/.local/share/icons/xilinx/docnav.png 2>/dev/null || true
+                cp -f /tools/Xilinx/2025.2/xic/images/xic.png \$HOME/.local/share/icons/xilinx/xic.png 2>/dev/null || true
             " &> /dev/null || true
 
             log "Entering 'vivado-box' container... (Type 'exit' to return to NixOS)"

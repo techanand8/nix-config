@@ -103,7 +103,11 @@
   programs.kdeconnect.enable = true;
 
   # Firewall Security
-  networking.firewall.enable = true;
+  networking.firewall = {
+    enable = true;
+    allowedTCPPorts = [ 53317 ];
+    allowedUDPPorts = [ 53317 ]; # LocalSend file transfer and discovery
+  };
 
   # PAM Security (Auto-unlock Keyring)
   security.pam.services.login.enableGnomeKeyring = true;

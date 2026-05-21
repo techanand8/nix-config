@@ -37,7 +37,7 @@
       name = "AMD Vivado 2025.2 (GUI)";
       genericName = "FPGA & EDA Design Suite";
       comment = "AMD Xilinx Vivado Design Suite (Standalone)";
-      exec = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/vivado";
+      exec = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/vivado";
       icon = "/home/mayank-anand/.local/share/icons/xilinx/vivado.png";
       terminal = false;
       categories = [ "Development" "Engineering" ];
@@ -48,7 +48,7 @@
       name = "AMD Vivado 2025.2 (Ghostty GUI)";
       genericName = "FPGA & EDA Design Suite";
       comment = "AMD Xilinx Vivado Design Suite in Ghostty Terminal";
-      exec = "ghostty -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/vivado";
+      exec = "ghostty -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/vivado";
       icon = "/home/mayank-anand/.local/share/icons/xilinx/vivado.png";
       terminal = false;
       categories = [ "Development" "Engineering" ];
@@ -59,7 +59,7 @@
       name = "AMD Vivado 2025.2 (Kitty GUI)";
       genericName = "FPGA & EDA Design Suite";
       comment = "AMD Xilinx Vivado Design Suite in Kitty Terminal";
-      exec = "kitty -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/vivado";
+      exec = "kitty -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/vivado";
       icon = "/home/mayank-anand/.local/share/icons/xilinx/vivado.png";
       terminal = false;
       categories = [ "Development" "Engineering" ];
@@ -70,7 +70,7 @@
       name = "AMD Vivado 2025.2 Tcl Shell (Ghostty)";
       genericName = "EDA Tcl Console";
       comment = "AMD Vivado Interactive Tcl Shell in Ghostty";
-      exec = "ghostty -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/vivado -mode tcl";
+      exec = "ghostty -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/vivado -mode tcl";
       icon = "/home/mayank-anand/.local/share/icons/xilinx/vivado.png";
       terminal = false;
       categories = [ "Development" "Engineering" ];
@@ -81,7 +81,7 @@
       name = "AMD Vivado 2025.2 Tcl Shell (Kitty)";
       genericName = "EDA Tcl Console";
       comment = "AMD Vivado Interactive Tcl Shell in Kitty";
-      exec = "kitty -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/vivado -mode tcl";
+      exec = "kitty -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/vivado -mode tcl";
       icon = "/home/mayank-anand/.local/share/icons/xilinx/vivado.png";
       terminal = false;
       categories = [ "Development" "Engineering" ];
@@ -92,7 +92,7 @@
       name = "AMD Vivado 2025.2 Tcl Shell (xterm)";
       genericName = "EDA Tcl Console";
       comment = "AMD Vivado Interactive Tcl Shell in xterm";
-      exec = "xterm -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/vivado -mode tcl";
+      exec = "xterm -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/vivado -mode tcl";
       icon = "/home/mayank-anand/.local/share/icons/xilinx/vivado.png";
       terminal = false;
       categories = [ "Development" "Engineering" ];
@@ -103,7 +103,7 @@
       name = "AMD Vitis 2025.2 (GUI)";
       genericName = "Heterogeneous System IDE";
       comment = "AMD Xilinx Vitis Unified Software Platform";
-      exec = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vitis/2025.2/bin/vitis";
+      exec = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vitis/bin/vitis";
       icon = "/home/mayank-anand/.local/share/icons/xilinx/vitis.png";
       terminal = false;
       categories = [ "Development" "Engineering" ];
@@ -114,7 +114,7 @@
       name = "AMD Vitis 2025.2 (CLI)";
       genericName = "Vitis CLI Developer Prompt";
       comment = "AMD Xilinx Vitis CLI in current terminal";
-      exec = "ghostty -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vitis/2025.2/bin/vitis -mode cli";
+      exec = "ghostty -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vitis/bin/vitis -mode cli";
       icon = "/home/mayank-anand/.local/share/icons/xilinx/vitis.png";
       terminal = false;
       categories = [ "Development" "Engineering" ];
@@ -125,7 +125,7 @@
       name = "AMD DocNav 2025.2";
       genericName = "Documentation Navigator";
       comment = "Xilinx Technical Documentation Search Utility";
-      exec = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/DocNav/docnav";
+      exec = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/DocNav/docnav";
       icon = "/home/mayank-anand/.local/share/icons/xilinx/docnav.png";
       terminal = false;
       categories = [ "Development" "Education" "Engineering" ];
@@ -136,7 +136,7 @@
       name = "AMD Xilinx Information Center";
       genericName = "Update & Download Manager";
       comment = "Checks for Xilinx Vivado/Vitis downloads and releases";
-      exec = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/xic/xic";
+      exec = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/xic/xic";
       icon = "/home/mayank-anand/.local/share/icons/xilinx/xic.png";
       terminal = false;
       categories = [ "Development" "Engineering" ];
@@ -147,7 +147,7 @@
       name = "AMD Xilinx Uninstaller";
       genericName = "Software Maintenance Tool";
       comment = "Uninstall Xilinx Vivado, Vitis and packages";
-      exec = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/xsetup -uninstall";
+      exec = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/xsetup -uninstall";
       icon = "system-software-update";
       terminal = false;
       categories = [ "System" "Settings" ];
