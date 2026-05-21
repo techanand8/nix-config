@@ -67,6 +67,31 @@
       gv = "gvim";
       grep = "ripgrep";
       anipy-cli = "LD_LIBRARY_PATH=/run/current-system/sw/share/nix-ld/lib anipy-cli";
+
+      # --- AMD Vivado & Tcl Shell Wrappers ---
+      vivado = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/vivado";
+      vivado-tcl = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/vivado -mode tcl";
+
+      # GUI Mode in specific terminals
+      vivado-ghostty = "ghostty -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/vivado";
+      vivado-kitty = "kitty -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/vivado";
+      vivado-xterm = "xterm -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/vivado";
+
+      # Interactive Tcl Shell in specific terminals
+      vivado-tcl-ghostty = "ghostty -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/vivado -mode tcl";
+      vivado-tcl-kitty = "kitty -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/vivado -mode tcl";
+      vivado-tcl-xterm = "xterm -e distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/vivado -mode tcl";
+
+      # --- Vitis, DocNav, XIC & Uninstaller ---
+      vitis = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vitis/2025.2/bin/vitis";
+      vitis-cli = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vitis/2025.2/bin/vitis -mode cli";
+      docnav = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/DocNav/docnav";
+      xic = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/xic/xic";
+      xuninstall = "distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/Vivado/2025.2/bin/xsetup -uninstall";
+
+      # --- XP-Pen Tablet Driver Wrappers ---
+      xppen = "env QT_QPA_PLATFORM=xcb pentablet";
+      pentablet = "env QT_QPA_PLATFORM=xcb pentablet";
     };
   };
 

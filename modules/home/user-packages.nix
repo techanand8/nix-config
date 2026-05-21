@@ -44,6 +44,7 @@
     kitty
     alacritty
     ghostty
+    xterm
     neovide
   ];
 }

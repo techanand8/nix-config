@@ -209,6 +209,15 @@ let
             info "     _JAVA_AWT_WM_NONREPARENTING=1 ./FPGAs_AdaptiveSoCs_Unified_SDI_2025.2_1114_2157_Lin64.bin"
             info "=========================================================================="
         else
+            # 4. Extract and copy high-res Xilinx icons to host so launchers render beautifully
+            mkdir -p $HOME/.local/share/icons/xilinx
+            distrobox enter vivado-box -- bash -c "
+                cp -f /tools/Xilinx/Vivado/2025.2/doc/images/vivado_logo.png \$HOME/.local/share/icons/xilinx/vivado.png 2>/dev/null || true
+                cp -f /tools/Xilinx/Vitis/2025.2/doc/images/vitis_logo.png \$HOME/.local/share/icons/xilinx/vitis.png 2>/dev/null || true
+                cp -f /tools/Xilinx/DocNav/images/docnav.png \$HOME/.local/share/icons/xilinx/docnav.png 2>/dev/null || true
+                cp -f /tools/Xilinx/xic/images/xic.png \$HOME/.local/share/icons/xilinx/xic.png 2>/dev/null || true
+            " &> /dev/null || true
+
             log "Entering 'vivado-box' container... (Type 'exit' to return to NixOS)"
             export _JAVA_AWT_WM_NONREPARENTING=1
             distrobox enter vivado-box
