@@ -123,7 +123,7 @@
   };
 
   # Performance tweak for VMware
-  boot.kernelParams = [ "transparent_hugepage=never" ];
+  boot.kernelParams = [ "transparent_hugepage=never" "btusb.enable_autosuspend=0" ];
 
   # Users
   users.users."${vars.username}" = {
