@@ -12,7 +12,7 @@ let
     HOSTNAME="MANX"
     EDITOR="nvim"
 
-    # --- PREMIUM UI PALETTE (Optimized for Ghostty/Kitty) ---
+    # --- COLOR PALETTE (Optimized for Ghostty/Kitty) ---
     C_PRIMARY='\033[38;5;208m'   # Coral Orange
     C_SECONDARY='\033[38;5;99m'  # Royal Soft Purple
     C_HIGHLIGHT='\033[38;5;43m'  # Vibrant Teal
@@ -58,23 +58,23 @@ let
         echo -e "  ''${C_SECONDARY}Usage:''${NC} ''${C_WHITE}mayank''${NC} ''${C_GOLD}<command>''${NC}"
         echo -e ""
         echo -e "  ''${C_PRIMARY}󰓅  CONFIGURATION MANAGEMENT''${NC}"
-        echo -e "    ''${C_WHITE}rebuild''${NC}   ''${C_MUTED}❯''${NC} Apply adjustments & show package changes"
-        echo -e "    ''${C_WHITE}update''${NC}    ''${C_MUTED}❯''${NC} Update all inputs and perform full build"
-        echo -e "    ''${C_WHITE}rollback''${NC}  ''${C_MUTED}❯''${NC} Instantly revert to previous generation"
-        echo -e "    ''${C_WHITE}history''${NC}   ''${C_MUTED}❯''${NC} List all system generations"
+        echo -e "    ''${C_WHITE}rebuild''${NC}   ''${C_MUTED}❯''${NC} Synchronize adjustments and show package changes"
+        echo -e "    ''${C_WHITE}update''${NC}    ''${C_MUTED}❯''${NC} Update system inputs and perform full build"
+        echo -e "    ''${C_WHITE}rollback''${NC}  ''${C_MUTED}❯''${NC} Revert to previous successful generation"
+        echo -e "    ''${C_WHITE}history''${NC}   ''${C_MUTED}❯''${NC} List detailed system generations"
         echo -e ""
         echo -e "  ''${C_PRIMARY}󰌢  MAINTENANCE & SECURITY''${NC}"
-        echo -e "    ''${C_WHITE}clean''${NC}     ''${C_MUTED}❯''${NC} Deep three-layer store optimization"
-        echo -e "    ''${C_WHITE}check''${NC}     ''${C_MUTED}❯''${NC} Audit system health and config integrity"
+        echo -e "    ''${C_WHITE}clean''${NC}     ''${C_MUTED}❯''${NC} Execute deep system maintenance protocols"
+        echo -e "    ''${C_WHITE}check''${NC}     ''${C_MUTED}❯''${NC} Validate configuration health and integrity"
         echo -e ""
         echo -e "  ''${C_PRIMARY}  DEVELOPMENT UTILITIES''${NC}"
-        echo -e "    ''${C_WHITE}edit''${NC}      ''${C_MUTED}❯''${NC} Open workstation config in Neovim"
-        echo -e "    ''${C_WHITE}search''${NC}    ''${C_MUTED}❯''${NC} Query the Nixpkgs registry"
-        echo -e "    ''${C_WHITE}shell''${NC}     ''${C_MUTED}❯''${NC} Open ephemeral package shells"
-        echo -e "    ''${C_WHITE}vivado''${NC}    ''${C_MUTED}❯''${NC} Enter the AMD Vivado container"
+        echo -e "    ''${C_WHITE}edit''${NC}      ''${C_MUTED}❯''${NC} Open primary system configuration"
+        echo -e "    ''${C_WHITE}search''${NC}    ''${C_MUTED}❯''${NC} Query the Nixpkgs software registry"
+        echo -e "    ''${C_WHITE}shell''${NC}     ''${C_MUTED}❯''${NC} Initialize isolated package environments"
+        echo -e "    ''${C_WHITE}vivado''${NC}    ''${C_MUTED}❯''${NC} Enter the AMD Vivado development container"
         echo -e ""
         echo -e "  ''${C_MUTED}──────────────────────────────────────────────────────────────────────''${NC}"
-        echo -e "  ''${C_HIGHLIGHT}󰌢  Type 'man mayank' to see the custom system manual page.''${NC}"
+        echo -e "  ''${C_HIGHLIGHT}󰌢  Type 'man mayank' to access the system documentation.''${NC}"
         echo -e ""
     }
 
@@ -198,7 +198,7 @@ let
 
         if ! distrobox list | grep -q "mayank-vivado"; then
             info "Vivado environment not found. Creating it..."
-            distrobox create --name mayank-vivado --image ubuntu:22.04 --yes || error "Failed to create container."
+            distrobox create --name mayank-vivado --image ubuntu:22.04 --volume /tools:/tools --yes || error "Failed to create container."
             success "Environment created! Use 'mayank vivado' to install."
         else
             mkdir -p $HOME/.local/share/icons/xilinx
