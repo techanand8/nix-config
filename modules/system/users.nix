@@ -16,6 +16,7 @@
   users.users."${vars.username}" = {
     isNormalUser = true;
     description = vars.fullName;
+    hashedPasswordFile = config.sops.secrets."users/${vars.username}/password".path;
     extraGroups = [
       "networkmanager"
       "wheel"

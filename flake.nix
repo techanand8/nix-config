@@ -58,7 +58,14 @@
     in
     {
       nixosConfigurations.MANX = nixpkgs.lib.nixosSystem {
-        specialArgs = { inherit inputs vars hostPlatform; };
+        specialArgs = {
+          inherit
+            self
+            inputs
+            vars
+            hostPlatform
+            ;
+        };
         modules = [
           {
             nixpkgs.hostPlatform = hostPlatform;

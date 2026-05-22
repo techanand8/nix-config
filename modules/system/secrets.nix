@@ -21,17 +21,20 @@
     age = {
       # Custom age key file location
       keyFile = "/home/${vars.username}/.config/sops/age/keys.txt";
-
-      # Pro-Tip: Automatically derive age decryption keys from existing SSH host keys.
-      # This allows the machine's hardware key to act as the password-less decryptor at boot!
-      sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
     };
 
-    # PLACEHOLDER: Define actual secrets mapping here when ready.
-    # Examples:
-    # secrets.github_token = {};
-    # secrets."users/mayank-password" = {
-    #   neededForUsers = true;
-    # };
+    # --- SECRET MAPPINGS ---
+    # These secrets are decrypted from secrets.yaml and placed in /run/secrets/
+    secrets = {
+      # 1. User Password (Used in users.nix)
+      "users/${vars.username}/password" = {
+        neededForUsers = true;
+      };
+
+      # 2. GitHub Token (Example for dev environments)
+      # "github/token" = {
+      #   owner = vars.username;
+      # };
+    };
   };
 }
