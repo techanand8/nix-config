@@ -12,7 +12,7 @@
     fortune # Random quotes
     pipes # Terminal pipes screensaver
     cbonsai # Terminal bonsai tree
-    sl # Steam Locomotive (for when you typo ls)
+    sl # Steam Locomotive (runs when ls is mistyped)
 
     # --- Utilities ---
     zip

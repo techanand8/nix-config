@@ -1,8 +1,8 @@
-{ config, pkgs, ... }:
+{ config, pkgs, vars, ... }:
 
 let
-  # Centralized version for easier updates
-  vivadoVersion = "2025.2";
+  # Centralized version inherited dynamically from hosts/manx/variables.nix
+  vivadoVersion = vars.vivadoVersion;
   vivadoPath = "/tools/Xilinx/${vivadoVersion}/Vivado/bin/vivado";
   vitisPath = "/tools/Xilinx/${vivadoVersion}/Vitis/bin/vitis";
   docnavPath = "/tools/Xilinx/DocNav/docnav";

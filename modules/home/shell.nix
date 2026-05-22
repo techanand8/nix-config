@@ -59,6 +59,11 @@
           fi
         fi
         command distrobox "$@"
+      }
+
+      # High-performance Xilinx Distrobox Executer Helper
+      function vrun() {
+        distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 "$@"
       }    '';
 
     shellAliases = {
@@ -83,25 +88,25 @@
       anipy-cli = "LD_LIBRARY_PATH=/run/current-system/sw/share/nix-ld/lib anipy-cli";
 
       # --- AMD Vivado & Tcl Shell Wrappers ---
-      vivado = "distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/vivado";
-      vivado-tcl = "distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/vivado -mode tcl";
+      vivado = "vrun /tools/Xilinx/${vars.vivadoVersion}/Vivado/bin/vivado";
+      vivado-tcl = "vrun /tools/Xilinx/${vars.vivadoVersion}/Vivado/bin/vivado -mode tcl";
 
       # GUI Mode in specific terminals
-      vivado-ghostty = "ghostty -e distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/vivado";
-      vivado-kitty = "kitty -e distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/vivado";
-      vivado-xterm = "xterm -e distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/vivado";
+      vivado-ghostty = "ghostty -e vrun /tools/Xilinx/${vars.vivadoVersion}/Vivado/bin/vivado";
+      vivado-kitty = "kitty -e vrun /tools/Xilinx/${vars.vivadoVersion}/Vivado/bin/vivado";
+      vivado-xterm = "xterm -e vrun /tools/Xilinx/${vars.vivadoVersion}/Vivado/bin/vivado";
 
       # Interactive Tcl Shell in specific terminals
-      vivado-tcl-ghostty = "ghostty -e distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/vivado -mode tcl";
-      vivado-tcl-kitty = "kitty -e distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/vivado -mode tcl";
-      vivado-tcl-xterm = "xterm -e distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vivado/bin/vivado -mode tcl";
+      vivado-tcl-ghostty = "ghostty -e vrun /tools/Xilinx/${vars.vivadoVersion}/Vivado/bin/vivado -mode tcl";
+      vivado-tcl-kitty = "kitty -e vrun /tools/Xilinx/${vars.vivadoVersion}/Vivado/bin/vivado -mode tcl";
+      vivado-tcl-xterm = "xterm -e vrun /tools/Xilinx/${vars.vivadoVersion}/Vivado/bin/vivado -mode tcl";
 
       # --- Vitis, DocNav, XIC & Uninstaller ---
-      vitis = "distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vitis/bin/vitis";
-      vitis-cli = "distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/2025.2/Vitis/bin/vitis -mode cli";
-      docnav = "distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/DocNav/docnav";
-      xic = "distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/xic/xic";
-      xuninstall = "distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/.xinstall/2025.2/xsetup -uninstall";
+      vitis = "vrun /tools/Xilinx/${vars.vivadoVersion}/Vitis/bin/vitis";
+      vitis-cli = "vrun /tools/Xilinx/${vars.vivadoVersion}/Vitis/bin/vitis -mode cli";
+      docnav = "vrun /tools/Xilinx/DocNav/docnav";
+      xic = "vrun /tools/Xilinx/xic/xic";
+      xuninstall = "vrun /tools/Xilinx/.xinstall/${vars.vivadoVersion}/xsetup -uninstall";
 
       # --- XP-Pen Tablet Driver Wrappers ---
       xppen = "env QT_QPA_PLATFORM=xcb pentablet";

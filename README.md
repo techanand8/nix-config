@@ -11,7 +11,7 @@
 
 ---
 
-**A mathematically reproducible, modular NixOS workstation deployment configured for advanced digital design, functional verification (DV), custom silicon physical layouts, and streamlined interactive computing.**
+**A mathematically reproducible, modular NixOS workstation deployment configured for advanced digital design, functional verification (DV), custom silicon physical layouts, and streamlined interactive computing. Crafted specifically for hardware engineering enthusiasts, VLSI career professionals, and passionately curious digital logic designers.**
 
 [Host Identity & Optimizations](#-host-identity--optimizations) • [System Architecture](#-system-architecture) • [VLSI & Verification Stack](#-vlsi--verification-stack) • [Binary Compatibility](#-fhs-interoperability--binary-compatibility) • [IDE Architecture](#-integrated-development-environment) • [Workspace Controls](#-system-management) • [Credits](#-acknowledgments--credits)
 
@@ -111,6 +111,30 @@ To support hardware syntheses and target FPGA development, the configuration imp
 *   **AMD Vitis Unified IDE:** Integrated software platforms for heterogeneous system designs (GUI & CLI environments).
 *   **Support Utilities:** Interactive Documentation Navigator (`DocNav`), Xilinx Information Center (`XIC`), and safe integrated uninstall mechanisms.
 
+### 🚀 Expanding Your VLSI Toolkit (Future Explorations)
+
+This workstation is designed to grow alongside your journey in silicon engineering. As you explore new microelectronics concepts, physical design workflows, or advanced digital logic architectures, you can seamlessly append new Electronic Design Automation (EDA) utilities to your environment.
+
+To integrate additional tools into your declarative stack:
+1.  **Search the Nixpkgs Index:** Find the package attribute name for the utility you want by searching [search.nixos.org](https://search.nixos.org).
+2.  **Open the VLSI Profile:** Load your user-space engineering configuration file:
+    ```bash
+    nvim ~/nix-config/modules/home/vlsi.nix
+    ```
+3.  **Append the Package:** Locate the `home.packages = with pkgs; [` block and add the new tool attribute cleanly within the list:
+    ```nix
+    home.packages = with pkgs; [
+      # --- VLSI TOOLS (DV & PD focus) ---
+      surelog
+      verilator
+      your-new-eda-utility # Append your discovered tools here
+    ];
+    ```
+4.  **Synchronize and Deploy:** Compile the new environment transaction immediately using your developer system wrapper:
+    ```bash
+    mayank rebuild
+    ```
+
 ---
 
 ## 🛡️ FHS Interoperability & Binary Compatibility
@@ -138,6 +162,84 @@ Hardware development is anchored by a highly customized, responsive **Nixvim** c
 *   **Structural Outlines:** In-depth tree-based code exploration using `Aerial.nvim` to track hierarchical RTL and UVM structures.
 *   **Unified Formatting:** Standardized coding styling applied automatically on save via the `Conform` framework (utilizing `verible-verilog-format`).
 *   **Interactive Utilities:** File explorers managed through `yazi`, rapid terminal toggles, and customized aesthetic extensions.
+---
+
+## 🚀 Deployment & Installation
+
+This workstation configuration is fully reproducible. To deploy this environment on a target system cleanly without compilation errors, follow these sequential steps:
+
+### 1. Clone the Configuration
+Clone the repository directly into the home directory of the target machine:
+```bash
+git clone https://github.com/techanand8/nix-config.git ~/nix-config
+```
+
+### 2. Configure Gitignored Variables (Mandatory)
+To protect personal developer details (such as keys, primary emails, and specific home boundaries), this system decouples variables into a gitignored `variables.nix` file. This file **must** be created before triggering a rebuild, or the compilation will error due to a missing source.
+
+Initialize your local variables file using the provided configuration template:
+```bash
+cp ~/nix-config/hosts/manx/variables.nix.example ~/nix-config/hosts/manx/variables.nix
+```
+Open the newly created `variables.nix` in your text editor and adjust the attributes:
+*   `username` / `fullName` / `email`: Configure your standard system credentials.
+*   `timezone` / `locale`: Set your localized region settings.
+*   `cpuType` / `gpuType`: Set according to your graphic and processor stack (e.g., `amd`).
+
+### 3. Generate Target Hardware Configuration
+Extract your local disk mapping and core device drives into the host directory:
+```bash
+nixos-generate-config --show-hardware-config > ~/nix-config/hosts/manx/hardware-configuration.nix
+```
+
+### 4. Execute the System Rebuild
+Run the NixOS switch command targeting the host configuration flake:
+```bash
+sudo nixos-rebuild switch --flake ~/nix-config#MANX
+```
+
+---
+
+## ⚙️ Workstation Customization
+
+This configuration is designed for clean user adjustments and kernel configurations:
+
+### 1. Customizing the Hostname
+To assign a unique network identity to your workstation:
+1. Open `hosts/manx/variables.nix` and set the `hostname` string to your preference (e.g., `hostname = "custom-node";`).
+2. Open `flake.nix` at line 44 and update the system output handle from `nixosConfigurations.MANX` to match your target hostname (e.g., `nixosConfigurations.custom-node`).
+3. Deploy the build using the customized flake handle:
+   ```bash
+   sudo nixos-rebuild switch --flake ~/nix-config#custom-node
+   ```
+
+### 2. Tailoring Kernel Selections
+You can select different kernel configurations inside `hosts/manx/configuration.nix` at line 74:
+*   **CachyOS Latest (Default):** Runs the highly responsive, performance-optimized kernel compiled with modern `x86_64-v3` architecture instructions:
+    ```nix
+    boot.kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest-x86_64-v3;
+    ```
+*   **CachyOS LTS:** Switches to the Long-Term Support kernel branch, maintaining optimized execution loops with enhanced regression stability:
+    ```nix
+    boot.kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-lts-x86_64-v3;
+    ```
+*   **NixOS Standard Vanilla Kernel:** Falls back cleanly to upstream standard packages, bypassing CachyOS optimizations if needed:
+    ```nix
+    boot.kernelPackages = pkgs.linuxPackages_latest;
+    ```
+
+> [!NOTE]
+> **Performance Architecture & LTO (Link-Time Optimization) Rationale:**
+> Link-Time Optimization (LTO) enables the compiler to generate slightly tighter binaries. However, building a custom Linux kernel locally with LTO from source takes several hours, places intense thermal stress on the hardware, and exhausts extensive memory structures.
+> 
+> Furthermore, custom source-compiled kernels with extreme LTO flags frequently introduce severe compilation, signing, or runtime conflicts with out-of-tree proprietary kernel modules—most notably **VMware Workstation virtual machine monitors** and specific custom device drivers.
+> 
+> **Why VMware Workstation is the Primary Integrated Hypervisor (Over KVM/QEMU):**
+> In the professional microelectronics and EDA industry, high-end commercial CAD suites (such as Cadence Virtuoso/Spectre, Synopsys Design Compiler, or Mentor Graphics) utilize highly complex, proprietary node-locked or hardware-dongle license-daemon bindings.
+> 
+> For educational exploration, independent research, and sandboxed validation of these specialized tools, pre-configured legacy system appliances and license environments are **strictly optimized and verified solely for VMware hypervisor virtualization layers**. Attempting to run these commercial workloads inside vanilla KVM/QEMU, VirtualBox, or other open-source hypervisors routinely corrupts licensing daemon loopbacks, breaks virtualized GPU hardware-acceleration mappings, or causes major kernel panics inside the guest image.
+> 
+> To maintain a clean, safe, and rapid deployment pipeline, this setup **avoids compiling custom source code kernels with LTO locally**. Instead, it pulls pre-compiled, highly responsive **CachyOS kernel binaries** (optimized natively with `-v3` microarchitecture instructions) directly from verified community cache substituters. This delivers **99% of the scheduling responsiveness and execution gains of an LTO-optimized kernel** instantly, ensuring full out-of-the-box compatibility with VMware Workstation virtualization suites and hardware JTAG device hooks without compile overhead or update delays.
 
 ---
 
@@ -150,18 +252,21 @@ Rebuilding, updating, and optimizing the system is driven by a custom developer 
 | `mayank rebuild` | Validates configuration syntax, captures configuration states into Git, triggers system transaction, and synchronizes revisions. |
 | `mayank update` | Evaluates system lockfiles, updates flake inputs, and fetches downstream packages. |
 | `mayank clean` | Initiates deep store optimization, garbage-collects unused system generations, and recovers storage. |
+| `nix fmt` | Automatically formats all Nix configuration files in the repository using the official community RFC-166 standard (`nixfmt-rfc-style`). |
 
 ---
 
-## 💖 Acknowledgments & Credits
+## 💖 Credits & Community Inspiration
 
-This workstation setup thrives on the collaborative genius of the open-source community. Special gratitude is extended to:
+This workstation configuration stands on the shoulders of giants. The modular architecture, performance profiling, and visual elegance of this ecosystem have been profoundly inspired by outstanding open-source projects. Sincere gratitude and respect are extended to:
 
-*   **[ambxst](https://github.com/ambxst):** Whose incredible, modular dotfiles and NixOS architectural structure served as the foundational blueprint for this entire configuration.
-*   **[illogical-impulse](https://github.com/end4):** For the breathtaking desktop gestural mechanics, window rules, and aesthetic configurations that make the Hyprland environment an absolute joy to use daily.
+*   **[ambxst](https://github.com/ambxst) (Axenide/Ambxst):** For establishing the phenomenal modular NixOS architecture and Home-Manager directory blueprints. This configuration adopts their structural philosophy as its foundational system design, enabling seamless declarative scaling.
+*   **[illogical-impulse](https://github.com/end4) (end4/hyprland):** For crafting the breathtaking visual aesthetics, dynamic window rules, micro-animations, and fluid touchpad gestural physics. Their work sets the absolute gold standard for modern desktop usability and has heavily guided the design of this Hyprland environment.
+
+*Thank you to these upstream creators and the broader open-source community for fostering a culture of limitless collaborative learning!*
 
 ---
 
 <div align="center">
-  <sub>Driven by Passionate Curiosity • Configured Declaratively</sub>
+  <sub>Designed & Maintained by **Mayank Anand** • Driven by Passionate Curiosity • Configured Declaratively</sub>
 </div>

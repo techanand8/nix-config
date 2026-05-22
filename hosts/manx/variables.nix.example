@@ -13,4 +13,7 @@
   cpuType = "amd";
   gpuType = "amd";
   stateVersion = "26.05";
+
+  # EDA / VLSI Versions
+  vivadoVersion = "2025.2";
 }

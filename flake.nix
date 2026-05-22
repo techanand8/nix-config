@@ -35,8 +35,14 @@
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, nixos-hardware, hyprland, ambxst, nixvim, nix-cachyos-kernel, ... }@inputs:
+  outputs = { self, nixpkgs, ... }@inputs:
     let
+      # Supported systems for cross-architecture validation and formatting
+      supportedSystems = [ "x86_64-linux" "aarch64-linux" ];
+
+      # Helper function to generate attributes for each supported system
+      forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
+
       hostPlatform = "x86_64-linux";
       vars = import ./hosts/manx/variables.nix;
     in
@@ -50,12 +56,12 @@
             nixpkgs.overlays = [ inputs.nix-cachyos-kernel.overlays.pinned ];
           }
           ./hosts/manx/configuration.nix
-          nixos-hardware.nixosModules.common-cpu-amd
-          nixos-hardware.nixosModules.common-gpu-amd
-          nixos-hardware.nixosModules.common-pc-ssd
-          ambxst.nixosModules.default
+          inputs.nixos-hardware.nixosModules.common-cpu-amd
+          inputs.nixos-hardware.nixosModules.common-gpu-amd
+          inputs.nixos-hardware.nixosModules.common-pc-ssd
+          inputs.ambxst.nixosModules.default
 
-          home-manager.nixosModules.home-manager
+          inputs.home-manager.nixosModules.home-manager
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
@@ -63,12 +69,15 @@
             home-manager.extraSpecialArgs = { inherit inputs vars hostPlatform; };
             home-manager.users."${vars.username}" = {
               imports = [
-                nixvim.homeModules.nixvim
+                inputs.nixvim.homeModules.nixvim
                 ./modules/home/mayank.nix
               ];
             };
           }
         ];
       };
+
+      # Multi-architecture RFC-166 compliant code formatter
+      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt);
     };
 }

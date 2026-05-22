@@ -1,13 +1,13 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
 {
   # Enable AMD GPU Drivers
-  services.xserver.videoDrivers = [ "amdgpu" ];
+  services.xserver.videoDrivers = lib.mkDefault [ "amdgpu" ];
 
   # ROCm for AI/ML acceleration
   hardware.graphics = {
-    enable = true;
-    enable32Bit = true;
+    enable = lib.mkDefault true;
+    enable32Bit = lib.mkDefault true;
     extraPackages = with pkgs; [
       rocmPackages.clr.icd
       libva-utils

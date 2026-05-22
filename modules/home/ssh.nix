@@ -4,7 +4,7 @@
   # Professional Hardened SSH Configuration (Modern Schema)
   programs.ssh = {
     enable = true;
-    enableDefaultConfig = false; # Cleanest approach: only use your custom hardened settings
+    enableDefaultConfig = false; # Cleanest approach: only use custom hardened settings
 
     # Global Settings for all hosts (*)
     settings = {
@@ -21,7 +21,7 @@
         KexAlgorithms = [ "curve25519-sha256" "curve25519-sha256@libssh.org" ];
 
         # SECURITY HARDENING:
-        # Hide the identities of servers you connect to
+        # Hide the identities of connected servers
         HashKnownHosts = "yes";
 
         # Prevent man-in-the-middle attacks by strictly checking keys

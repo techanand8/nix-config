@@ -5,7 +5,7 @@
   # PROFESSIONAL CYBER-HUD FASTFETCH THEME (fastfetch.nix)
   # =========================================================================
   # A highly customized, modern system information hub.
-  # Configured to load your hyper-futuristic MANX OS custom emblem in premium
+  # Configured to load the hyper-futuristic MANX OS custom emblem in premium
   # resolution, with full hardware, system, and multimedia audio/playback support.
 
   programs.fastfetch = {
