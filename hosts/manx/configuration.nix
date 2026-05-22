@@ -59,8 +59,8 @@
       };
 
       graphicalTerminal = {
-        foreground = "FFFFFF"; # Pristine white for ultimate legibility
-        brightForeground = "39FF14"; # Premium Neon Green for highlighted selections
+        foreground = "39FF14"; # Premium Neon Green for standard text
+        brightForeground = "FFFFFF"; # Pristine white for highlighted selections
         background = "A8080000"; # 65% translucent deep ruby glassmorphic card
         margin = 180; # Perfect floating card dimensions
         marginGradient = 25; # Wide glowing red ambient border
@@ -189,6 +189,7 @@
     # Silent Boot & Plymouth Handover
     "quiet" # Master silence flag
     "splash" # Required for Plymouth boot animation
+    "plymouth.use-simpledrm" # Force Plymouth to use early EFI/SimpleDRM framebuffer (avoids the 8s delay waiting for GPU driver)
     "rd.systemd.show_status=false" # Hides systemd status messages in initrd
     "rd.udev.log_level=0" # Mutes udev in initrd completely
     "udev.log_priority=0" # Mutes udev in main system completely
