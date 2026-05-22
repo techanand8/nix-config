@@ -77,6 +77,9 @@ let
         echo -e "    ''${C_WHITE}shell''${NC}     ''${C_MUTED}❯''${NC} Initialize isolated package environments"
         echo -e "    ''${C_WHITE}vivado''${NC}    ''${C_MUTED}❯''${NC} Enter the AMD Vivado development container"
         echo -e ""
+        echo -e "  ''${C_PRIMARY}󰪢  BRANDING & AESTHETICS''${NC}"
+        echo -e "    ''${C_WHITE}screensaver''${NC} ''${C_MUTED}❯''${NC} Manage Omarchy-style screensaver art"
+        echo -e ""
         echo -e "  ''${C_MUTED}──────────────────────────────────────────────────────────────────────''${NC}"
         echo -e "  ''${C_HIGHLIGHT}󰌢  Type 'man mayank' to access the system documentation.''${NC}"
         echo -e ""
@@ -198,6 +201,55 @@ let
         sudo nixos-rebuild switch --flake .#$HOSTNAME --rollback
         ;;
 
+      screensaver)
+        BRAND_DIR="$HOME/.config/omarchy/branding"
+        mkdir -p "$BRAND_DIR"
+        
+        shift
+        case $1 in
+          ascii)
+            info "Opening ASCII editor. Save and exit to apply changes."
+            $EDITOR "$BRAND_DIR/screensaver.txt"
+            # Clean up logo if text is being used
+            rm -f "$BRAND_DIR/logo.png" 2>/dev/null || true
+            success "ASCII art updated. Launching preview..."
+            pkill -f 'alacritty --class manx-screensaver' || true
+            "$HOME/.local/bin/manx-screensaver"
+            ;;
+          
+          image)
+            IMG_PATH="$2"
+            if [ -z "$IMG_PATH" ] || [ ! -f "$IMG_PATH" ]; then
+                error "Please provide a valid image path. Usage: mayank screensaver image <path>"
+            fi
+            
+            log "Processing branding image..."
+            cp "$IMG_PATH" "$BRAND_DIR/logo.png"
+            # Clean up text if image is being used
+            rm -f "$BRAND_DIR/screensaver.txt" 2>/dev/null || true
+            
+            success "Branding image updated. Launching preview..."
+            pkill -f 'alacritty --class manx-screensaver' || true
+            "$HOME/.local/bin/manx-screensaver"
+            ;;
+          
+          reset)
+            log "Resetting branding to system defaults..."
+            rm -rf "$BRAND_DIR"
+            success "Screensaver branding reset."
+            ;;
+            
+          *)
+            echo -e "  ''${C_SECONDARY}Usage:''${NC} ''${C_WHITE}mayank screensaver''${NC} ''${C_GOLD}<action>''${NC}"
+            echo -e ""
+            echo -e "    ''${C_WHITE}ascii''${NC}   ''${C_MUTED}❯''${NC} Edit your custom ASCII art text"
+            echo -e "    ''${C_WHITE}image''${NC}   ''${C_MUTED}❯''${NC} Set an image to be converted to ASCII"
+            echo -e "    ''${C_WHITE}reset''${NC}   ''${C_MUTED}❯''${NC} Restore default MANX Silicon branding"
+            echo -e ""
+            ;;
+        esac
+        ;;
+
       vivado)
         log "Entering AMD Vivado container..."
         
@@ -261,6 +313,9 @@ let
     .TP
     .B vivado
     Enters the high-compatibility Vivado container.
+    .TP
+    .B screensaver
+    Manages custom branding (ASCII/Image) for the Omarchy-style screensaver.
     .SH AUTHOR
     Mayank Anand.
     EOF

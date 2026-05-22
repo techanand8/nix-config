@@ -12,7 +12,7 @@
         "updateServiceEnabled": true,
         "idle": {
           "general": {
-            "lock_cmd": "ambxst lock",
+            "lock_cmd": "pkill -f 'alacritty --class manx-screensaver' || true; ambxst lock",
             "before_sleep_cmd": "loginctl lock-session",
             "after_sleep_cmd": "ambxst screen on"
           },
@@ -23,8 +23,8 @@
               "timeout": 150
             },
             {
-              "onResume": "pkill -f manx-screensaver || true",
-              "onTimeout": "manx-screensaver",
+              "onResume": "pkill -f 'alacritty --class manx-screensaver' || true",
+              "onTimeout": "$HOME/.local/bin/manx-screensaver",
               "timeout": 240
             },
             {
@@ -220,8 +220,6 @@
       -- ############ SILICON SECURITY SCREEN SAVER (Omarchy style) ############
       hl.window_rule({ match = { class = "manx-screensaver" }, float = true })
       hl.window_rule({ match = { class = "manx-screensaver" }, fullscreen = true })
-      hl.window_rule({ match = { class = "manx-screensaver" }, pin = true })
-      hl.window_rule({ match = { class = "manx-screensaver" }, stay_focused = true })
       hl.window_rule({ match = { class = "manx-screensaver" }, no_anim = true })
       hl.window_rule({ match = { class = "manx-screensaver" }, no_shadow = true })
 
@@ -389,6 +387,7 @@
   home.packages = [
     pkgs.bibata-cursors
     pkgs.terminaltexteffects
+    pkgs.chafa
   ];
 
   # Custom Silicon Security Screensaver (Omarchy style)
@@ -397,7 +396,7 @@
     text = ''
       #!/usr/bin/env bash
       # Prevent multiple screensaver instances from spawning
-      if pgrep -f "kitty --class=manx-screensaver" >/dev/null; then
+      if pgrep -f "alacritty --class manx-screensaver" >/dev/null; then
           exit 0
       fi
 
@@ -420,98 +419,110 @@
           exit 0
       fi
 
-      # Spawn Kitty in absolute black fullscreen with custom styling overrides
-      kitty --class=manx-screensaver \
-            --title=Screensaver \
-            --start-as=fullscreen \
-            -o decor=no \
-            -o hide_window_decorations=yes \
-            -o background=#000000 \
-            -o window_padding_width=0 \
-            -o window_margin_width=0 \
-            -o remember_window_size=no \
-            -o confirm_os_window_close=0 \
-            -e manx-screensaver-run
+      # Spawn Alacritty in absolute black fullscreen with custom styling overrides
+      alacritty --class manx-screensaver \
+                --title Screensaver \
+                -o "window.startup_mode='Fullscreen'" \
+                -o "window.decorations='None'" \
+                -o "colors.primary.background='#000000'" \
+                -o "window.padding={x=0,y=0}" \
+                -o "window.dynamic_padding=false" \
+                -e "$HOME/.local/bin/manx-screensaver-run"
     '';
   };
 
   home.file.".local/bin/manx-screensaver-run" = {
     executable = true;
     text = ''
-                 #!/usr/bin/env bash
-                 # Screensaver Core Loop (Omarchy style)
+                       #!/usr/bin/env bash
+                       # Screensaver Core Loop (Enhanced Omarchy Style)
 
-                 screensaver_in_focus() {
-                     active_window=$(hyprctl activewindow -j | jq -r '.class' 2>/dev/null)
-                     if [[ "$active_window" == "manx-screensaver" ]]; then
-                         return 0
-                     else
-                         return 1
-                     fi
-                 }
+                       screensaver_in_focus() {
+                           active_window=$(hyprctl activewindow -j | jq -r '.class' 2>/dev/null)
+                           if [[ "$active_window" == "manx-screensaver" ]]; then
+                               return 0
+                           else
+                               return 1
+                           fi
+                       }
 
-                 exit_screensaver() {
-                     # Make cursor visible again in Hyprland
-                     hyprctl keyword cursor:invisible false >/dev/null 2>&1
+                       exit_screensaver() {
+                           # Restore cursor
+                           hyprctl keyword cursor:invisible false >/dev/null 2>&1
+                           # Kill background processes
+                           pkill -f "tte" >/dev/null 2>&1
+                           pkill -f "alacritty --class manx-screensaver" >/dev/null 2>&1
+                           exit 0
+                       }
+
+                       trap exit_screensaver SIGINT SIGTERM EXIT
+
+                       # Hide cursor for immersion
+                       hyprctl keyword cursor:invisible true >/dev/null 2>&1
+                       sleep 0.2
+
+                       # Branding Paths
+                       LOGO_PATH="$HOME/.config/omarchy/branding/logo.png"
+                       TEXT_PATH="$HOME/.config/omarchy/branding/screensaver.txt"
+                       mkdir -p "$HOME/.config/omarchy/branding"
+
+                       # 2. Start Animation (Bulletproof Loop)
+                       while true; do
+                           # --- LIVE DYNAMIC BRANDING GENERATION ---
+                           if [[ -f "$LOGO_PATH" ]]; then
+                               LOGO_TEXT=$(chafa --format=symbols --size=120x60 "$LOGO_PATH")
+                           elif [[ -f "$TEXT_PATH" ]]; then
+                               LOGO_TEXT=$(cat "$TEXT_PATH")
+                           else
+                               # Calculate LIVE stats for every theme cycle
+                               CPU_LOAD=$(grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {printf "%.1f%%", usage}')
+                               MEM_USAGE=$(free -m | awk '/Mem:/ { printf "%.0f%%", $3/$2*100 }')
+                               
+                               LOGO_TEXT=$(cat << EOF
+                    ▄▄▄▄███▄▄▄▄      ▄████████ ▄██   ▄      ▄████████ ███▄▄▄▄      ▄█   ▄█▄ 
+                  ▄██▀▀▀███▀▀▀██▄   ███    ███ ███   ██▄   ███    ███ ███▀▀▀██▄   ███ ▄███▀ 
+                  ███   ███   ███   ███    ███ ███▄▄▄███   ███    ███ ███   ███   ███▐██▀   
+                  ███   ███   ███   ███    ███ ▀▀▀▀▀▀███   ███    ███ ███   ███  ▄█████▀    
+                  ███   ███   ███ ▀███████████ ▄██   ███ ▀███████████ ███   ███ ▀▀█████▄    
+                  ███   ███   ███   ███    ███ ███   ███   ███    ███ ███   ███   ███▐██▄   
+                  ███   ███   ███   ███    ███ ███   ███   ███    ███ ███   ███   ███ ▀███▄ 
+                   ▀█   ███   █▀    ███    █▀   ▀█████▀    ███    █▀   ▀█   █▀    ███   ▀█▀ 
+                                                                                  ▀         
+                          SILICON WORKSTATION SECURED
+                     [ VLSI Simulation Pipeline Active ]
                      
-                     # Kill tte process
-                     pkill -f "tte" >/dev/null 2>&1
-                     
-                     # Kill kitty window
-                     pkill -f "kitty --class=manx-screensaver" >/dev/null 2>&1
-                     exit 0
-                 }
-
-                 # Trap cleanup on exit
-                 trap exit_screensaver SIGINT SIGTERM EXIT
-
-                 # Hide the cursor in Hyprland
-                 hyprctl keyword cursor:invisible true >/dev/null 2>&1
-
-                 # Wait for window focus to settle
-                 sleep 0.5
-
-                 # Select a random Terminal Text Effect (TTE)
-                 effects=(
-                     "beams" "binarypath" "blackhole" "bouncingballs" "bubble" "burn"
-                     "colorshift" "decrypt" "errorcorrect" "expand" "fireworks" "matrix"
-                     "mousetrap" "overflow" "pour" "rain" "randomsequence" "rings"
-                     "scattered" "slide" "spotlight" "spray" "swarm" "synthwave"
-                     "unstable" "waves" "wipe"
-                 )
-                 effect=''${effects[$RANDOM % ''${#effects[@]}]}
-
-                 # Define gorgeous custom ASCII art logo
-                 LOGO_TEXT=$(cat << 'EOF'
-              ▄▄▄▄███▄▄▄▄      ▄████████ ▄██   ▄      ▄████████ ███▄▄▄▄      ▄█   ▄█▄ 
-            ▄██▀▀▀███▀▀▀██▄   ███    ███ ███   ██▄   ███    ███ ███▀▀▀██▄   ███ ▄███▀ 
-            ███   ███   ███   ███    ███ ███▄▄▄███   ███    ███ ███   ███   ███▐██▀   
-            ███   ███   ███   ███    ███ ▀▀▀▀▀▀███   ███    ███ ███   ███  ▄█████▀    
-            ███   ███   ███ ▀███████████ ▄██   ███ ▀███████████ ███   ███ ▀▀█████▄    
-            ███   ███   ███   ███    ███ ███   ███   ███    ███ ███   ███   ███▐██▄   
-            ███   ███   ███   ███    ███ ███   ███   ███    ███ ███   ███   ███ ▀███▄ 
-             ▀█   ███   █▀    ███    █▀   ▀█████▀    ███    █▀   ▀█   █▀    ███   ▀█▀ 
-                                                                            ▀         
-                    SILICON WORKSTATION SECURED
-               [ VLSI Simulation Pipeline Active ]
+                     SYSTEM DASHBOARD:
+                     CPU LOAD: $CPU_LOAD | RAM: $MEM_USAGE
+                     STATUS: ENCRYPTED & PROTECTED
       EOF
       )
+                           fi
 
-                 # Start TTE animation in background (limiting frame rate to 60 to prevent high CPU usage on your heavy VLSI system)
-                 echo "$LOGO_TEXT" | tte "$effect" --frame-rate 60 >/dev/tty &
-                 TTE_PID=$!
+                           # Select a random effect
+                           effects=(
+                               "beams" "binarypath" "blackhole" "bouncyballs" "bubbles" "burn"
+                               "colorshift" "crumble" "decrypt" "errorcorrect" "expand" "fireworks"
+                               "highlight" "laseretch" "matrix" "middleout" "orbittingvolley" "overflow"
+                               "pour" "print" "rain" "randomsequence" "rings" "scattered" "slice"
+                               "slide" "smoke" "spotlights" "spray" "swarm" "sweep" "synthgrid"
+                               "thunderstorm" "unstable" "vhstape" "waves" "wipe"
+                           )
+                           effect=''${effects[$RANDOM % ''${#effects[@]}]}
 
-                 # Flush input buffer
-                 read -n 10000 -t 0.1 || true
+                           # Start TTE animation with centering and centering
+                           echo "$LOGO_TEXT" | tte --frame-rate 60 --xterm-colors --ignore-terminal-dimensions --no-restore-cursor --anchor-canvas c --anchor-text c "$effect" &
+                           TTE_PID=$!
 
-                 # Listen for keypress or focus loss to wake up
-                 while kill -0 "$TTE_PID" 2>/dev/null; do
-                     if read -n 1 -t 1 || ! screensaver_in_focus; then
-                         exit_screensaver
-                     fi
-                 done
+                           # Interaction loop
+                           while kill -0 "$TTE_PID" 2>/dev/null; do
+                               if read -n 1 -t 0.1 || ! screensaver_in_focus; then
+                                   exit_screensaver
+                               fi
+                           done
 
-                 exit_screensaver
+                           sleep 1
+                           clear
+                       done
     '';
   };
 }

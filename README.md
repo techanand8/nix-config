@@ -13,7 +13,7 @@
 
 **A mathematically reproducible, modular NixOS workstation deployment configured for advanced digital design, functional verification (DV), custom silicon physical layouts, and streamlined interactive computing. Crafted specifically for hardware engineering enthusiasts, VLSI career professionals, and passionately curious digital logic designers.**
 
-[Host Identity & Optimizations](#-host-identity--optimizations) • [System Architecture](#-system-architecture) • [VLSI & Verification Stack](#-vlsi--verification-stack) • [Binary Compatibility](#-fhs-interoperability--binary-compatibility) • [IDE Architecture](#-integrated-development-environment) • [Workspace Controls](#-system-management) • [Credits](#-acknowledgments--credits)
+[Host Identity & Optimizations](#-host-identity--optimizations) • [System Architecture](#-system-architecture) • [VLSI & Verification Stack](#-vlsi--verification-stack) • [Branding & Aesthetics](#-branding--immersive-aesthetics) • [Binary Compatibility](#-fhs-interoperability--binary-compatibility) • [IDE Architecture](#-integrated-development-environment) • [Workspace Controls](#-system-management) • [Credits](#-acknowledgments--credits)
 
 ---
 
@@ -134,6 +134,32 @@ To integrate additional tools into your declarative stack:
     ```bash
     mayank rebuild
     ```
+
+---
+
+## 󰪢 Branding & Immersive Aesthetics
+
+This workstation implements a high-fidelity, Omarchy-inspired "Silicon Security" screensaver environment. It is designed to transform the workstation into a visually striking, mission-critical dashboard during system idleness.
+
+### The "Silicon Workstation" Screensaver
+
+The screensaver is a GPU-accelerated, full-screen Alacritty instance running **TerminalTextEffects (TTE)**. It serves as both an aesthetic centerpiece and a functional status monitor.
+
+*   **Omarchy 3.8 Image Logic:** Supports converting custom images (PNG/JPG) into high-quality ASCII symbol art dynamically using `chafa`.
+*   **Live System Dashboard:** Features an integrated real-time monitor displaying current **CPU Load** and **RAM Utilization** alongside workstation security status.
+*   **Massive Animation Library:** Cycles randomly through **37+ professional animation themes** (e.g., Matrix, Burn, VHS Tape, Rain, Fireworks, and Blackhole).
+*   **Ambxst Lock Integration:** Orchestrated to yield focus instantly to the **Ambxst Lock Screen**, ensuring a seamless transition from "Art Mode" to "Secure Lock" without visual glitches.
+*   **Zero-Disturb Mode:** Automatically inhibits itself during active media playback, VLSI simulations, or manual "Caffeine" mode activation.
+
+### 🎨 Managing Your Brand with `mayank screensaver`
+
+You can professionally manage your workstation's aesthetics directly from the terminal using the integrated management CLI:
+
+| Command | Action & Workflow |
+| :--- | :--- |
+| `mayank screensaver ascii` | Opens a live editor to customize your screensaver text. Launches an instant preview upon saving. |
+| `mayank screensaver image <path>` | Sets a custom logo/image for the screensaver. Automatically handles ASCII conversion and triggers a preview. |
+| `mayank screensaver reset` | Safely wipes custom branding and restores the default **MANX Silicon Workstation** logo. |
 
 ---
 
