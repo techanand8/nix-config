@@ -99,30 +99,39 @@ let
         # 1. Enforce code style standards (RFC-166)
         nix fmt
         
-        # 2. Validate configuration integrity before applying
-        log "Validating configuration health..."
-        nom flake check . --all-systems &> /dev/null || error "Configuration audit failed. Please resolve errors before rebuilding."
-        
-        # 3. Stage changes to the local repository
+        # 2. Stage changes to ensure Nix Flakes see all current work
         git add . &> /dev/null || true
         
+        # 3. Validate configuration integrity before applying
+        log "Validating configuration health..."
+        nix flake check . --all-systems || error "Configuration audit failed. Please resolve errors before rebuilding."
+        
         # 4. Capture current system state for delta reporting
-        OLD_GEN=$(readlink /nix/var/nix/profiles/system)
+        OLD_GEN=$(readlink -f /nix/var/nix/profiles/system)
         
         # 5. Apply system configuration via NH
         log "Applying system updates..."
         nh os switch . --hostname $HOSTNAME -- --accept-flake-config || error "System rebuild failed."
         
         # 6. Generate package change report
-        NEW_GEN=$(readlink /nix/var/nix/profiles/system)
+        NEW_GEN=$(readlink -f /nix/var/nix/profiles/system)
         echo -e "\n''${C_HIGHLIGHT}  Package Changes:''${NC}"
         nvd diff "$OLD_GEN" "$NEW_GEN"
         
-        # 7. Synchronize with remote repository
-        if git remote | grep -q "origin"; then
-            log "Synchronizing with remote repository..."
+        # 7. Commit changes to maintain a clean Git history
+        if git status --porcelain | grep -q '^[ MADRCU]'; then
+            log "Recording system state to Git history..."
             git commit -m "System Update: $(date '+%Y-%m-%d %H:%M')" &> /dev/null || true
-            git push origin main &> /dev/null || info "Remote sync skipped."
+        fi
+
+        # 8. Synchronize with remote repository (Optional)
+        if git remote | grep -q "origin"; then
+            log "Synchronizing configuration with GitHub..."
+            if git push origin main; then
+                success "GitHub synchronization complete. All changes are backed up!"
+            else
+                info "GitHub sync skipped (check internet or remote settings)."
+            fi
         fi
 
         success "System configuration applied successfully."
@@ -166,7 +175,7 @@ let
 
       check)
         log "Auditing configuration health..."
-        nom flake check . --all-systems || error "Configuration audit failed."
+        nix flake check . --all-systems || error "Configuration audit failed."
         success "Configuration verified."
         ;;
 
@@ -181,7 +190,7 @@ let
         ;;
 
       rollback)
-        log "Rolling back to previous state..."
+        log "Restoring system to previous successful state..."
         sudo nixos-rebuild switch --flake .#$HOSTNAME --rollback
         ;;
 
@@ -198,7 +207,7 @@ let
 
         if ! distrobox list | grep -q "mayank-vivado"; then
             info "Vivado environment not found. Creating it..."
-            distrobox create --name mayank-vivado --image ubuntu:22.04 --volume /tools:/tools --yes || error "Failed to create container."
+            distrobox create --name mayank-vivado --image ubuntu:22.04 --yes || error "Failed to create container."
             success "Environment created! Use 'mayank vivado' to install."
         else
             mkdir -p $HOME/.local/share/icons/xilinx
@@ -244,7 +253,7 @@ let
     A three-layer deep maintenance protocol for storage optimization.
     .TP
     .B check
-    Validates config integrity with nix-output-monitor.
+    Validates config integrity using nix flake check.
     .TP
     .B vivado
     Enters the high-compatibility Vivado container.

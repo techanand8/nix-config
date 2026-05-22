@@ -193,10 +193,11 @@ nixos-generate-config --show-hardware-config > ~/nix-config/hosts/manx/hardware-
 ```
 
 ### 4. Execute the System Rebuild
-Run the NixOS switch command targeting the host configuration flake:
+Apply the configuration cleanly using the specialized system utility:
 ```bash
-sudo nixos-rebuild switch --flake ~/nix-config#MANX
+sudo nixos-rebuild switch --flake .#MANX
 ```
+*Note: From this point forward, you should use the professional `mayank rebuild` command for all system adjustments.*
 
 ---
 
@@ -245,14 +246,15 @@ You can select different kernel configurations inside `hosts/manx/configuration.
 
 ## ⚡ System Management
 
-Rebuilding, updating, and optimizing the system is driven by a custom developer CLI utility:
+Rebuilding, updating, and optimizing the system is driven by a custom developer CLI utility. This utility leverages modern Nix helpers (**NH**, **NOM**, and **NVD**) to provide a high-fidelity, professional orchestration experience.
 
-| Command | Rationale & Pipeline |
+| Command | Engineering Pipeline & Rationale |
 | :--- | :--- |
-| `mayank rebuild` | Validates configuration syntax, captures configuration states into Git, triggers system transaction, and synchronizes revisions. |
-| `mayank update` | Evaluates system lockfiles, updates flake inputs, and fetches downstream packages. |
-| `mayank clean` | Initiates deep store optimization, garbage-collects unused system generations, and recovers storage. |
-| `nix fmt` | Automatically formats all Nix configuration files in the repository using the official community RFC-166 standard (`nixfmt-rfc-style`). |
+| `mayank rebuild` | Executes a complete system transaction: Validates syntax via **NOM**, enforces **RFC-166** formatting, stages changes to Git, applies configuration via **NH**, and generates a visual package delta report using **NVD**. |
+| `mayank update` | Synchronizes all flake inputs to their absolute latest versions and performs an atomic full-system rebuild. |
+| `mayank clean` | Initiates a **Three-Layer Deep Maintenance** protocol: Intelligent generation pruning, full store garbage collection, and hardware-level hard-link optimization (`nix-store --optimise`). |
+| `mayank check` | Performs a comprehensive syntactical health and integrity audit of the entire flake configuration using **nix-output-monitor**. |
+| `nix fmt` | Automatically formats all Nix configuration files in the repository using the official community RFC-166 standard. |
 
 ---
 
