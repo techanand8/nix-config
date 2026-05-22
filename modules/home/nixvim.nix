@@ -58,8 +58,8 @@
           header = [
             " "
             "  ▛▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▜"
-            "  ▌            󱄅   M A N X   S Y S T E M            ▐"
-            "  ▌               N E O V I M   E N G I N E        ▐"
+            "  ▌            󱄅   M A N X   S Y S T E M             ▐"
+            "  ▌               N E O V I M   E N G I N E         ▐"
             "  ▌                                                  ▐"
             "  ▌   ███╗   ███╗  █████╗  ███╗   ██╗ ██╗  ██╗       ▐"
             "  ▌   ████╗ ████║ ██╔══██╗ ████╗  ██║ ╚██╗██╔╝       ▐"
@@ -68,7 +68,7 @@
             "  ▌   ██║ ╚═╝ ██║ ██║  ██║ ██║ ╚████║ ██╔╝ ██╗       ▐"
             "  ▌   ╚═╝     ╚═╝ ╚═╝  ╚═╝ ╚═╝  ╚═══╝ ╚═╝  ╚═╝       ▐"
             "  ▌                                                  ▐"
-            "  ▌           P R E C I S I O N   L O G I C        ▐"
+            "  ▌           P R E C I S I O N   L O G I C         ▐"
             "  ▙▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▟"
             " "
           ];
@@ -160,6 +160,7 @@
       grammarPackages = with pkgs.vimPlugins.nvim-treesitter.builtGrammars; [
         systemverilog
         vhdl
+        tcl
         bash
         c
         cpp
@@ -287,7 +288,14 @@
 
       -- VLSI Detection
       vim.filetype.add({
-        extension = { sc = "cpp", v = "verilog", sv = "systemverilog" },
+        extension = { 
+            sc = "cpp", 
+            v = "verilog", 
+            sv = "systemverilog",
+            sp = "spice",
+            spice = "spice",
+            tcl = "tcl"
+        },
       })
     '';
   };
