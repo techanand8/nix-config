@@ -576,9 +576,13 @@
 
                          # Start TTE animation with absolute centering
                          # --anchor-text c: Focuses on putting the text in the middle
-                         # --no-eol: Prevents extra line shifts
+                         # Start TTE animation with explicit dimensions and dual centering
+                         # --canvas-width/height: Forces TTE to use the full terminal size
+                         # --anchor-canvas c --anchor-text c: Centers the canvas and the text within it
                          echo "$LOGO_TEXT" | tte --frame-rate 60 --xterm-colors --no-restore-cursor \
-                                                 --anchor-text c --no-eol \
+                                                 --canvas-width "$cols" --canvas-height "$rows" \
+                                                 --anchor-canvas c --anchor-text c \
+                                                 --no-eol \
                                                  "$effect" &
                          TTE_PID=$!
                          # Interaction loop
