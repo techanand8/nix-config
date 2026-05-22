@@ -9,7 +9,7 @@ let
 
     installPhase = ''
       mkdir -p $out/share/plymouth/themes/mayank
-      cp *.png mayank.plymouth mayank.script $out/share/plymouth/themes/mayank
+      cp *.png *.jpg mayank.plymouth mayank.script $out/share/plymouth/themes/mayank
       
       # Fix paths in the plymouth file to point to the nix store
       sed -i "s|/etc/plymouth/themes/mayank|$out/share/plymouth/themes/mayank|g" $out/share/plymouth/themes/mayank/mayank.plymouth
