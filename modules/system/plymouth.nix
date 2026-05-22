@@ -49,5 +49,5 @@ in
   ];
 
   # Boot timeout - set to a reasonable value to see the menu
-  boot.loader.timeout = 5;
+  boot.loader.timeout = 7;
 }

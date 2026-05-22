@@ -44,21 +44,21 @@
     resolution = "1920x1080";
 
     style = {
-      # Adding your Anime image as the background!
-      wallpapers = [ ../../modules/system/plymouth/boot_wallpaper.jpg ];
+      # Adding your glowing red textured image as the background!
+      wallpapers = [ ../../modules/system/plymouth/red_glow.jpg ];
       wallpaperStyle = "stretched";
       backdrop = "000000"; # Black backdrop for centered/tiled cases
 
       interface = {
         resolution = "1920x1080"; # High-definition graphical mode for the menu interface
-        branding = "MAYANK NIXOS";
+        branding = "<[  M A Y A N K   N I X O S  ]>";
         brandingColor = "39FF14"; # Neon green accent
         helpColor = "39FF14"; # Neon green help text
       };
 
       graphicalTerminal = {
         foreground = "39FF14"; # Neon green terminal text
-        background = "80000000"; # Semi-transparent black terminal backdrop (80% opacity)
+        background = "00000000"; # Fully transparent terminal backdrop for floating logo effect
       };
     };
   };

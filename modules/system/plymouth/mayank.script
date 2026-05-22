@@ -21,6 +21,9 @@ state = "startup"; # Lifecycle: startup -> password -> booting -> quit
 time = 0;          # Global monotonic clock
 alpha = 0;         # Global master opacity
 progress_alpha = 0; # Isolated opacity for progress elements
+keypress_pulse = 0;     # Reactive keypress feedback shockwave
+last_bullets_count = 0; # Track keypress transitions
+auth_flash = 0;         # Confirmation flare burst on successful login
 
 # --- STAGE ASSETS: ATMOSPHERIC EFFECTS ---
 # Vignette: Adds cinematic depth to the screen edges.
@@ -35,24 +38,30 @@ ambient.sprite.SetX(screen_width / 2 - ambient.image.GetWidth() / 2);
 ambient.sprite.SetY(screen_height / 3 - ambient.image.GetHeight() / 2);
 ambient.sprite.SetOpacity(0);
 
-# Particle System: Procedurally generated floating "stars" for background motion.
-particle_count = 30; 
+# Particle System: Procedurally generated floating "stars" with dynamic cosmic warp field
+particle_count = 35; 
 for (i = 0; i < particle_count; i++) {
   if (i % 2 == 0) p_img = Image("particle_green.png");
   else p_img = Image("particle_maroon.png");
   
+  particles[i].original_image = p_img;
   particles[i].sprite = Sprite(p_img);
   particles[i].x = Math.Random() * screen_width;
   particles[i].y = Math.Random() * screen_height;
-  particles[i].v = 0.2 + Math.Random() * 1.0; # Velocity
-  particles[i].a = 0.1 + Math.Random() * 0.4; # Base Alpha
+  particles[i].v = 0.2 + Math.Random() * 0.8; # Velocity
+  particles[i].a = 0.15 + Math.Random() * 0.35; # Base Alpha
+  particles[i].drift = Math.Random() * 2 * Math.Pi; # Phase offset for horizontal organic drift
   particles[i].sprite.SetX(particles[i].x);
   particles[i].sprite.SetY(particles[i].y);
 }
 
 # --- STAGE ASSETS: CORE BRANDING ---
-# Primary Logo: Centered high-resolution branding asset.
+# Primary Logo: Centered high-resolution branding asset (Scaled to 1.5x for superior visual presence)
 logo.original_image = Image("logo.png");
+logo.width = logo.original_image.GetWidth() * 1.5;
+logo.height = logo.original_image.GetHeight() * 1.5;
+logo.original_image = logo.original_image.Scale(logo.width, logo.height);
+
 logo.sprite = Sprite(logo.original_image);
 logo.x = screen_width / 2 - logo.original_image.GetWidth() / 2;
 logo.y = screen_height / 3 - logo.original_image.GetHeight() / 2;
@@ -60,8 +69,12 @@ logo.sprite.SetX(logo.x);
 logo.sprite.SetY(logo.y);
 logo.sprite.SetOpacity(0);
 
-# Logo Reflection: Mirror effect for a polished, glass-like finish.
+# Logo Reflection: Mirror effect scaled to match the main logo
 reflection.image = Image("logo_reflection.png");
+reflection.width = reflection.image.GetWidth() * 1.5;
+reflection.height = reflection.image.GetHeight() * 1.5;
+reflection.image = reflection.image.Scale(reflection.width, reflection.height);
+
 reflection.sprite = Sprite(reflection.image);
 reflection.sprite.SetX(logo.x);
 reflection.sprite.SetY(logo.y + logo.original_image.GetHeight() + 5);
@@ -143,11 +156,11 @@ input_box.sprite.SetX(input_box.x);
 input_box.sprite.SetY(input_box.y);
 input_box.sprite.SetOpacity(0);
 
-# Bullet (Asterisk) System: Centered password character feedback.
-bullet.image = Image("bullet.png");
-bullet_spacing = 26; # Solved overlap (bullet width is 20, spacing 26 gives 6px clear gap)
-for (i = 0; i < 20; i++) {
-  bullets[i].sprite = Sprite(bullet.image);
+# Bullet (Asterisk) System: Centered password character feedback with smart dynamic scaling.
+bullet.original_image = Image("bullet.png");
+max_bullets = 60;
+for (i = 0; i < max_bullets; i++) {
+  bullets[i].sprite = Sprite(bullet.original_image);
   bullets[i].sprite.SetOpacity(0);
 }
 
@@ -156,16 +169,36 @@ fun display_password_callback (prompt, bullets_count) {
   input_box.sprite.SetOpacity(1);
   lock.sprite.SetOpacity(1);
   
+  # Trigger a reactive typing shockwave whenever user types/deletes a character
+  if (last_bullets_count != bullets_count) {
+    keypress_pulse = 1.0;
+    last_bullets_count = bullets_count;
+  }
+  
+  num_bullets = bullets_count;
+  if (num_bullets < 1) num_bullets = 1;
+
+  # Dynamic layout calculation to fit any password length perfectly within 320px
+  bullet_size = 320 / (1.35 * num_bullets - 0.35);
+  if (bullet_size > 14) bullet_size = 14;
+  if (bullet_size < 5) bullet_size = 5;
+  
+  spacing = bullet_size * 1.35;
+  
+  # Scale bullet image for this length
+  scaled_bullet = bullet.original_image.Scale(bullet_size, bullet_size);
+  
   # Calculate position for bullets centered in the box.
-  total_width = (bullets_count - 1) * bullet_spacing;
+  total_width = (bullets_count - 1) * spacing;
   if (total_width < 0) total_width = 0;
   
   start_x = input_box.x + (input_box.image.GetWidth() / 2) - (total_width / 2);
   
-  for (i = 0; i < 20; i++) {
+  for (i = 0; i < max_bullets; i++) {
     if (i < bullets_count) {
-      bullets[i].sprite.SetX(start_x + (i * bullet_spacing));
-      bullets[i].sprite.SetY(input_box.y + (input_box.image.GetHeight() / 2) - (bullet.image.GetHeight() / 2));
+      bullets[i].sprite.SetImage(scaled_bullet);
+      bullets[i].sprite.SetX(start_x + (i * spacing));
+      bullets[i].sprite.SetY(input_box.y + (input_box.image.GetHeight() / 2) - (bullet_size / 2));
       bullets[i].sprite.SetOpacity(1);
     } else {
       bullets[i].sprite.SetOpacity(0);
@@ -177,9 +210,10 @@ Plymouth.SetDisplayPasswordFunction(display_password_callback);
 fun display_normal_callback () {
   # Transition from password entry to final boot sequence.
   state = "booting";
+  auth_flash = 1.0; # Trigger a high-impact authentication visual burst
   input_box.sprite.SetOpacity(0);
   lock.sprite.SetOpacity(0);
-  for (i = 0; i < 20; i++) bullets[i].sprite.SetOpacity(0);
+  for (i = 0; i < max_bullets; i++) bullets[i].sprite.SetOpacity(0);
 }
 Plymouth.SetDisplayNormalFunction(display_normal_callback);
 
@@ -187,6 +221,18 @@ Plymouth.SetDisplayNormalFunction(display_normal_callback);
 # The heart of the theme. Handles real-time updates and procedural animations.
 fun refresh_callback () {
   time += 0.05;
+  
+  # Smoothly decay the reactive keypress pulse
+  if (keypress_pulse > 0) {
+    keypress_pulse -= 0.07;
+    if (keypress_pulse < 0) keypress_pulse = 0;
+  }
+  
+  # Smoothly decay the successful authentication burst flash
+  if (auth_flash > 0) {
+    auth_flash -= 0.04;
+    if (auth_flash < 0) auth_flash = 0;
+  }
   
   if (state != "quit") {
     # --- MASTER FADE-IN SEQUENCE ---
@@ -198,27 +244,58 @@ fun refresh_callback () {
       ambient.sprite.SetOpacity(alpha * 0.3);
     }
     
-    # --- PROCEDURAL BACKGROUND MOTION ---
+    # --- PROCEDURAL BACKGROUND MOTION (COSMIC HYPERDRIVE) ---
+    speed_mult = 1.0;
+    stretch_y = 1.0;
+    if (state == "booting") {
+      # Particles stretch and speed up as boot progress advances
+      speed_mult = 1.0 + (current_progress * 7.0);
+      stretch_y = 1.0 + (current_progress * 4.0);
+    }
+    
     for (i = 0; i < particle_count; i++) {
-      particles[i].y -= particles[i].v;
-      if (particles[i].y < -20) particles[i].y = screen_height + 20;
+      particles[i].y -= particles[i].v * speed_mult;
+      
+      # Gentle wind-like horizontal sway during normal/password states
+      if (state != "booting") {
+        particles[i].x += 0.25 * Math.Sin(time * 0.7 + particles[i].drift);
+      }
+      
+      # Wrap borders
+      if (particles[i].y < -40) {
+        particles[i].y = screen_height + 20;
+        particles[i].x = Math.Random() * screen_width;
+      }
+      if (particles[i].x < -20) particles[i].x = screen_width + 20;
+      if (particles[i].x > screen_width + 20) particles[i].x = -20;
+      
+      # Dynamically stretch sprite vertically for hyperdrive effect
+      if (stretch_y > 1.0) {
+        scaled_p = particles[i].original_image.Scale(particles[i].original_image.GetWidth(), particles[i].original_image.GetHeight() * stretch_y);
+        particles[i].sprite.SetImage(scaled_p);
+      }
+      
+      particles[i].sprite.SetX(particles[i].x);
       particles[i].sprite.SetY(particles[i].y);
       particles[i].sprite.SetOpacity(alpha * particles[i].a * (0.4 + 0.6 * Math.Sin(time * 0.5 + i)));
     }
 
     # --- DYNAMIC ASSET TRANSFORMATIONS ---
-    # Breathing Logo Effect: Subtle scaling for a living feel.
-    scale_factor = 1.0 + 0.02 * Math.Sin(time * 0.6);
+    # Breathing Logo Effect: Breathes organically, reacts to keystrokes, and bursts upon login!
+    scale_factor = 1.0 + 0.02 * Math.Sin(time * 0.6) + 0.04 * keypress_pulse + 0.15 * auth_flash;
     new_logo = logo.original_image.Scale(logo.original_image.GetWidth() * scale_factor, logo.original_image.GetHeight() * scale_factor);
     logo.sprite.SetImage(new_logo);
     logo.sprite.SetX(screen_width / 2 - new_logo.GetWidth() / 2);
     logo.sprite.SetY(screen_height / 3 - new_logo.GetHeight() / 2);
+    
+    # Scale and align reflection perfectly in sync with logo transitions
+    scaled_reflection = reflection.image.Scale(reflection.image.GetWidth() * scale_factor, reflection.image.GetHeight() * scale_factor);
+    reflection.sprite.SetImage(scaled_reflection);
+    reflection.sprite.SetX(screen_width / 2 - scaled_reflection.GetWidth() / 2);
     reflection.sprite.SetY(logo.sprite.GetY() + new_logo.GetHeight() + 5);
 
-    # Sync Ambient Glow with Logo Breathing for a "Power Core" effect.
-    # We mix Maroon and Green by varying the intensity and shifting the hue 
-    # slightly with the pulse.
-    ambient_pulse = 0.3 + 0.15 * Math.Sin(time * 0.6);
+    # Sync Ambient Glow with breathing, keystroke shockwaves, and authentication flash!
+    ambient_pulse = 0.3 + 0.15 * Math.Sin(time * 0.6) + 0.35 * keypress_pulse + 0.65 * auth_flash;
     ambient.sprite.SetOpacity(alpha * ambient_pulse);
     
     # Subtle color shift hint: the glow pulses between deep maroon and neon intensity
