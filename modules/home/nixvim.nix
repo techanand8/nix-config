@@ -275,6 +275,11 @@
         local accent = colors.blue or colors.sourceColor or "#ffb59e"
         vim.api.nvim_set_hl(0, "FloatBorder", { fg = accent, bg = "none" })
         vim.api.nvim_set_hl(0, "CursorLineNr", { fg = accent, bold = true })
+        
+        -- Sync Neovim Dashboard with Ambxst accents!
+        vim.api.nvim_set_hl(0, "DashboardHeader", { fg = accent, bold = true })
+        vim.api.nvim_set_hl(0, "DashboardIcon", { fg = accent })
+        vim.api.nvim_set_hl(0, "DashboardKey", { fg = accent })
       end
 
       -- Run sync on startup

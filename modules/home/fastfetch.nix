@@ -17,127 +17,144 @@
       # LOGO CONFIGURATION (Hyper-Futuristic MANX OS Emblem)
       # ---------------------------------------------------------------------
       logo = {
-        source = "/home/${vars.username}/nix-config/modules/system/plymouth/manx_logo.png"; # Hyper-futuristic custom MANX OS cyberpunk logo!
-        type = "auto"; # Seamlessly uses the best terminal protocol (Kitty/Ghostty graphics)
-        width = 30;
-        height = 15;
+        source = "${config.home.homeDirectory}/nix-config/modules/system/plymouth/manx_logo.png";
+        type = "auto";
+        width = 32;
+        height = 16;
         padding = {
           right = 4;
-          top = 1;
         };
       };
 
       # ---------------------------------------------------------------------
-      # DISPLAY SETTINGS
+      # DISPLAY SETTINGS (Ambxst Synchronized Style)
       # ---------------------------------------------------------------------
       display = {
-        separator = " ▟ "; # Sharp industrial separator
+        separator = " ┃ "; # Sleek vertical bar
         color = {
-          keys = "magenta";
-          title = "blue";
+          keys = "cyan"; # Ambxst Primary Accent
+          title = "magenta"; # Ambxst Secondary Accent
+        };
+        key = {
+          width = 11;
         };
       };
 
       # ---------------------------------------------------------------------
-      # SYSTEM DATA MODULES (Highly Structured Dashboard)
+      # SYSTEM DATA MODULES (Deep Engineering Dashboard)
       # ---------------------------------------------------------------------
       modules = [
-        # --- System Header ---
+        # --- System Identity ---
         {
           type = "title";
           color = {
-            user = "blue";
-            at = "bright_black";
+            user = "magenta";
+            at = "white";
             host = "magenta";
           };
         }
         {
           type = "custom";
-          format = "◆ ─────────────────────────────────────────── ◆";
+          format = "──────────────────────────────────────────────";
           font = {
             color = "bright_black";
           };
         }
 
-        # --- Core Operating Environment ---
+        # --- Core OS & Hardware ---
         {
           type = "os";
-          key = "󱄅  System  ";
-          keyColor = "blue";
+          key = " 󱄅  System ";
+          format = "MANX OS ${vars.stateVersion} ({10})";
+          keyColor = "cyan";
         }
         {
           type = "kernel";
-          key = "󰌢  Kernel  ";
+          key = " 󰌢  Kernel ";
           keyColor = "cyan";
         }
         {
           type = "uptime";
-          key = "󰓅  Uptime  ";
-          keyColor = "green";
+          key = " 󰓅  Uptime ";
+          keyColor = "cyan";
+        }
+        {
+          type = "packages";
+          key = " 󰏖  Pkgs   ";
+          keyColor = "cyan";
         }
         {
           type = "shell";
-          key = "  Shell   ";
-          keyColor = "yellow";
+          key = "   Shell  ";
+          keyColor = "cyan";
         }
 
-        # --- Hardware Engine ---
+        # --- Hardware Performance ---
         {
           type = "custom";
           format = "";
-        }
-        {
-          type = "host";
-          key = "󰌢  Machine ";
-          keyColor = "blue";
         }
         {
           type = "cpu";
-          key = "  CPU     ";
-          keyColor = "magenta";
-          freqDecimal = 1;
+          key = "   CPU    ";
+          keyColor = "cyan";
         }
         {
           type = "gpu";
-          key = "󰘚  GPU     ";
-          keyColor = "red";
+          key = " 󰘚  GPU    ";
+          keyColor = "cyan";
         }
         {
           type = "memory";
-          key = "  Memory  ";
-          keyColor = "green";
+          key = "   Memory ";
+          keyColor = "cyan";
+        }
+        {
+          type = "battery";
+          key = " 󰁹  Battery";
+          keyColor = "cyan";
         }
         {
           type = "disk";
-          key = "󰋊  Storage ";
-          keyColor = "yellow";
+          key = " 󰋊  Disk   ";
+          keyColor = "cyan";
+        }
+        {
+          type = "swap";
+          key = " 󰓡  Swap   ";
+          keyColor = "cyan";
         }
 
-        # --- Multimedia & Audio Support ---
+        # --- Network & Media ---
         {
           type = "custom";
           format = "";
         }
         {
+          type = "localip";
+          key = " 󰩟  LocalIP";
+          keyColor = "cyan";
+        }
+        {
+          type = "bios";
+          key = " 󰘚  BIOS   ";
+          keyColor = "cyan";
+        }
+        {
           type = "sound";
-          key = "󰎆  Audio   ";
+          key = " 󰎆  Audio  ";
           keyColor = "cyan";
         }
         {
           type = "player";
-          key = "󰝚  Player  ";
-          keyColor = "magenta";
-        }
-        {
-          type = "song";
-          key = "󰎆  Song    ";
-          keyColor = "red";
+          key = " 󰝚  Player ";
+          keyColor = "cyan";
         }
 
-        # --- Footer Block & Palette ---
+        # --- Palette ---
         {
           type = "custom";
-          format = "◆ ─────────────────────────────────────────── ◆";
+          format = "──────────────────────────────────────────────";
           font = {
             color = "bright_black";
           };
