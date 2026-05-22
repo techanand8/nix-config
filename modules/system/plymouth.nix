@@ -47,6 +47,6 @@ in
     "boot.shell_on_fail" # Retain a shell prompt on boot failure for diagnostics
   ];
 
-  # Boot timeout - optimized for speed on modern SSD while remaining accessible
-  boot.loader.timeout = 2;
+  # Boot timeout - set to 5 seconds (the ideal daily sweet spot for safety and speed)
+  boot.loader.timeout = 5;
 }
