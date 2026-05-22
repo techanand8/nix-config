@@ -1,4 +1,9 @@
-{ config, pkgs, vars, ... }:
+{
+  config,
+  pkgs,
+  vars,
+  ...
+}:
 
 {
   programs.nixvim = {
@@ -19,7 +24,7 @@
     # =========================================================================
     # DYNAMIC THEME ENGINE (Ambxst Synchronized)
     # =========================================================================
-    # We use Catppuccin as a fallback/base, but the logic in extraConfigLua 
+    # We use Catppuccin as a fallback/base, but the logic in extraConfigLua
     # will override it with the active Ambxst system colors dynamically.
     colorschemes.catppuccin = {
       enable = true;
@@ -75,11 +80,36 @@
             " "
           ];
           center = [
-            { action = "Telescope find_files"; desc = " Find File"; icon = " "; key = "f"; }
-            { action = "Telescope oldfiles"; desc = " Recent Files"; icon = " "; key = "r"; }
-            { action = "Telescope live_grep"; desc = " Find Text"; icon = " "; key = "g"; }
-            { action = "e /home/${vars.username}/nix-config/modules/home/nixvim.nix"; desc = " Config"; icon = " "; key = "c"; }
-            { action = "qa"; desc = " Quit"; icon = " "; key = "q"; }
+            {
+              action = "Telescope find_files";
+              desc = " Find File";
+              icon = " ";
+              key = "f";
+            }
+            {
+              action = "Telescope oldfiles";
+              desc = " Recent Files";
+              icon = " ";
+              key = "r";
+            }
+            {
+              action = "Telescope live_grep";
+              desc = " Find Text";
+              icon = " ";
+              key = "g";
+            }
+            {
+              action = "e /home/${vars.username}/nix-config/modules/home/nixvim.nix";
+              desc = " Config";
+              icon = " ";
+              key = "c";
+            }
+            {
+              action = "qa";
+              desc = " Quit";
+              icon = " ";
+              key = "q";
+            }
           ];
           footer = [ "Engineered with Precision by ${vars.fullName}" ];
         };
@@ -154,7 +184,10 @@
     plugins.conform-nvim = {
       enable = true;
       settings = {
-        format_on_save = { lsp_fallback = true; timeout_ms = 500; };
+        format_on_save = {
+          lsp_fallback = true;
+          timeout_ms = 500;
+        };
         formatters_by_ft = {
           nix = [ "nixpkgs-fmt" ];
           verilog = [ "verible-verilog-format" ];
@@ -189,7 +222,10 @@
     # =========================================================================
     plugins = {
       aerial.enable = true;
-      lualine = { enable = true; settings.options.theme = "auto"; };
+      lualine = {
+        enable = true;
+        settings.options.theme = "auto";
+      };
       bufferline.enable = true;
       neo-tree.enable = true;
       which-key.enable = true;
@@ -208,7 +244,11 @@
         enable = true;
         settings = {
           autoEnableSources = true;
-          sources = [{ name = "nvim_lsp"; } { name = "path"; } { name = "buffer"; }];
+          sources = [
+            { name = "nvim_lsp"; }
+            { name = "path"; }
+            { name = "buffer"; }
+          ];
           mapping = {
             "<C-Space>" = "cmp.mapping.complete()";
             "<CR>" = "cmp.mapping.confirm({ select = true })";
@@ -224,7 +264,10 @@
           open_mapping = "[[<C-\\>]]";
           direction = "float";
           shade_terminals = false;
-          float_opts = { border = "curved"; winblend = 0; };
+          float_opts = {
+            border = "curved";
+            winblend = 0;
+          };
         };
       };
     };
@@ -234,28 +277,92 @@
     # =========================================================================
     globals.mapleader = " ";
     keymaps = [
-      { mode = "n"; key = "<C-n>"; action = ":Neotree toggle<CR>"; }
-      { mode = "n"; key = "<leader>e"; action = ":Neotree focus<CR>"; }
-      { mode = "n"; key = "<leader>ff"; action = ":Telescope find_files<CR>"; }
-      { mode = "n"; key = "<leader>fg"; action = ":Telescope live_grep<CR>"; }
-      { mode = "n"; key = "<leader>h"; action = ":nohlsearch<CR>"; }
-      { mode = "n"; key = "<leader>fm"; action = ":Telescope media_files<CR>"; options.desc = "Find Media Files"; }
-      { mode = "n"; key = "<leader>o"; action = ":AerialToggle<CR>"; options.desc = "Code Outline"; }
-      { mode = "n"; key = "<leader>gg"; action = ":LazyGit<CR>"; options.desc = "LazyGit"; }
-      { mode = "n"; key = "<leader>qs"; action = ":lua require('persistence').load()<CR>"; options.desc = "Restore Session"; }
-      { mode = "n"; key = "<leader>tf"; action = ":ToggleTerm direction=float<CR>"; }
-      { mode = "n"; key = "<leader>th"; action = ":ToggleTerm size=15 direction=horizontal<CR>"; }
-      { mode = "n"; key = "<leader>tv"; action = ":ToggleTerm size=60 direction=vertical<CR>"; }
-      { mode = "n"; key = "<S-l>"; action = ":bnext<CR>"; }
-      { mode = "n"; key = "<S-h>"; action = ":bprev<CR>"; }
-      { mode = "n"; key = "<leader>x"; action = ":bdelete<CR>"; }
+      {
+        mode = "n";
+        key = "<C-n>";
+        action = ":Neotree toggle<CR>";
+      }
+      {
+        mode = "n";
+        key = "<leader>e";
+        action = ":Neotree focus<CR>";
+      }
+      {
+        mode = "n";
+        key = "<leader>ff";
+        action = ":Telescope find_files<CR>";
+      }
+      {
+        mode = "n";
+        key = "<leader>fg";
+        action = ":Telescope live_grep<CR>";
+      }
+      {
+        mode = "n";
+        key = "<leader>h";
+        action = ":nohlsearch<CR>";
+      }
+      {
+        mode = "n";
+        key = "<leader>fm";
+        action = ":Telescope media_files<CR>";
+        options.desc = "Find Media Files";
+      }
+      {
+        mode = "n";
+        key = "<leader>o";
+        action = ":AerialToggle<CR>";
+        options.desc = "Code Outline";
+      }
+      {
+        mode = "n";
+        key = "<leader>gg";
+        action = ":LazyGit<CR>";
+        options.desc = "LazyGit";
+      }
+      {
+        mode = "n";
+        key = "<leader>qs";
+        action = ":lua require('persistence').load()<CR>";
+        options.desc = "Restore Session";
+      }
+      {
+        mode = "n";
+        key = "<leader>tf";
+        action = ":ToggleTerm direction=float<CR>";
+      }
+      {
+        mode = "n";
+        key = "<leader>th";
+        action = ":ToggleTerm size=15 direction=horizontal<CR>";
+      }
+      {
+        mode = "n";
+        key = "<leader>tv";
+        action = ":ToggleTerm size=60 direction=vertical<CR>";
+      }
+      {
+        mode = "n";
+        key = "<S-l>";
+        action = ":bnext<CR>";
+      }
+      {
+        mode = "n";
+        key = "<S-h>";
+        action = ":bprev<CR>";
+      }
+      {
+        mode = "n";
+        key = "<leader>x";
+        action = ":bdelete<CR>";
+      }
     ];
 
     extraConfigLua = ''
       -- =========================================================================
       -- AMBXST DYNAMIC THEME INTEGRATION
       -- =========================================================================
-      
+
       local function sync_ambxst_theme()
         local cache_path = vim.fn.expand("~/.cache/ambxst/colors.json")
         local f = io.open(cache_path, "r")
@@ -335,7 +442,7 @@
         
         previewers.buffer_previewer_maker(filepath, bufnr, opts)
       end
-      
+
       -- Setup custom maker
       require("telescope").setup({
         defaults = {

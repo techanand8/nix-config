@@ -50,7 +50,7 @@ pkgs.stdenv.mkDerivation rec {
 
     SCRIPT_PATH=$(find $out -name "PenTablet.sh" -type f | head -n 1)
     DRIVER_DIR=$(dirname "$SCRIPT_PATH")
-    
+
     chmod a+x "$SCRIPT_PATH"
 
     mkdir -p $out/bin

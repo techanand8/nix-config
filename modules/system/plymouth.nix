@@ -10,7 +10,7 @@ let
     installPhase = ''
       mkdir -p $out/share/plymouth/themes/mayank
       cp *.png *.jpg mayank.plymouth mayank.script $out/share/plymouth/themes/mayank
-      
+
       # Fix paths in the plymouth file to point to the nix store
       sed -i "s|/etc/plymouth/themes/mayank|$out/share/plymouth/themes/mayank|g" $out/share/plymouth/themes/mayank/mayank.plymouth
     '';
@@ -33,9 +33,13 @@ in
 
   # Ensure amdgpu is loaded as early as possible for early KMS
   boot.initrd.kernelModules = [ "amdgpu" ];
-  boot.initrd.availableKernelModules = [ "amdgpu" "xhci_pci" "nvme" "usb_storage" "sd_mod" ];
-
-
+  boot.initrd.availableKernelModules = [
+    "amdgpu"
+    "xhci_pci"
+    "nvme"
+    "usb_storage"
+    "sd_mod"
+  ];
 
   # Boot timeout - set to 5 seconds (the ideal daily sweet spot for safety and speed)
   boot.loader.timeout = 5;

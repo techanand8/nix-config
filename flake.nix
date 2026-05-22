@@ -35,10 +35,14 @@
     };
   };
 
-  outputs = { self, nixpkgs, ... }@inputs:
+  outputs =
+    { self, nixpkgs, ... }@inputs:
     let
       # Supported systems for cross-architecture validation and formatting
-      supportedSystems = [ "x86_64-linux" "aarch64-linux" ];
+      supportedSystems = [
+        "x86_64-linux"
+        "aarch64-linux"
+      ];
 
       # Helper function to generate attributes for each supported system
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;

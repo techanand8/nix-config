@@ -20,49 +20,114 @@
       opener = {
         # Professional Editor
         edit = [
-          { run = ''nvim "$@"''; block = true; for = "unix"; desc = "Open in Neovim"; }
+          {
+            run = ''nvim "$@"'';
+            block = true;
+            for = "unix";
+            desc = "Open in Neovim";
+          }
         ];
 
         # VLSI Tools
         wave = [
-          { run = ''gtkwave "$@"''; detach = true; for = "unix"; desc = "View Waveform"; }
+          {
+            run = ''gtkwave "$@"'';
+            detach = true;
+            for = "unix";
+            desc = "View Waveform";
+          }
         ];
         layout = [
-          { run = ''klayout "$@"''; detach = true; for = "unix"; desc = "Open GDSII Layout"; }
+          {
+            run = ''klayout "$@"'';
+            detach = true;
+            for = "unix";
+            desc = "Open GDSII Layout";
+          }
         ];
 
         # Document Viewer (Nautilus/Sushi fallback)
         doc = [
-          { run = ''xdg-open "$@"''; detach = true; for = "unix"; desc = "Open Document"; }
+          {
+            run = ''xdg-open "$@"'';
+            detach = true;
+            for = "unix";
+            desc = "Open Document";
+          }
         ];
       };
 
       open = {
         rules = [
           # Code & Configs
-          { name = "*.txt"; use = "edit"; }
-          { name = "*.lua"; use = "edit"; }
-          { name = "*.nix"; use = "edit"; }
-          { name = "*.json"; use = "edit"; }
-          { name = "*.v"; use = "edit"; } # Verilog
-          { name = "*.sv"; use = "edit"; } # SystemVerilog
-          { name = "*.vhdl"; use = "edit"; } # VHDL
-          { name = "*.py"; use = "edit"; } # Python scripts
+          {
+            name = "*.txt";
+            use = "edit";
+          }
+          {
+            name = "*.lua";
+            use = "edit";
+          }
+          {
+            name = "*.nix";
+            use = "edit";
+          }
+          {
+            name = "*.json";
+            use = "edit";
+          }
+          {
+            name = "*.v";
+            use = "edit";
+          } # Verilog
+          {
+            name = "*.sv";
+            use = "edit";
+          } # SystemVerilog
+          {
+            name = "*.vhdl";
+            use = "edit";
+          } # VHDL
+          {
+            name = "*.py";
+            use = "edit";
+          } # Python scripts
 
           # VLSI Waveforms
-          { name = "*.vcd"; use = "wave"; }
-          { name = "*.ghw"; use = "wave"; }
-          { name = "*.gtkw"; use = "wave"; }
+          {
+            name = "*.vcd";
+            use = "wave";
+          }
+          {
+            name = "*.ghw";
+            use = "wave";
+          }
+          {
+            name = "*.gtkw";
+            use = "wave";
+          }
 
           # VLSI Layouts
-          { name = "*.gds"; use = "layout"; }
-          { name = "*.oas"; use = "layout"; }
+          {
+            name = "*.gds";
+            use = "layout";
+          }
+          {
+            name = "*.oas";
+            use = "layout";
+          }
 
           # Documentation
-          { name = "*.pdf"; use = "doc"; }
+          {
+            name = "*.pdf";
+            use = "doc";
+          }
 
           # Fallback
-          { mime = "text/*"; use = "edit"; }
+          {
+            mime = "text/*";
+            use = "edit";
+          }
         ];
       };
     };

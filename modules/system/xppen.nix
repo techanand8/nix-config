@@ -9,7 +9,10 @@ let
     exec = "env QT_QPA_PLATFORM=xcb pentablet";
     icon = "pentablet";
     comment = "Driver for Deco Mini 7 V2";
-    categories = [ "Settings" "HardwareSettings" ];
+    categories = [
+      "Settings"
+      "HardwareSettings"
+    ];
     terminal = false;
   };
 in

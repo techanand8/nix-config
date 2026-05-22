@@ -1,4 +1,10 @@
-{ config, pkgs, inputs, vars, ... }:
+{
+  config,
+  pkgs,
+  inputs,
+  vars,
+  ...
+}:
 
 {
   imports = [
@@ -204,19 +210,41 @@
   users.users."${vars.username}" = {
     isNormalUser = true;
     description = vars.fullName;
-    extraGroups = [ "networkmanager" "wheel" "video" "render" ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+      "video"
+      "render"
+    ];
     shell = pkgs.zsh;
-    subUidRanges = [{ startUid = 100000; count = 65536; }];
-    subGidRanges = [{ startGid = 100000; count = 65536; }];
+    subUidRanges = [
+      {
+        startUid = 100000;
+        count = 65536;
+      }
+    ];
+    subGidRanges = [
+      {
+        startGid = 100000;
+        count = 65536;
+      }
+    ];
   };
 
   # Nix Settings & Cachix
   nix.settings = {
-    experimental-features = [ "nix-command" "flakes" ];
+    experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
     auto-optimise-store = true;
 
     # Authorize root, users in the 'wheel' group, and the main user account to configure binary cache substituters.
-    trusted-users = [ "root" "@wheel" "${vars.username}" ];
+    trusted-users = [
+      "root"
+      "@wheel"
+      "${vars.username}"
+    ];
 
     substituters = [
       "https://cache.nixos.org"

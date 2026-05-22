@@ -1,4 +1,9 @@
-{ config, pkgs, vars, ... }:
+{
+  config,
+  pkgs,
+  vars,
+  ...
+}:
 
 let
   # Centralized version inherited dynamically from hosts/manx/variables.nix
@@ -48,7 +53,10 @@ in
       exec = "distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath}";
       icon = "${config.home.homeDirectory}/.local/share/icons/xilinx/vivado.png";
       terminal = false;
-      categories = [ "Development" "Engineering" ];
+      categories = [
+        "Development"
+        "Engineering"
+      ];
     };
 
     # 2. Vivado GUI run inside Ghostty
@@ -59,7 +67,10 @@ in
       exec = "ghostty -e distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath}";
       icon = "${config.home.homeDirectory}/.local/share/icons/xilinx/vivado.png";
       terminal = false;
-      categories = [ "Development" "Engineering" ];
+      categories = [
+        "Development"
+        "Engineering"
+      ];
     };
 
     # 3. Vivado GUI run inside Kitty
@@ -70,7 +81,10 @@ in
       exec = "kitty -e distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath}";
       icon = "${config.home.homeDirectory}/.local/share/icons/xilinx/vivado.png";
       terminal = false;
-      categories = [ "Development" "Engineering" ];
+      categories = [
+        "Development"
+        "Engineering"
+      ];
     };
 
     # 4. Vivado Interactive Tcl Shell in Ghostty
@@ -81,7 +95,10 @@ in
       exec = "ghostty -e distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath} -mode tcl";
       icon = "${config.home.homeDirectory}/.local/share/icons/xilinx/vivado.png";
       terminal = false;
-      categories = [ "Development" "Engineering" ];
+      categories = [
+        "Development"
+        "Engineering"
+      ];
     };
 
     # 5. Vivado Interactive Tcl Shell in Kitty
@@ -92,7 +109,10 @@ in
       exec = "kitty -e distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath} -mode tcl";
       icon = "${config.home.homeDirectory}/.local/share/icons/xilinx/vivado.png";
       terminal = false;
-      categories = [ "Development" "Engineering" ];
+      categories = [
+        "Development"
+        "Engineering"
+      ];
     };
 
     # 6. Vivado Interactive Tcl Shell in xterm
@@ -103,7 +123,10 @@ in
       exec = "xterm -e distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath} -mode tcl";
       icon = "${config.home.homeDirectory}/.local/share/icons/xilinx/vivado.png";
       terminal = false;
-      categories = [ "Development" "Engineering" ];
+      categories = [
+        "Development"
+        "Engineering"
+      ];
     };
 
     # 7. Vitis IDE Standalone GUI
@@ -114,7 +137,10 @@ in
       exec = "distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vitisPath}";
       icon = "${config.home.homeDirectory}/.local/share/icons/xilinx/vitis.png";
       terminal = false;
-      categories = [ "Development" "Engineering" ];
+      categories = [
+        "Development"
+        "Engineering"
+      ];
     };
 
     # 8. Vitis Command Line Tool (CLI) in Default Shell
@@ -125,7 +151,10 @@ in
       exec = "ghostty -e distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vitisPath} -mode cli";
       icon = "${config.home.homeDirectory}/.local/share/icons/xilinx/vitis.png";
       terminal = false;
-      categories = [ "Development" "Engineering" ];
+      categories = [
+        "Development"
+        "Engineering"
+      ];
     };
 
     # 9. Documentation Navigator (DocNav)
@@ -136,7 +165,11 @@ in
       exec = "distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${docnavPath}";
       icon = "${config.home.homeDirectory}/.local/share/icons/xilinx/docnav.png";
       terminal = false;
-      categories = [ "Development" "Education" "Engineering" ];
+      categories = [
+        "Development"
+        "Education"
+        "Engineering"
+      ];
     };
 
     # 10. Xilinx Information Center (xic - Version update checker)
@@ -147,7 +180,10 @@ in
       exec = "distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${xicPath}";
       icon = "${config.home.homeDirectory}/.local/share/icons/xilinx/xic.png";
       terminal = false;
-      categories = [ "Development" "Engineering" ];
+      categories = [
+        "Development"
+        "Engineering"
+      ];
     };
 
     # 11. Xilinx Uninstaller (Safely remove the tools)
@@ -158,7 +194,10 @@ in
       exec = "distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/.xinstall/${vivadoVersion}/xsetup -uninstall";
       icon = "system-software-update";
       terminal = false;
-      categories = [ "System" "Settings" ];
+      categories = [
+        "System"
+        "Settings"
+      ];
     };
   };
 }

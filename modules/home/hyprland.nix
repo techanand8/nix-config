@@ -154,7 +154,7 @@
       hl.window_rule({ match = { class = "hyprpolkitagent" }, stay_focused = true })
       hl.window_rule({ match = { class = "hyprpolkitagent" }, border_size = 2 })
       hl.window_rule({ match = { class = "hyprpolkitagent" }, rounding = 16 })
-      
+
       -- Force Polkit to use ambxst active border color dynamically
       hl.window_rule({ match = { class = "hyprpolkitagent" }, no_shadow = false })
 

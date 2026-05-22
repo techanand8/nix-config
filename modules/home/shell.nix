@@ -1,4 +1,9 @@
-{ config, pkgs, vars, ... }:
+{
+  config,
+  pkgs,
+  vars,
+  ...
+}:
 
 {
   # Basic programs
@@ -21,7 +26,13 @@
 
     oh-my-zsh = {
       enable = true;
-      plugins = [ "git" "sudo" "docker" "extract" "rust" ];
+      plugins = [
+        "git"
+        "sudo"
+        "docker"
+        "extract"
+        "rust"
+      ];
       theme = "robbyrussell"; # Starship will override this anyway
     };
 
@@ -34,7 +45,7 @@
       export NIX_LD_LIBRARY_PATH="/run/current-system/sw/share/nix-ld/lib"
 
       source ${pkgs.zsh-fzf-tab}/share/fzf-tab/fzf-tab.zsh
-      
+
       # Enhanced cd function with automatic directory listing and zoxide fallback
       function cd() {
         if [[ "$#" -eq 0 ]]; then

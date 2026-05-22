@@ -3,7 +3,7 @@
 {
   home.packages = with pkgs; [
     # --- Python Ecosystem (VLSI & AI focus) ---
-    python314 # System Default 
+    python314 # System Default
     python314Packages.pip
     (lib.lowPrio python313) # Professional Stable (Low priority to avoid bin conflicts)
     (lib.lowPrio python313Packages.pip)

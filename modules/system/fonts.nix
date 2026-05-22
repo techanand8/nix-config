@@ -27,9 +27,18 @@
     fontconfig = {
       enable = true;
       defaultFonts = {
-        serif = [ "Times New Roman" "Noto Serif" ];
-        sansSerif = [ "Arial" "Noto Sans" ];
-        monospace = [ "JetBrainsMono Nerd Font" "ZedMono Nerd Font" ];
+        serif = [
+          "Times New Roman"
+          "Noto Serif"
+        ];
+        sansSerif = [
+          "Arial"
+          "Noto Sans"
+        ];
+        monospace = [
+          "JetBrainsMono Nerd Font"
+          "ZedMono Nerd Font"
+        ];
       };
     };
   };

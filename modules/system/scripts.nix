@@ -20,7 +20,7 @@ let
     C_MUTED='\033[38;5;244m'     # Dim Grey
     C_WHITE='\033[1;37m'         # Bright White
     C_GOLD='\033[38;5;220m'      # Warm Gold
-    
+
     # Base UI Colors (compat for older shell functions)
     GREEN='\033[1;32m'
     BLUE='\033[1;34m'
