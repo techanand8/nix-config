@@ -2,7 +2,7 @@
 
 {
   # =========================================================================
-  # ULTIMATE DOCK-HUD FASTFETCH THEME (fastfetch.nix)
+  # DYNAMIC CYBER-HUD FASTFETCH THEME (fastfetch.nix)
   # =========================================================================
   # A highly customized, modern system information hub.
   # Configured to load your hyper-futuristic MANX OS custom emblem in premium
@@ -14,29 +14,30 @@
       "$schema" = "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json";
 
       # ---------------------------------------------------------------------
-      # LOGO CONFIGURATION (Hyper-Futuristic MANX OS Emblem)
+      # LOGO CONFIGURATION (Transparent Cyber-Cat Emblem)
       # ---------------------------------------------------------------------
       logo = {
         source = "${config.home.homeDirectory}/nix-config/modules/system/plymouth/manx_logo.png";
         type = "auto";
-        width = 32;
-        height = 16;
+        width = 35; # Slightly larger for better detail
+        height = 17;
         padding = {
-          right = 4;
+          right = 6; # Increased padding for better separation
+          top = 1;
         };
       };
 
       # ---------------------------------------------------------------------
-      # DISPLAY SETTINGS (Ambxst Synchronized Style)
+      # DISPLAY SETTINGS (Ultra-Sleek Engineering Layout)
       # ---------------------------------------------------------------------
       display = {
         separator = " ┃ "; # Sleek vertical bar
         color = {
-          keys = "cyan"; # Ambxst Primary Accent
-          title = "magenta"; # Ambxst Secondary Accent
+          keys = "cyan"; # Logic Accent
+          title = "red"; # System Accent
         };
         key = {
-          width = 11;
+          width = 12; # Precise alignment for all modules
         };
       };
 
@@ -48,9 +49,9 @@
         {
           type = "title";
           color = {
-            user = "magenta";
+            user = "red";
             at = "white";
-            host = "magenta";
+            host = "red";
           };
         }
         {
@@ -61,10 +62,10 @@
           };
         }
 
-        # --- Core OS & Hardware ---
+        # --- Core OS & Environment (Cyan Theme) ---
         {
           type = "os";
-          key = " 󱄅  System ";
+          key = " 󱄅  OS     ";
           format = "MANX OS ${vars.stateVersion} ({10})";
           keyColor = "cyan";
         }
@@ -89,7 +90,7 @@
           keyColor = "cyan";
         }
 
-        # --- Hardware Performance ---
+        # --- Hardware Performance (Red Theme) ---
         {
           type = "custom";
           format = "";
@@ -97,35 +98,35 @@
         {
           type = "cpu";
           key = "   CPU    ";
-          keyColor = "cyan";
+          keyColor = "red";
         }
         {
           type = "gpu";
           key = " 󰘚  GPU    ";
-          keyColor = "cyan";
+          keyColor = "red";
         }
         {
           type = "memory";
           key = "   Memory ";
-          keyColor = "cyan";
+          keyColor = "red";
         }
         {
           type = "battery";
           key = " 󰁹  Battery";
-          keyColor = "cyan";
+          keyColor = "red";
         }
         {
           type = "disk";
           key = " 󰋊  Disk   ";
-          keyColor = "cyan";
+          keyColor = "red";
         }
         {
           type = "swap";
           key = " 󰓡  Swap   ";
-          keyColor = "cyan";
+          keyColor = "red";
         }
 
-        # --- Network & Media ---
+        # --- Network & Media (Green Theme) ---
         {
           type = "custom";
           format = "";
@@ -133,22 +134,22 @@
         {
           type = "localip";
           key = " 󰩟  LocalIP";
-          keyColor = "cyan";
+          keyColor = "green";
         }
         {
           type = "bios";
           key = " 󰘚  BIOS   ";
-          keyColor = "cyan";
+          keyColor = "green";
         }
         {
           type = "sound";
           key = " 󰎆  Audio  ";
-          keyColor = "cyan";
+          keyColor = "green";
         }
         {
           type = "player";
           key = " 󰝚  Player ";
-          keyColor = "cyan";
+          keyColor = "green";
         }
 
         # --- Palette ---

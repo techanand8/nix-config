@@ -11,6 +11,8 @@
       ueberzugpp
       poppler-utils
       ghostscript
+      chafa
+      ffmpegthumbnailer
       nixpkgs-fmt
     ];
 
@@ -95,6 +97,22 @@
 
     plugins.telescope = {
       enable = true;
+      settings = {
+        defaults = {
+          file_ignore_patterns = [
+            "^.git/"
+            "^node_modules/"
+            "%.jpg"
+            "%.jpeg"
+            "%.png"
+            "%.webp"
+            "%.gif"
+            "%.pdf"
+            "%.zip"
+            "%.tar.gz"
+          ];
+        };
+      };
       extensions.media-files = {
         enable = true;
         settings = {
