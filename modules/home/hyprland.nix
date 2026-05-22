@@ -425,7 +425,8 @@
       fi
 
       # Spawn Alacritty in absolute black fullscreen with custom styling overrides
-      alacritty --class manx-screensaver \
+      # We force LC_ALL=C to prevent xkbcommon locale errors
+      LC_ALL=C alacritty --class manx-screensaver \
                 --title Screensaver \
                 -o "window.startup_mode='Fullscreen'" \
                 -o "window.decorations='None'" \
@@ -439,95 +440,106 @@
   home.file.".local/bin/manx-screensaver-run" = {
     executable = true;
     text = ''
-                       #!/usr/bin/env bash
-                       # Screensaver Core Loop (Enhanced Omarchy Style)
+                     #!/usr/bin/env bash
+                     # Screensaver Core Loop (Enhanced Omarchy Style)
 
-                       screensaver_in_focus() {
-                           active_window=$(hyprctl activewindow -j | jq -r '.class' 2>/dev/null)
-                           if [[ "$active_window" == "manx-screensaver" ]]; then
-                               return 0
-                           else
-                               return 1
-                           fi
-                       }
+                     screensaver_in_focus() {
+                         active_window=$(hyprctl activewindow -j | jq -r '.class' 2>/dev/null)
+                         if [[ "$active_window" == "manx-screensaver" ]]; then
+                             return 0
+                         else
+                             return 1
+                         fi
+                     }
 
-                       exit_screensaver() {
-                           # Restore cursor
-                           hyprctl keyword cursor:invisible false >/dev/null 2>&1
-                           # Kill background processes
-                           pkill -f "tte" >/dev/null 2>&1
-                           pkill -f "alacritty --class manx-screensaver" >/dev/null 2>&1
-                           exit 0
-                       }
+                     exit_screensaver() {
+                         # Restore cursor
+                         hyprctl keyword cursor:invisible false >/dev/null 2>&1
+                         # Kill background processes
+                         pkill -f "tte" >/dev/null 2>&1
+                         pkill -f "alacritty --class manx-screensaver" >/dev/null 2>&1
+                         exit 0
+                     }
 
-                       trap exit_screensaver SIGINT SIGTERM EXIT
+                     trap exit_screensaver SIGINT SIGTERM EXIT
 
-                       # Hide cursor for immersion
-                       hyprctl keyword cursor:invisible true >/dev/null 2>&1
-                       sleep 0.2
+                     # Hide cursor for immersion
+                     hyprctl keyword cursor:invisible true >/dev/null 2>&1
+                     sleep 0.2
 
-                       # Branding Paths
-                       LOGO_PATH="$HOME/.config/omarchy/branding/logo.png"
-                       TEXT_PATH="$HOME/.config/omarchy/branding/screensaver.txt"
-                       mkdir -p "$HOME/.config/omarchy/branding"
+                     # Branding Paths
+                     LOGO_PATH="$HOME/.config/omarchy/branding/logo.png"
+                     TEXT_PATH="$HOME/.config/omarchy/branding/screensaver.txt"
+                     mkdir -p "$HOME/.config/omarchy/branding"
 
-                       # 2. Start Animation (Bulletproof Loop)
-                       while true; do
-                           # --- LIVE DYNAMIC BRANDING GENERATION ---
-                           if [[ -f "$LOGO_PATH" ]]; then
-                               LOGO_TEXT=$(chafa --format=symbols --size=120x60 "$LOGO_PATH")
-                           elif [[ -f "$TEXT_PATH" ]]; then
-                               LOGO_TEXT=$(cat "$TEXT_PATH")
-                           else
-                               # Calculate LIVE stats for every theme cycle
-                               CPU_LOAD=$(grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {printf "%.1f%%", usage}')
-                               MEM_USAGE=$(free -m | awk '/Mem:/ { printf "%.0f%%", $3/$2*100 }')
-                               
-                               LOGO_TEXT=$(cat << EOF
-                    ▄▄▄▄███▄▄▄▄      ▄████████ ▄██   ▄      ▄████████ ███▄▄▄▄      ▄█   ▄█▄ 
-                  ▄██▀▀▀███▀▀▀██▄   ███    ███ ███   ██▄   ███    ███ ███▀▀▀██▄   ███ ▄███▀ 
-                  ███   ███   ███   ███    ███ ███▄▄▄███   ███    ███ ███   ███   ███▐██▀   
-                  ███   ███   ███   ███    ███ ▀▀▀▀▀▀███   ███    ███ ███   ███  ▄█████▀    
-                  ███   ███   ███ ▀███████████ ▄██   ███ ▀███████████ ███   ███ ▀▀█████▄    
-                  ███   ███   ███   ███    ███ ███   ███   ███    ███ ███   ███   ███▐██▄   
-                  ███   ███   ███   ███    ███ ███   ███   ███    ███ ███   ███   ███ ▀███▄ 
-                   ▀█   ███   █▀    ███    █▀   ▀█████▀    ███    █▀   ▀█   █▀    ███   ▀█▀ 
-                                                                                  ▀         
-                          SILICON WORKSTATION SECURED
-                     [ VLSI Simulation Pipeline Active ]
-                     
-                     SYSTEM DASHBOARD:
-                     CPU LOAD: $CPU_LOAD | RAM: $MEM_USAGE
-                     STATUS: ENCRYPTED & PROTECTED
+                     # 2. Start Animation (Bulletproof Loop)
+                     while true; do
+                         # Get terminal size for dynamic scaling
+                         cols=$(tput cols)
+                         rows=$(tput lines)
+
+                         # --- LIVE DYNAMIC BRANDING GENERATION ---
+                         if [[ -f "$LOGO_PATH" ]]; then
+                             # Calculate optimal size (80% of screen width, 70% of height)
+                             target_cols=$((cols * 8 / 10))
+                             target_rows=$((rows * 7 / 10))
+                             LOGO_TEXT=$(chafa --format=symbols --size=''${target_cols}x''${target_rows} "$LOGO_PATH")
+                         elif [[ -f "$TEXT_PATH" ]]; then
+                             # Read text and strip leading/trailing empty lines for perfect centering
+                             LOGO_TEXT=$(awk 'NF {p=1} p' "$TEXT_PATH" | tac | awk 'NF {p=1} p' | tac)
+                         else
+                             # Calculate LIVE stats for every theme cycle
+                             CPU_LOAD=$(grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {printf "%.1f%%", usage}')
+                             MEM_USAGE=$(free -m | awk '/Mem:/ { printf "%.0f%%", $3/$2*100 }')
+
+                             LOGO_TEXT=$(cat << EOF
+                  ▄▄▄▄███▄▄▄▄      ▄████████ ▄██   ▄      ▄████████ ███▄▄▄▄      ▄█   ▄█▄ 
+                ▄██▀▀▀███▀▀▀██▄   ███    ███ ███   ██▄   ███    ███ ███▀▀▀██▄   ███ ▄███▀ 
+                ███   ███   ███   ███    ███ ███▄▄▄███   ███    ███ ███   ███   ███▐██▀   
+                ███   ███   ███   ███    ███ ▀▀▀▀▀▀███   ███    ███ ███   ███  ▄█████▀    
+                ███   ███   ███ ▀███████████ ▄██   ███ ▀███████████ ███   ███ ▀▀█████▄    
+                ███   ███   ███   ███    ███ ███   ███   ███    ███ ███   ███   ███▐██▄   
+                ███   ███   ███   ███    ███ ███   ███   ███    ███ ███   ███   ███ ▀███▄ 
+                 ▀█   ███   █▀    ███    █▀   ▀█████▀    ███    █▀   ▀█   █▀    ███   ▀█▀ 
+                                                                                ▀         
+                        SILICON WORKSTATION SECURED
+                   [ VLSI Simulation Pipeline Active ]
+
+                   SYSTEM DASHBOARD:
+                   CPU LOAD: $CPU_LOAD | RAM: $MEM_USAGE
+                   STATUS: ENCRYPTED & PROTECTED
       EOF
       )
-                           fi
+                         fi
 
-                           # Select a random effect
-                           effects=(
-                               "beams" "binarypath" "blackhole" "bouncyballs" "bubbles" "burn"
-                               "colorshift" "crumble" "decrypt" "errorcorrect" "expand" "fireworks"
-                               "highlight" "laseretch" "matrix" "middleout" "orbittingvolley" "overflow"
-                               "pour" "print" "rain" "randomsequence" "rings" "scattered" "slice"
-                               "slide" "smoke" "spotlights" "spray" "swarm" "sweep" "synthgrid"
-                               "thunderstorm" "unstable" "vhstape" "waves" "wipe"
-                           )
-                           effect=''${effects[$RANDOM % ''${#effects[@]}]}
+                         # Select a random effect
+                         effects=(
+                             "beams" "binarypath" "blackhole" "bouncyballs" "bubbles" "burn"
+                             "colorshift" "crumble" "decrypt" "errorcorrect" "expand" "fireworks"
+                             "highlight" "laseretch" "matrix" "middleout" "orbittingvolley" "overflow"
+                             "pour" "print" "rain" "randomsequence" "rings" "scattered" "slice"
+                             "slide" "smoke" "spotlights" "spray" "swarm" "sweep" "synthgrid"
+                             "thunderstorm" "unstable" "vhstape" "waves" "wipe"
+                         )
+                         effect=''${effects[$RANDOM % ''${#effects[@]}]}
 
-                           # Start TTE animation with centering and centering
-                           echo "$LOGO_TEXT" | tte --frame-rate 60 --xterm-colors --ignore-terminal-dimensions --no-restore-cursor --anchor-canvas c --anchor-text c "$effect" &
-                           TTE_PID=$!
+                         # Start TTE animation with centering
+                         echo "$LOGO_TEXT" | tte --frame-rate 60 --xterm-colors --no-restore-cursor \
+                                                 --anchor-canvas c --anchor-text c \
+                                                 --canvas-width -1 --canvas-height -1 \
+                                                 "$effect" &
+                         TTE_PID=$!
 
-                           # Interaction loop
-                           while kill -0 "$TTE_PID" 2>/dev/null; do
-                               if read -n 1 -t 0.1 || ! screensaver_in_focus; then
-                                   exit_screensaver
-                               fi
-                           done
+                         # Interaction loop
+                         while kill -0 "$TTE_PID" 2>/dev/null; do
+                             if read -n 1 -t 0.1 || ! screensaver_in_focus; then
+                                 exit_screensaver
+                             fi
+                         done
 
-                           sleep 1
-                           clear
-                       done
+                         sleep 1
+                         clear
+                     done
     '';
   };
 }
