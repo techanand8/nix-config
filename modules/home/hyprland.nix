@@ -438,80 +438,80 @@
   home.file.".local/bin/manx-screensaver-run" = {
     executable = true;
     text = ''
-           #!/usr/bin/env bash
-           # Screensaver Core Loop (Omarchy style)
+                 #!/usr/bin/env bash
+                 # Screensaver Core Loop (Omarchy style)
 
-           screensaver_in_focus() {
-               active_window=$(hyprctl activewindow -j | jq -r '.class' 2>/dev/null)
-               if [[ "$active_window" == "manx-screensaver" ]]; then
-                   return 0
-               else
-                   return 1
-               fi
-           }
+                 screensaver_in_focus() {
+                     active_window=$(hyprctl activewindow -j | jq -r '.class' 2>/dev/null)
+                     if [[ "$active_window" == "manx-screensaver" ]]; then
+                         return 0
+                     else
+                         return 1
+                     fi
+                 }
 
-           exit_screensaver() {
-               # Make cursor visible again in Hyprland
-               hyprctl keyword cursor:invisible false >/dev/null 2>&1
-               
-               # Kill tte process
-               pkill -f "tte" >/dev/null 2>&1
-               
-               # Kill kitty window
-               pkill -f "kitty --class=manx-screensaver" >/dev/null 2>&1
-               exit 0
-           }
+                 exit_screensaver() {
+                     # Make cursor visible again in Hyprland
+                     hyprctl keyword cursor:invisible false >/dev/null 2>&1
+                     
+                     # Kill tte process
+                     pkill -f "tte" >/dev/null 2>&1
+                     
+                     # Kill kitty window
+                     pkill -f "kitty --class=manx-screensaver" >/dev/null 2>&1
+                     exit 0
+                 }
 
-           # Trap cleanup on exit
-           trap exit_screensaver SIGINT SIGTERM EXIT
+                 # Trap cleanup on exit
+                 trap exit_screensaver SIGINT SIGTERM EXIT
 
-           # Hide the cursor in Hyprland
-           hyprctl keyword cursor:invisible true >/dev/null 2>&1
+                 # Hide the cursor in Hyprland
+                 hyprctl keyword cursor:invisible true >/dev/null 2>&1
 
-           # Wait for window focus to settle
-           sleep 0.5
+                 # Wait for window focus to settle
+                 sleep 0.5
 
-           # Select a random Terminal Text Effect (TTE)
-           effects=(
-               "beams" "binarypath" "blackhole" "bouncingballs" "bubble" "burn"
-               "colorshift" "decrypt" "errorcorrect" "expand" "fireworks" "matrix"
-               "mousetrap" "overflow" "pour" "rain" "randomsequence" "rings"
-               "scattered" "slide" "spotlight" "spray" "swarm" "synthwave"
-               "unstable" "waves" "wipe"
-           )
-           effect=''${effects[$RANDOM % ''${#effects[@]}]}
+                 # Select a random Terminal Text Effect (TTE)
+                 effects=(
+                     "beams" "binarypath" "blackhole" "bouncingballs" "bubble" "burn"
+                     "colorshift" "decrypt" "errorcorrect" "expand" "fireworks" "matrix"
+                     "mousetrap" "overflow" "pour" "rain" "randomsequence" "rings"
+                     "scattered" "slide" "spotlight" "spray" "swarm" "synthwave"
+                     "unstable" "waves" "wipe"
+                 )
+                 effect=''${effects[$RANDOM % ''${#effects[@]}]}
 
-           # Define gorgeous custom ASCII art logo
-           LOGO_TEXT=$(cat << 'EOF'
-        ▄▄▄▄███▄▄▄▄      ▄████████ ▄██   ▄      ▄████████ ███▄▄▄▄      ▄█   ▄█▄ 
-      ▄██▀▀▀███▀▀▀██▄   ███    ███ ███   ██▄   ███    ███ ███▀▀▀██▄   ███ ▄███▀ 
-      ███   ███   ███   ███    ███ ███▄▄▄███   ███    ███ ███   ███   ███▐██▀   
-      ███   ███   ███   ███    ███ ▀▀▀▀▀▀███   ███    ███ ███   ███  ▄█████▀    
-      ███   ███   ███ ▀███████████ ▄██   ███ ▀███████████ ███   ███ ▀▀█████▄    
-      ███   ███   ███   ███    ███ ███   ███   ███    ███ ███   ███   ███▐██▄   
-      ███   ███   ███   ███    ███ ███   ███   ███    ███ ███   ███   ███ ▀███▄ 
-       ▀█   ███   █▀    ███    █▀   ▀█████▀    ███    █▀   ▀█   █▀    ███   ▀█▀ 
-                                                                      ▀         
-              SILICON WORKSTATION SECURED
-         [ VLSI Simulation Pipeline Active ]
-           EOF
-           )
+                 # Define gorgeous custom ASCII art logo
+                 LOGO_TEXT=$(cat << 'EOF'
+              ▄▄▄▄███▄▄▄▄      ▄████████ ▄██   ▄      ▄████████ ███▄▄▄▄      ▄█   ▄█▄ 
+            ▄██▀▀▀███▀▀▀██▄   ███    ███ ███   ██▄   ███    ███ ███▀▀▀██▄   ███ ▄███▀ 
+            ███   ███   ███   ███    ███ ███▄▄▄███   ███    ███ ███   ███   ███▐██▀   
+            ███   ███   ███   ███    ███ ▀▀▀▀▀▀███   ███    ███ ███   ███  ▄█████▀    
+            ███   ███   ███ ▀███████████ ▄██   ███ ▀███████████ ███   ███ ▀▀█████▄    
+            ███   ███   ███   ███    ███ ███   ███   ███    ███ ███   ███   ███▐██▄   
+            ███   ███   ███   ███    ███ ███   ███   ███    ███ ███   ███   ███ ▀███▄ 
+             ▀█   ███   █▀    ███    █▀   ▀█████▀    ███    █▀   ▀█   █▀    ███   ▀█▀ 
+                                                                            ▀         
+                    SILICON WORKSTATION SECURED
+               [ VLSI Simulation Pipeline Active ]
+      EOF
+      )
 
-           # Start TTE animation in background (limiting frame rate to 60 to prevent high CPU usage on your heavy VLSI system)
-           echo "$LOGO_TEXT" | tte "$effect" --frame-rate 60 >/dev/tty &
-           TTE_PID=$!
+                 # Start TTE animation in background (limiting frame rate to 60 to prevent high CPU usage on your heavy VLSI system)
+                 echo "$LOGO_TEXT" | tte "$effect" --frame-rate 60 >/dev/tty &
+                 TTE_PID=$!
 
-           # Flush input buffer
-           read -n 10000 -t 0.1 || true
+                 # Flush input buffer
+                 read -n 10000 -t 0.1 || true
 
-           # Listen for keypress or focus loss to wake up
-           while kill -0 "$TTE_PID" 2>/dev/null; do
-               if read -n 1 -t 1 || ! screensaver_in_focus; then
-                   exit_screensaver
-               fi
-           done
+                 # Listen for keypress or focus loss to wake up
+                 while kill -0 "$TTE_PID" 2>/dev/null; do
+                     if read -n 1 -t 1 || ! screensaver_in_focus; then
+                         exit_screensaver
+                     fi
+                 done
 
-           exit_screensaver
+                 exit_screensaver
     '';
   };
 }
