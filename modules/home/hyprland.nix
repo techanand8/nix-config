@@ -400,23 +400,28 @@
           exit 0
       fi
 
-      # 1. CHECK AMBXST CAFFEINE / INHIBITION STATE
-      # If Caffeine mode is ON (inhibited), or system is inhibited, do not run!
-      if [[ "$(axctl system is-inhibited 2>/dev/null)" == "\"true\"" ]] || \
-         [[ "$(axctl system is-inhibited 2>/dev/null)" == "true" ]] || \
-         [[ "$(axctl system is-system-inhibited 2>/dev/null)" == "\"true\"" ]] || \
-         [[ "$(axctl system is-system-inhibited 2>/dev/null)" == "true" ]]; then
-          exit 0
+      FORCE=false
+      if [[ "$1" == "--force" ]]; then
+          FORCE=true
       fi
 
-      # 2. CHECK IF MEDIA IS INHIBITING (e.g. watching movie or listening to audio)
-      if axctl system media-inhibit-check 2>/dev/null | grep -q '"count": [1-9]'; then
-          exit 0
-      fi
+      if [[ "$FORCE" == "false" ]]; then
+          # 1. CHECK AMBXST CAFFEINE / INHIBITION STATE
+          # This is your "Caffeine" master switch. If ON, screensaver stays OFF.
+          if [[ "$(axctl system is-inhibited 2>/dev/null)" == "\"true\"" ]] || \
+             [[ "$(axctl system is-inhibited 2>/dev/null)" == "true" ]] || \
+             [[ "$(axctl system is-system-inhibited 2>/dev/null)" == "\"true\"" ]] || \
+             [[ "$(axctl system is-system-inhibited 2>/dev/null)" == "true" ]]; then
+              echo "Screensaver inhibited by Ambxst/Caffeine mode."
+              exit 0
+          fi
 
-      # 3. CHECK IF ACTIVE APPS INHIBIT IDLE (like VLC, Steam, MPV, Firefox fullscreen)
-      if axctl system app-inhibit-check 2>/dev/null | grep -q 'true'; then
-          exit 0
+          # 2. CHECK IF MEDIA IS INHIBITING (e.g. watching movie or listening to audio)
+          # This prevents the screensaver from interrupting a video.
+          if axctl system media-inhibit-check 2>/dev/null | grep -q '"count": [1-9]'; then
+              echo "Screensaver inhibited by active media/audio."
+              exit 0
+          fi
       fi
 
       # Spawn Alacritty in absolute black fullscreen with custom styling overrides

@@ -214,7 +214,7 @@ let
             rm -f "$BRAND_DIR/logo.png" 2>/dev/null || true
             success "ASCII art updated. Launching preview..."
             pkill -f 'alacritty --class manx-screensaver' || true
-            "$HOME/.local/bin/manx-screensaver"
+            "$HOME/.local/bin/manx-screensaver" --force
             ;;
           
           image)
@@ -230,7 +230,7 @@ let
             
             success "Branding image updated. Launching preview..."
             pkill -f 'alacritty --class manx-screensaver' || true
-            "$HOME/.local/bin/manx-screensaver"
+            "$HOME/.local/bin/manx-screensaver" --force
             ;;
           
           reset)
