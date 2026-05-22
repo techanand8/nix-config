@@ -19,10 +19,11 @@
       logo = {
         source = "${config.home.homeDirectory}/nix-config/modules/system/plymouth/manx_logo.png";
         type = "auto";
-        width = 35; # Slightly larger for better detail
-        height = 17;
+        width = 32; # Slightly optimized for perfect horizontal fit
+        height = 16;
         padding = {
-          right = 6; # Increased padding for better separation
+          left = 3; # Shift fastfetch layout slightly to center of terminal
+          right = 5; # Perfect separation from system specs
           top = 1;
         };
       };
@@ -36,9 +37,6 @@
           keys = "cyan"; # Logic Accent
           title = "red"; # System Accent
           separator = "magenta"; # Cyberpunk Magenta Accent for the arrow!
-        };
-        key = {
-          width = 12; # Perfect fixed width for arrow alignment
         };
       };
 
@@ -57,37 +55,34 @@
         }
         {
           type = "custom";
-          format = "──────────────────────────────────────────────";
-          font = {
-            color = "bright_black";
-          };
+          format = "\u001b[90m──────────────────────────────────────────────\u001b[0m";
         }
 
         # --- Core OS & Environment (Cyan Theme) ---
         {
           type = "os";
-          key = " 󱄅  OS     ";
+          key = " 󱄅  OS      ";
           format = "MANX OS ${vars.stateVersion} ({10})";
           keyColor = "cyan";
         }
         {
           type = "kernel";
-          key = " 󰌢  Kernel ";
+          key = " 󰌢  Kernel  ";
           keyColor = "cyan";
         }
         {
           type = "uptime";
-          key = " 󰓅  Uptime ";
+          key = " 󰓅  Uptime  ";
           keyColor = "cyan";
         }
         {
           type = "packages";
-          key = " 󰏖  Pkgs   ";
+          key = " 󰏖  Pkgs    ";
           keyColor = "cyan";
         }
         {
           type = "shell";
-          key = "   Shell  ";
+          key = "   Shell   ";
           keyColor = "cyan";
         }
 
@@ -98,32 +93,32 @@
         }
         {
           type = "cpu";
-          key = "   CPU    ";
+          key = "   CPU     ";
           keyColor = "red";
         }
         {
           type = "gpu";
-          key = " 󰘚  GPU    ";
+          key = " 󰘚  GPU     ";
           keyColor = "red";
         }
         {
           type = "memory";
-          key = "   Memory ";
+          key = "   Memory  ";
           keyColor = "red";
         }
         {
           type = "battery";
-          key = " 󰁹  Battery";
+          key = " 󰁹  Battery ";
           keyColor = "red";
         }
         {
           type = "disk";
-          key = " 󰋊  Disk   ";
+          key = " 󰋊  Disk    ";
           keyColor = "red";
         }
         {
           type = "swap";
-          key = " 󰓡  Swap   ";
+          key = " 󰓡  Swap    ";
           keyColor = "red";
         }
 
@@ -134,32 +129,29 @@
         }
         {
           type = "localip";
-          key = " 󰩟  LocalIP";
+          key = " 󰩟  LocalIP ";
           keyColor = "green";
         }
         {
           type = "bios";
-          key = " 󰘚  BIOS   ";
+          key = " 󰘚  BIOS    ";
           keyColor = "green";
         }
         {
           type = "sound";
-          key = " 󰎆  Audio  ";
+          key = " 󰎆  Audio   ";
           keyColor = "green";
         }
         {
           type = "player";
-          key = " 󰝚  Player ";
+          key = " 󰝚  Player  ";
           keyColor = "green";
         }
 
         # --- Palette ---
         {
           type = "custom";
-          format = "──────────────────────────────────────────────";
-          font = {
-            color = "bright_black";
-          };
+          format = "\u001b[90m──────────────────────────────────────────────\u001b[0m";
         }
         "colors"
       ];
