@@ -9,6 +9,8 @@ let
 
     # --- CONFIGURATION ---
     CONFIG_DIR="$HOME/nix-config"
+    export FLAKE="$CONFIG_DIR"
+    export NH_FLAKE="$CONFIG_DIR"
     HOSTNAME="MANX"
     HOST_DIR=$(echo "$HOSTNAME" | tr '[:upper:]' '[:lower:]')
     EDITOR="nvim"

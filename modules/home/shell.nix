@@ -27,6 +27,7 @@
   # Global Environment Variables
   home.sessionVariables = {
     FLAKE = "${config.home.homeDirectory}/nix-config";
+    NH_FLAKE = "${config.home.homeDirectory}/nix-config";
   };
 
   # Zsh Shell Configuration
