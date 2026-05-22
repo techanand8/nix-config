@@ -1,6 +1,7 @@
 # --- SECRETS & PERSONAL INFO ---
 # This hides mine real name, email, and private paths
 hosts/msi-modern14c7m/variables.nix
+modules/system/plymouth/whatsapp_wallpaper.jpg
 .local/bin/sync_ghostty.sh
 
 # --- NIX & SYSTEM JUNK ---
