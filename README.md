@@ -264,6 +264,7 @@ This workstation configuration stands on the shoulders of giants. The modular ar
 
 *   **[ambxst](https://github.com/ambxst) (Axenide/Ambxst):** For establishing the phenomenal modular NixOS architecture and Home-Manager directory blueprints. This configuration adopts their structural philosophy as its foundational system design, enabling seamless declarative scaling.
 *   **[illogical-impulse](https://github.com/end4) (end4/hyprland):** For crafting the breathtaking visual aesthetics, dynamic window rules, micro-animations, and fluid touchpad gestural physics. Their work sets the absolute gold standard for modern desktop usability and has heavily guided the design of this Hyprland environment.
+*   **[Omarchy](https://github.com/omarchy) (Omarchy Linux):** For inspiring the jaw-dropping, GPU-accelerated fullscreen terminal screensaver workflow. Their creative implementation of dynamic Terminal Text Effects during system idleness sets a new benchmark for system customizability and hacker aesthetics.
 
 *Thank you to these upstream creators and the broader open-source community for fostering a culture of limitless collaborative learning!*
 

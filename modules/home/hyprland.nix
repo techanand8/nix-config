@@ -3,6 +3,59 @@
 {
   # --- XDG Config Files (The Nix Way) ---
   xdg.configFile = {
+    # 0. Ambxst System/Idle Config (VLSI Protected)
+    "ambxst/config/system.json".text = ''
+      {
+        "disks": [
+          "/"
+        ],
+        "updateServiceEnabled": true,
+        "idle": {
+          "general": {
+            "lock_cmd": "ambxst lock",
+            "before_sleep_cmd": "loginctl lock-session",
+            "after_sleep_cmd": "ambxst screen on"
+          },
+          "listeners": [
+            {
+              "onResume": "ambxst brightness -r",
+              "onTimeout": "ambxst brightness 10 -s",
+              "timeout": 150
+            },
+            {
+              "onResume": "pkill -f manx-screensaver || true",
+              "onTimeout": "manx-screensaver",
+              "timeout": 240
+            },
+            {
+              "onTimeout": "loginctl lock-session",
+              "timeout": 300
+            },
+            {
+              "onResume": "ambxst screen on",
+              "onTimeout": "ambxst screen off",
+              "timeout": 330
+            }
+          ]
+        },
+        "ocr": {
+          "eng": true,
+          "spa": true,
+          "lat": false,
+          "jpn": false,
+          "chi_sim": false,
+          "chi_tra": false,
+          "kor": false
+        },
+        "pomodoro": {
+          "workTime": 1500,
+          "restTime": 300,
+          "autoStart": false,
+          "syncSpotify": false
+        }
+      }
+    '';
+
     # 1. Main Hyprland Entry Point
     "hypr/hyprland.lua".text = ''
       local home = os.getenv("HOME")
@@ -163,6 +216,14 @@
       hl.layer_rule({ match = { namespace = "hyprpolkitagent" }, blur_popups = true })
       hl.layer_rule({ match = { namespace = "hyprpolkitagent" }, ignore_alpha = 0.5 })
       hl.layer_rule({ match = { namespace = "hyprpolkitagent" }, no_anim = false })
+
+      -- ############ SILICON SECURITY SCREEN SAVER (Omarchy style) ############
+      hl.window_rule({ match = { class = "manx-screensaver" }, float = true })
+      hl.window_rule({ match = { class = "manx-screensaver" }, fullscreen = true })
+      hl.window_rule({ match = { class = "manx-screensaver" }, pin = true })
+      hl.window_rule({ match = { class = "manx-screensaver" }, stay_focused = true })
+      hl.window_rule({ match = { class = "manx-screensaver" }, no_anim = true })
+      hl.window_rule({ match = { class = "manx-screensaver" }, no_shadow = true })
 
       hl.workspace_rule({ workspace = "special:special", gaps_out = 30 })
     '';
@@ -327,5 +388,130 @@
   # but without setting home.pointerCursor globally (so KDE stays untouched).
   home.packages = [
     pkgs.bibata-cursors
+    pkgs.terminaltexteffects
   ];
+
+  # Custom Silicon Security Screensaver (Omarchy style)
+  home.file.".local/bin/manx-screensaver" = {
+    executable = true;
+    text = ''
+      #!/usr/bin/env bash
+      # Prevent multiple screensaver instances from spawning
+      if pgrep -f "kitty --class=manx-screensaver" >/dev/null; then
+          exit 0
+      fi
+
+      # 1. CHECK AMBXST CAFFEINE / INHIBITION STATE
+      # If Caffeine mode is ON (inhibited), or system is inhibited, do not run!
+      if [[ "$(axctl system is-inhibited 2>/dev/null)" == "\"true\"" ]] || \
+         [[ "$(axctl system is-inhibited 2>/dev/null)" == "true" ]] || \
+         [[ "$(axctl system is-system-inhibited 2>/dev/null)" == "\"true\"" ]] || \
+         [[ "$(axctl system is-system-inhibited 2>/dev/null)" == "true" ]]; then
+          exit 0
+      fi
+
+      # 2. CHECK IF MEDIA IS INHIBITING (e.g. watching movie or listening to audio)
+      if axctl system media-inhibit-check 2>/dev/null | grep -q '"count": [1-9]'; then
+          exit 0
+      fi
+
+      # 3. CHECK IF ACTIVE APPS INHIBIT IDLE (like VLC, Steam, MPV, Firefox fullscreen)
+      if axctl system app-inhibit-check 2>/dev/null | grep -q 'true'; then
+          exit 0
+      fi
+
+      # Spawn Kitty in absolute black fullscreen with custom styling overrides
+      kitty --class=manx-screensaver \
+            --title=Screensaver \
+            --start-as=fullscreen \
+            -o decor=no \
+            -o hide_window_decorations=yes \
+            -o background=#000000 \
+            -o window_padding_width=0 \
+            -o window_margin_width=0 \
+            -o remember_window_size=no \
+            -o confirm_os_window_close=0 \
+            -e manx-screensaver-run
+    '';
+  };
+
+  home.file.".local/bin/manx-screensaver-run" = {
+    executable = true;
+    text = ''
+           #!/usr/bin/env bash
+           # Screensaver Core Loop (Omarchy style)
+
+           screensaver_in_focus() {
+               active_window=$(hyprctl activewindow -j | jq -r '.class' 2>/dev/null)
+               if [[ "$active_window" == "manx-screensaver" ]]; then
+                   return 0
+               else
+                   return 1
+               fi
+           }
+
+           exit_screensaver() {
+               # Make cursor visible again in Hyprland
+               hyprctl keyword cursor:invisible false >/dev/null 2>&1
+               
+               # Kill tte process
+               pkill -f "tte" >/dev/null 2>&1
+               
+               # Kill kitty window
+               pkill -f "kitty --class=manx-screensaver" >/dev/null 2>&1
+               exit 0
+           }
+
+           # Trap cleanup on exit
+           trap exit_screensaver SIGINT SIGTERM EXIT
+
+           # Hide the cursor in Hyprland
+           hyprctl keyword cursor:invisible true >/dev/null 2>&1
+
+           # Wait for window focus to settle
+           sleep 0.5
+
+           # Select a random Terminal Text Effect (TTE)
+           effects=(
+               "beams" "binarypath" "blackhole" "bouncingballs" "bubble" "burn"
+               "colorshift" "decrypt" "errorcorrect" "expand" "fireworks" "matrix"
+               "mousetrap" "overflow" "pour" "rain" "randomsequence" "rings"
+               "scattered" "slide" "spotlight" "spray" "swarm" "synthwave"
+               "unstable" "waves" "wipe"
+           )
+           effect=''${effects[$RANDOM % ''${#effects[@]}]}
+
+           # Define gorgeous custom ASCII art logo
+           LOGO_TEXT=$(cat << 'EOF'
+        ▄▄▄▄███▄▄▄▄      ▄████████ ▄██   ▄      ▄████████ ███▄▄▄▄      ▄█   ▄█▄ 
+      ▄██▀▀▀███▀▀▀██▄   ███    ███ ███   ██▄   ███    ███ ███▀▀▀██▄   ███ ▄███▀ 
+      ███   ███   ███   ███    ███ ███▄▄▄███   ███    ███ ███   ███   ███▐██▀   
+      ███   ███   ███   ███    ███ ▀▀▀▀▀▀███   ███    ███ ███   ███  ▄█████▀    
+      ███   ███   ███ ▀███████████ ▄██   ███ ▀███████████ ███   ███ ▀▀█████▄    
+      ███   ███   ███   ███    ███ ███   ███   ███    ███ ███   ███   ███▐██▄   
+      ███   ███   ███   ███    ███ ███   ███   ███    ███ ███   ███   ███ ▀███▄ 
+       ▀█   ███   █▀    ███    █▀   ▀█████▀    ███    █▀   ▀█   █▀    ███   ▀█▀ 
+                                                                      ▀         
+              SILICON WORKSTATION SECURED
+         [ VLSI Simulation Pipeline Active ]
+           EOF
+           )
+
+           # Start TTE animation in background (limiting frame rate to 60 to prevent high CPU usage on your heavy VLSI system)
+           echo "$LOGO_TEXT" | tte "$effect" --frame-rate 60 >/dev/tty &
+           TTE_PID=$!
+
+           # Flush input buffer
+           read -n 10000 -t 0.1 || true
+
+           # Listen for keypress or focus loss to wake up
+           while kill -0 "$TTE_PID" 2>/dev/null; do
+               if read -n 1 -t 1 || ! screensaver_in_focus; then
+                   exit_screensaver
+               fi
+           done
+
+           exit_screensaver
+    '';
+  };
 }
