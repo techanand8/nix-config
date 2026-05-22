@@ -52,7 +52,7 @@
 
       interface = {
         resolution = "1920x1080"; # High-definition graphical mode for the menu interface
-        branding = "✦  ───  M A N X   O S   [C A C H Y O S]  ───  ✦";
+        branding = "MANX OS [CACHYOS] | SPEED BOOTLOADER";
         brandingColor = "FF1133"; # Electric Ruby Red
         helpColor = "D0D2D6"; # Cool Silver/Grey
         helpColorBright = "FF1133"; # Electric Ruby Red for Countdown
@@ -60,7 +60,7 @@
 
       graphicalTerminal = {
         foreground = "FFFFFF"; # Pristine white for ultimate legibility
-        brightForeground = "00F0FF"; # Cyber Cyan for highlighted selections
+        brightForeground = "39FF14"; # Premium Neon Green for highlighted selections
         background = "A8080000"; # 65% translucent deep ruby glassmorphic card
         margin = 180; # Perfect floating card dimensions
         marginGradient = 25; # Wide glowing red ambient border
