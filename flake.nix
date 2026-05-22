@@ -82,6 +82,18 @@
       };
 
       # Multi-architecture RFC-166 compliant code formatter
-      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt);
+      formatter = forAllSystems (system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        pkgs.writeShellScriptBin "nixfmt" ''
+          if [ "$#" -eq 0 ]; then
+            # If no arguments, find all nix files (excluding result symlink) and format them
+            find . -name "*.nix" -not -path "./result/*" -print0 | xargs -0 ${pkgs.nixfmt}/bin/nixfmt
+          else
+            exec ${pkgs.nixfmt}/bin/nixfmt "$@"
+          fi
+        ''
+      );
     };
 }
