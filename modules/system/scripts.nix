@@ -3,13 +3,13 @@
 let
   mayank-script = pkgs.writeShellScriptBin "mayank" ''
     # Advanced NixOS Management Utility
-    # Custom-built for Mayank Anand's MSI Modern 14
+    # Custom-built for Mayank Anand's MANX Workstation
 
     set -e # Exit on error
 
     # Configuration
     CONFIG_DIR="$HOME/nix-config"
-    HOSTNAME="msi-modern14c7m"
+    HOSTNAME="MANX"
     EDITOR="nvim"
 
     # Premium Theme Colors (256-color & truecolor supported terminals like Ghostty/Kitty)
@@ -103,18 +103,16 @@ let
         # Git Tracking (Secure Professional Logic)
         cd $CONFIG_DIR
         
-        # 1. Mark secrets as 'intent-to-add' so Nix can see them
-        # This makes the file 'tracked' but not 'staged' for commit
-        git add -N -f hosts/msi-modern14c7m/variables.nix &> /dev/null || true
-        
-        # 2. Stage everything else (respecting .gitignore)
+        # 1. Stage everything EXCEPT variables.nix (respecting .gitignore strictly)
+        # We use git add . which respects .gitignore.
+        # We specifically do NOT force add variables.nix anymore.
         git add . &> /dev/null || true
         
-        # 3. Commit only the staged files
+        # 2. Commit only the staged files
         GEN=$(readlink /nix/var/nix/profiles/system | cut -d- -f2 || echo "N/A")
         git commit -m "System Update - Generation $GEN - $(date '+%Y-%m-%d %H:%M')" || true
         
-        # 4. Execute Rebuild
+        # 3. Execute Rebuild
         sudo nixos-rebuild switch --flake $CONFIG_DIR#$HOSTNAME --no-reexec || error "Rebuild process failed."
         
         # Auto-Push to GitHub
@@ -192,14 +190,14 @@ let
         fi
 
         # 3. Create or enter the Ubuntu 22.04 container specifically for Vivado
-        if ! distrobox list | grep -q "vivado-box"; then
-            info "Vivado environment 'vivado-box' not detected."
+        if ! distrobox list | grep -q "mayank-vivado"; then
+            info "Vivado environment 'mayank-vivado' not detected."
             info "Creating a standard, high-compatibility Ubuntu 22.04 Distrobox container..."
             
             # Create the container
-            distrobox create --name vivado-box --image ubuntu:22.04 --yes || error "Failed to create 'vivado-box' container."
+            distrobox create --name mayank-vivado --image ubuntu:22.04 --yes || error "Failed to create 'mayank-vivado' container."
             
-            success "Vivado environment 'vivado-box' created successfully!"
+            success "Vivado environment 'mayank-vivado' created successfully!"
             info "=========================================================================="
             info "To install and run Vivado, follow these quick steps:"
             info "  1. Enter the container:  mayank vivado"
@@ -211,16 +209,16 @@ let
         else
             # 4. Extract and copy high-res Xilinx icons to host so launchers render beautifully
             mkdir -p $HOME/.local/share/icons/xilinx
-            distrobox enter vivado-box -- bash -c "
+            distrobox enter mayank-vivado -- bash -c "
                 cp -f /tools/Xilinx/2025.2/Vivado/doc/images/vivado_logo.png \$HOME/.local/share/icons/xilinx/vivado.png 2>/dev/null || true
-                cp -f /tools/Xilinx/2025.2/Vitis/doc/images/vitis_logo.png \$HOME/.local/share/icons/xilinx/vitis.png 2>/dev/null || true
-                cp -f /tools/Xilinx/2025.2/DocNav/images/docnav.png \$HOME/.local/share/icons/xilinx/docnav.png 2>/dev/null || true
-                cp -f /tools/Xilinx/2025.2/xic/images/xic.png \$HOME/.local/share/icons/xilinx/xic.png 2>/dev/null || true
+                cp -f /tools/Xilinx/ide/electron-app/lnx64/resources/app/resources/icons/vitis-logo-latest.png \$HOME/.local/share/icons/xilinx/vitis.png 2>/dev/null || true
+                cp -f /tools/Xilinx/.xinstall/DocNav/data/images/xlnx_logo.png \$HOME/.local/share/icons/xilinx/docnav.png 2>/dev/null || true
+                cp -f /tools/Xilinx/xic/data/images/xlnx_logo.png \$HOME/.local/share/icons/xilinx/xic.png 2>/dev/null || true
             " &> /dev/null || true
 
-            log "Entering 'vivado-box' container... (Type 'exit' to return to NixOS)"
+            log "Entering 'mayank-vivado' container... (Type 'exit' to return to NixOS)"
             export _JAVA_AWT_WM_NONREPARENTING=1
-            distrobox enter vivado-box
+            distrobox enter mayank-vivado
         fi
         ;;
 

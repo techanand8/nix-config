@@ -38,10 +38,10 @@
   outputs = { self, nixpkgs, home-manager, nixos-hardware, hyprland, ambxst, nixvim, nix-cachyos-kernel, ... }@inputs:
     let
       hostPlatform = "x86_64-linux";
-      vars = import ./hosts/msi-modern14c7m/variables.nix;
+      vars = import ./hosts/manx/variables.nix;
     in
     {
-      nixosConfigurations.msi-modern14c7m = nixpkgs.lib.nixosSystem {
+      nixosConfigurations.MANX = nixpkgs.lib.nixosSystem {
         specialArgs = { inherit inputs vars hostPlatform; };
         modules = [
           {
@@ -49,7 +49,7 @@
             nixpkgs.config.allowUnfree = true;
             nixpkgs.overlays = [ inputs.nix-cachyos-kernel.overlays.pinned ];
           }
-          ./hosts/msi-modern14c7m/configuration.nix
+          ./hosts/manx/configuration.nix
           nixos-hardware.nixosModules.common-cpu-amd
           nixos-hardware.nixosModules.common-gpu-amd
           nixos-hardware.nixosModules.common-pc-ssd

@@ -35,17 +35,7 @@ in
   boot.initrd.kernelModules = [ "amdgpu" ];
   boot.initrd.availableKernelModules = [ "amdgpu" "xhci_pci" "nvme" "usb_storage" "sd_mod" ];
 
-  boot.kernelParams = [
-    "quiet" # Master silence flag
-    "splash" # Required for Plymouth
-    "rd.systemd.show_status=false" # Hides systemd status messages in initrd
-    "rd.udev.log_level=0" # Mutes udev in initrd completely
-    "udev.log_priority=0" # Mutes udev in main system completely
-    "vt.global_cursor_default=0" # Hides the blinking underscore cursor
-    "fbcon=nodefer" # Smooth handover to graphics
-    "amdgpu.fastboot=1" # Skips unnecessary mode sets for AMD
-    "boot.shell_on_fail" # Retain a shell prompt on boot failure for diagnostics
-  ];
+
 
   # Boot timeout - set to 5 seconds (the ideal daily sweet spot for safety and speed)
   boot.loader.timeout = 5;

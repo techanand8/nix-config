@@ -1,11 +1,11 @@
 {
   # Personal Info
-  username = "mayank-anand";
-  fullName = "Mayank Anand";
-  email = "131797761+techanand8@users.noreply.github.com";
+  username = "your-username";
+  fullName = "Your Full Name";
+  email = "your-email@example.com";
 
   # System Settings
-  hostname = "msi-modern14c7m";
+  hostname = "MANX";
   timezone = "Asia/Kolkata";
   locale = "en_IN";
 

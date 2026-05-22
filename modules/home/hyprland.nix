@@ -86,7 +86,7 @@
           hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
           hl.exec_cmd("bash $HOME/.local/bin/sync_ghostty.sh")
           hl.exec_cmd("hyprctl keyword windowrule 'dimaround, hyprpolkitagent'")
-          hl.exec_cmd("sleep 5 && distrobox enter vivado-box -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/xic/xic &")
+          hl.exec_cmd("sleep 5 && distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/xic/xic &")
       end)
     '';
 

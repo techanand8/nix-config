@@ -52,15 +52,15 @@
 
       interface = {
         resolution = "1920x1080"; # High-definition graphical mode for the menu interface
-        branding = "◆  M A Y A N K   N I X O S  ◆";
+        branding = "◆   M A N X   O S   ◆";
         brandingColor = "FF2A2A"; # Neon red accent
         helpColor = "FF8080"; # Soft rose help text
         helpColorBright = "FF2A2A"; # Bright neon red for boot countdown timer
       };
 
       graphicalTerminal = {
-        foreground = "FFFFFF"; # High-contrast crisp white text
-        background = "80000000"; # 50% translucent black backdrop for high-readability glassmorphism
+        foreground = "39FF14"; # Cyberpunk Neon Green text for terminal & bootloader loading words
+        background = "80300000"; # 50% translucent deep maroon backdrop matching the red glow theme
         margin = 150; # Center the terminal into a beautiful floating card container
         marginGradient = 15; # Add a soft glow border around the card
         font = {
@@ -177,10 +177,24 @@
 
   # Performance tweak for VMware and VLSI workloads
   # amd_pstate=active enables hardware-controlled frequency scaling for Ryzen
+  # --- KERNEL PARAMETERS ---
+  # Centralized boot configurations for performance, silent boot, and early graphics handoff
   boot.kernelParams = [
+    # System Performance & Hardware Tweaks
     "transparent_hugepage=never"
     "btusb.enable_autosuspend=0"
     "amd_pstate=active"
+
+    # Silent Boot & Plymouth Handover
+    "quiet" # Master silence flag
+    "splash" # Required for Plymouth boot animation
+    "rd.systemd.show_status=false" # Hides systemd status messages in initrd
+    "rd.udev.log_level=0" # Mutes udev in initrd completely
+    "udev.log_priority=0" # Mutes udev in main system completely
+    "vt.global_cursor_default=0" # Hides the blinking underscore cursor
+    "fbcon=nodefer" # Smooth handover to graphics
+    "amdgpu.fastboot=1" # Skips unnecessary mode sets for AMD
+    "boot.shell_on_fail" # Retain a shell prompt on boot failure for diagnostics
   ];
 
   # Enable the sched-ext framework (CachyOS specialty)
@@ -321,6 +335,9 @@
       nss
     ];
   };
+
+  # Rename the distribution system-wide (replaces "NixOS" in bootloader entry titles)
+  system.nixos.distroName = "MANX OS";
 
   system.stateVersion = vars.stateVersion;
 }

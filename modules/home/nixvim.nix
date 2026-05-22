@@ -81,7 +81,7 @@
             { action = "e /home/${vars.username}/nix-config/modules/home/nixvim.nix"; desc = " Config"; icon = " "; key = "c"; }
             { action = "qa"; desc = " Quit"; icon = " "; key = "q"; }
           ];
-          footer = [ "Engineered with Precision by Mayank Anand" ];
+          footer = [ "Engineered with Precision by ${vars.fullName}" ];
         };
       };
     };
@@ -125,8 +125,8 @@
             nixpkgs.expr = "import <nixpkgs> { }";
             formatting.command = [ "nixpkgs-fmt" ];
             options = {
-              nixos.expr = "(builtins.getFlake \"$HOME/nix-config\").nixosConfigurations.msi-modern14c7m.options";
-              home_manager.expr = "(builtins.getFlake \"$HOME/nix-config\").nixosConfigurations.msi-modern14c7m.options.home-manager.users.value.mayank-anand";
+              nixos.expr = "(builtins.getFlake \"$HOME/nix-config\").nixosConfigurations.MANX.options";
+              home_manager.expr = "(builtins.getFlake \"$HOME/nix-config\").nixosConfigurations.MANX.options.home-manager.users.value.${vars.username}";
             };
           };
         };
