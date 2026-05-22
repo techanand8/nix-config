@@ -2,11 +2,11 @@
 
 {
   # =========================================================================
-  # PROFESSIONAL FASTFETCH THEME (fastfetch.nix)
+  # ULTIMATE DOCK-HUD FASTFETCH THEME (fastfetch.nix)
   # =========================================================================
   # A highly customized, modern system information hub.
-  # Configured to dynamically load your active wallpaper using premium rendering,
-  # falling back to a stylish custom-colored NixOS logo in non-graphical shells.
+  # Configured to load your hyper-futuristic MANX OS custom emblem in premium
+  # resolution, with full hardware, system, and multimedia audio/playback support.
 
   programs.fastfetch = {
     enable = true;
@@ -14,10 +14,10 @@
       "$schema" = "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json";
 
       # ---------------------------------------------------------------------
-      # LOGO CONFIGURATION (Dynamic Wallpaper & Stylish Fallsbacks)
+      # LOGO CONFIGURATION (Hyper-Futuristic MANX OS Emblem)
       # ---------------------------------------------------------------------
       logo = {
-        source = "wallpaper"; # Automatically extracts and displays the active desktop wallpaper!
+        source = "/home/${vars.username}/nix-config/modules/system/plymouth/manx_logo.png"; # Hyper-futuristic custom MANX OS cyberpunk logo!
         type = "auto"; # Seamlessly uses the best terminal protocol (Kitty/Ghostty graphics)
         width = 30;
         height = 15;
@@ -31,7 +31,7 @@
       # DISPLAY SETTINGS
       # ---------------------------------------------------------------------
       display = {
-        separator = " ❯ ";
+        separator = " ▟ "; # Sharp industrial separator
         color = {
           keys = "magenta";
           title = "blue";
@@ -111,6 +111,27 @@
           type = "disk";
           key = "󰋊  Storage ";
           keyColor = "yellow";
+        }
+
+        # --- Multimedia & Audio Support ---
+        {
+          type = "custom";
+          format = "";
+        }
+        {
+          type = "sound";
+          key = "󰎆  Audio   ";
+          keyColor = "cyan";
+        }
+        {
+          type = "player";
+          key = "󰝚  Player  ";
+          keyColor = "magenta";
+        }
+        {
+          type = "song";
+          key = "󰎆  Song    ";
+          keyColor = "red";
         }
 
         # --- Footer Block & Palette ---
