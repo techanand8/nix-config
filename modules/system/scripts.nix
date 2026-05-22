@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, vars, ... }:
 
 let
   mayank-script = pkgs.writeShellScriptBin "mayank" ''
@@ -10,7 +10,9 @@ let
     # --- CONFIGURATION ---
     CONFIG_DIR="$HOME/nix-config"
     HOSTNAME="MANX"
+    HOST_DIR=$(echo "$HOSTNAME" | tr '[:upper:]' '[:lower:]')
     EDITOR="nvim"
+    VIVADO_VERSION="${vars.vivadoVersion}"
 
     # --- COLOR PALETTE (Optimized for Ghostty/Kitty) ---
     C_PRIMARY='\033[38;5;208m'   # Coral Orange
@@ -163,8 +165,8 @@ let
         ;;
 
       edit)
-        # Open the primary system configuration
-        $EDITOR hosts/$HOSTNAME/configuration.nix
+        # Open the primary system configuration (Dynamically resolved path)
+        $EDITOR hosts/$HOST_DIR/configuration.nix
         ;;
 
       search)
@@ -212,7 +214,7 @@ let
         else
             mkdir -p $HOME/.local/share/icons/xilinx
             distrobox enter mayank-vivado -- bash -c "
-                cp -f /tools/Xilinx/2025.2/Vivado/doc/images/vivado_logo.png \$HOME/.local/share/icons/xilinx/vivado.png 2>/dev/null || true
+                cp -f /tools/Xilinx/$VIVADO_VERSION/Vivado/doc/images/vivado_logo.png \$HOME/.local/share/icons/xilinx/vivado.png 2>/dev/null || true
                 cp -f /tools/Xilinx/ide/electron-app/lnx64/resources/app/resources/icons/vitis-logo-latest.png \$HOME/.local/share/icons/xilinx/vitis.png 2>/dev/null || true
             " &> /dev/null || true
 

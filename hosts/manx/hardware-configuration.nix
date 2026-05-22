@@ -28,6 +28,10 @@
   fileSystems."/" = {
     device = "/dev/mapper/luks-43f71712-badb-4a95-93b1-50bc2ceaf981";
     fsType = "btrfs";
+    options = [
+      "compress=zstd"
+      "noatime"
+    ];
   };
 
   boot.initrd.luks.devices."luks-43f71712-badb-4a95-93b1-50bc2ceaf981".device =
