@@ -256,6 +256,7 @@
       # Paths
       CACHE_FILE="$HOME/.cache/ambxst/kitty.conf"
       GHOSTTY_CONFIG="$HOME/.config/ghostty/config"
+      ALACRITTY_CONFIG="$HOME/.config/alacritty/alacritty.toml"
 
       # Exit if cache doesn't exist
       if [[ ! -f "$CACHE_FILE" ]]; then
@@ -268,7 +269,7 @@
       CURSOR=$(grep "^cursor " "$CACHE_FILE" | awk '{print $2}')
       OPACITY=$(grep "^background_opacity " "$CACHE_FILE" | awk '{print $2}')
 
-      # Fallback for opacity if not found
+      # Clean hex colors (remove # for some tools if needed, but we keep it for Alacritty)
       if [[ -z "$OPACITY" ]]; then OPACITY="1.0"; fi
 
       # 2. Create the base Ghostty Config
@@ -298,15 +299,65 @@
       # ANSI Palette (Syncs Starship)
       GHOST_EOF
 
-      # 3. Extract and format the full 16-color palette
+      # 3. Create Alacritty Config (Live Sync)
+      mkdir -p "$HOME/.config/alacritty"
+      cat << ALAC_EOF > "$ALACRITTY_CONFIG"
+      # =========================================================================
+      # ALACRITTY CONFIG (AUTO-SYNCED WITH AMBXST)
+      # =========================================================================
+
+      [font]
+      normal = { family = "JetBrains Mono Nerd Font", style = "Regular" }
+      size = 16
+
+      [window]
+      decorations = "None"
+      dynamic_padding = false
+      padding = { x = 0, y = 0 }
+      startup_mode = "Fullscreen"
+      opacity = $OPACITY
+
+      [colors.primary]
+      background = "$BG"
+      foreground = "$FG"
+
+      [colors.cursor]
+      cursor = "$CURSOR"
+
+      [colors.normal]
+      ALAC_EOF
+
+      # Extract normal palette
+      for i in {0..7}; do
+          VAL=$(grep "^color$i " "$CACHE_FILE" | awk '{print $2}')
+          case $i in
+            0) NAME="black" ;; 1) NAME="red" ;; 2) NAME="green" ;; 3) NAME="yellow" ;;
+            4) NAME="blue" ;; 5) NAME="magenta" ;; 6) NAME="cyan" ;; 7) NAME="white" ;;
+          esac
+          echo "$NAME = \"$VAL\"" >> "$ALACRITTY_CONFIG"
+      done
+
+      echo -e "\n[colors.bright]" >> "$ALACRITTY_CONFIG"
+      # Extract bright palette
+      for i in {8..15}; do
+          VAL=$(grep "^color$i " "$CACHE_FILE" | awk '{print $2}')
+          case $i in
+            8) NAME="black" ;; 9) NAME="red" ;; 10) NAME="green" ;; 11) NAME="yellow" ;;
+            12) NAME="blue" ;; 13) NAME="magenta" ;; 14) NAME="cyan" ;; 15) NAME="white" ;;
+          esac
+          echo "$NAME = \"$VAL\"" >> "$ALACRITTY_CONFIG"
+      done
+
+      # 4. Trigger live reload in Ghostty without closing it
+      pkill -USR2 ghostty 2>/dev/null || true
+      # Alacritty reloads automatically when the file is written!
+
+      # 5. Extract and format the full 16-color palette for Ghostty
       grep "^color[0-9]* " "$CACHE_FILE" | while read -r line; do
           INDEX=$(echo "$line" | cut -d' ' -f1 | sed 's/color//')
           VALUE=$(echo "$line" | cut -d' ' -f2)
           echo "palette = $INDEX=$VALUE" >> "$GHOSTTY_CONFIG"
       done
-
-      # 4. Trigger live reload in Ghostty without closing it
-      pkill -USR2 ghostty 2>/dev/null || true
 
       # =========================================================================
       # DYNAMIC GTK & QT LIGHT/DARK THEME SWITCHER
@@ -523,13 +574,13 @@
                          )
                          effect=''${effects[$RANDOM % ''${#effects[@]}]}
 
-                         # Start TTE animation with centering
+                         # Start TTE animation with absolute centering
+                         # --anchor-text c: Focuses on putting the text in the middle
+                         # --no-eol: Prevents extra line shifts
                          echo "$LOGO_TEXT" | tte --frame-rate 60 --xterm-colors --no-restore-cursor \
-                                                 --anchor-canvas c --anchor-text c \
-                                                 --canvas-width -1 --canvas-height -1 \
+                                                 --anchor-text c --no-eol \
                                                  "$effect" &
                          TTE_PID=$!
-
                          # Interaction loop
                          while kill -0 "$TTE_PID" 2>/dev/null; do
                              if read -n 1 -t 0.1 || ! screensaver_in_focus; then
