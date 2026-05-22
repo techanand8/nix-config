@@ -441,13 +441,24 @@
     pkgs.chafa
   ];
 
-  # Custom Silicon Security Screensaver (Omarchy style)
+  # Custom Silicon Security Screensaver (Elite Omarchy style)
   home.file.".local/bin/manx-screensaver" = {
     executable = true;
     text = ''
       #!/usr/bin/env bash
-      # Prevent multiple screensaver instances from spawning
+      # Omarchy-standard Screensaver Orchestrator
+
+      # 0. PRE-FLIGHT CHECKS
+      if ! command -v tte &>/dev/null; then exit 1; fi
+
+      # Prevent multiple instances
       if pgrep -f "alacritty --class manx-screensaver" >/dev/null; then
+          exit 0
+      fi
+
+      # 1. CHECK TOGGLE STATE
+      # If this file exists, screensaver is manually disabled
+      if [[ -f "$HOME/.local/state/omarchy/toggles/screensaver-off" ]]; then
           exit 0
       fi
 
@@ -457,26 +468,24 @@
       fi
 
       if [[ "$FORCE" == "false" ]]; then
-          # 1. CHECK AMBXST CAFFEINE / INHIBITION STATE
-          # This is your "Caffeine" master switch. If ON, screensaver stays OFF.
+          # 2. CHECK CAFFEINE / INHIBITION
           if [[ "$(axctl system is-inhibited 2>/dev/null)" == "\"true\"" ]] || \
              [[ "$(axctl system is-inhibited 2>/dev/null)" == "true" ]] || \
              [[ "$(axctl system is-system-inhibited 2>/dev/null)" == "\"true\"" ]] || \
              [[ "$(axctl system is-system-inhibited 2>/dev/null)" == "true" ]]; then
-              echo "Screensaver inhibited by Ambxst/Caffeine mode."
+              echo "Inhibited by Ambxst/Caffeine."
               exit 0
           fi
 
-          # 2. CHECK IF MEDIA IS INHIBITING (e.g. watching movie or listening to audio)
-          # This prevents the screensaver from interrupting a video.
+          # 3. CHECK MEDIA
           if axctl system media-inhibit-check 2>/dev/null | grep -q '"count": [1-9]'; then
-              echo "Screensaver inhibited by active media/audio."
+              echo "Inhibited by media."
               exit 0
           fi
       fi
 
-      # Spawn Alacritty in absolute black fullscreen with custom styling overrides
-      # We force LC_ALL=C to prevent xkbcommon locale errors
+      # 4. LAUNCH (Elite Mode)
+      # We force LC_ALL=C for clean XKB handling
       LC_ALL=C alacritty --class manx-screensaver \
                 --title Screensaver \
                 -o "window.startup_mode='Fullscreen'" \

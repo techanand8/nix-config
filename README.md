@@ -139,27 +139,30 @@ To integrate additional tools into your declarative stack:
 
 ## 󰪢 Branding & Immersive Aesthetics
 
-This workstation implements a high-fidelity, Omarchy-inspired "Silicon Security" screensaver environment. It is designed to transform the workstation into a visually striking, mission-critical dashboard during system idleness.
+This workstation implements a **Production-grade** immersive environment inspired by the latest **Omarchy 3.8** standards. It transforms the display into a mission-critical "Silicon Security" dashboard that balances visual sophistication with functional system monitoring.
 
 ### The "Silicon Workstation" Screensaver
 
-The screensaver is a GPU-accelerated, full-screen Alacritty instance running **TerminalTextEffects (TTE)**. It serves as both an aesthetic centerpiece and a functional status monitor.
+Powered by a GPU-accelerated Alacritty engine and **TerminalTextEffects (TTE)**, this screensaver is engineered for maximum visual fidelity and system harmony.
 
-*   **Omarchy 3.8 Image Logic:** Supports converting custom images (PNG/JPG) into high-quality ASCII symbol art dynamically using `chafa`.
-*   **Live System Dashboard:** Features an integrated real-time monitor displaying current **CPU Load** and **RAM Utilization** alongside workstation security status.
-*   **Massive Animation Library:** Cycles randomly through **37+ professional animation themes** (e.g., Matrix, Burn, VHS Tape, Rain, Fireworks, and Blackhole).
-*   **Ambxst Lock Integration:** Orchestrated to yield focus instantly to the **Ambxst Lock Screen**, ensuring a seamless transition from "Art Mode" to "Secure Lock" without visual glitches.
-*   **Zero-Disturb Mode:** Automatically inhibits itself during active media playback, VLSI simulations, or manual "Caffeine" mode activation.
+*   **High-Fidelity Adaptive Scaling:** Automatically detects native screen resolution to scale artwork dynamically. This ensures branding is perfectly **Centered** and optimized for any display size.
+*   **Real-time Aesthetic Synchronization:** The screensaver environment is permanently coupled with the global **Ambxst theme**. It dynamically updates terminal color palettes and typography (**JetBrains Mono, Size 16**) in real-time without session interruption.
+*   **Comprehensive Animation Suite:** Includes 37+ specialized TTE effects (e.g., *Matrix, Blackhole, VHS Tape*) cycling through a robust, self-healing orchestration loop.
+*   **Integrated Performance Analytics:** A live telemetry dashboard embedded in the ASCII art provides real-time monitoring of **CPU Load** and **RAM Utilization**.
+*   **Seamless Architectural Integration:** 
+    *   **Atomic Handover:** Orchestrated to yield instantly to the **Ambxst Lock Screen**, ensuring a clean, flicker-free transition between art and security.
+    *   **Workflow Preservation:** Intelligently inhibits execution during active user input, media playback, or high-intensity VLSI simulations.
+    *   **Manual Override:** Full compatibility with the Ambxst "Caffeine" master switch for total environmental control.
 
-### 🎨 Managing Your Brand with `mayank screensaver`
+### 🎨 Management CLI: `mayank screensaver`
 
-You can professionally manage your workstation's aesthetics directly from the terminal using the integrated management CLI:
+A streamlined interface for managing workstation aesthetics without manual configuration overhead.
 
-| Command | Action & Workflow |
+| Command | Operational Workflow |
 | :--- | :--- |
-| `mayank screensaver ascii` | Opens a live editor to customize your screensaver text. Launches an instant preview upon saving. |
-| `mayank screensaver image <path>` | Sets a custom logo/image for the screensaver. Automatically handles ASCII conversion and triggers a preview. |
-| `mayank screensaver reset` | Safely wipes custom branding and restores the default **MANX Silicon Workstation** logo. |
+| `mayank screensaver ascii` | Initializes a live editor for custom ASCII art. Applies updates with immediate, centered previews. |
+| `mayank screensaver image <path>` | Transcodes any image (PNG/JPG) into high-resolution terminal symbols with an automated visual preview. |
+| `mayank screensaver reset` | Restores the default **MANX Silicon Workstation** branding and system telemetry dashboard. |
 
 ---
 
