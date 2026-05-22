@@ -47,7 +47,7 @@
           type = "title";
           color = {
             user = "blue";
-            at = "muted";
+            at = "bright_black";
             host = "magenta";
           };
         }
@@ -55,7 +55,7 @@
           type = "custom";
           format = "◆ ─────────────────────────────────────────── ◆";
           font = {
-            color = "muted";
+            color = "bright_black";
           };
         }
 
@@ -118,7 +118,7 @@
           type = "custom";
           format = "◆ ─────────────────────────────────────────── ◆";
           font = {
-            color = "muted";
+            color = "bright_black";
           };
         }
         "colors"
