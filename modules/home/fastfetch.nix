@@ -2,7 +2,7 @@
 
 {
   # =========================================================================
-  # DYNAMIC CYBER-HUD FASTFETCH THEME (fastfetch.nix)
+  # PROFESSIONAL CYBER-HUD FASTFETCH THEME (fastfetch.nix)
   # =========================================================================
   # A highly customized, modern system information hub.
   # Configured to load your hyper-futuristic MANX OS custom emblem in premium
@@ -37,7 +37,7 @@
           title = "red"; # System Accent
         };
         key = {
-          width = 12; # Precise alignment for all modules
+          width = 15; # Generous width to prevent any overlapping and align perfectly!
         };
       };
 
@@ -65,28 +65,28 @@
         # --- Core OS & Environment (Cyan Theme) ---
         {
           type = "os";
-          key = " 󱄅  OS     ";
+          key = " 󱄅  OS";
           format = "MANX OS ${vars.stateVersion} ({10})";
           keyColor = "cyan";
         }
         {
           type = "kernel";
-          key = " 󰌢  Kernel ";
+          key = " 󰌢  Kernel";
           keyColor = "cyan";
         }
         {
           type = "uptime";
-          key = " 󰓅  Uptime ";
+          key = " 󰓅  Uptime";
           keyColor = "cyan";
         }
         {
           type = "packages";
-          key = " 󰏖  Pkgs   ";
+          key = " 󰏖  Pkgs";
           keyColor = "cyan";
         }
         {
           type = "shell";
-          key = "   Shell  ";
+          key = "   Shell";
           keyColor = "cyan";
         }
 
@@ -97,17 +97,17 @@
         }
         {
           type = "cpu";
-          key = "   CPU    ";
+          key = "   CPU";
           keyColor = "red";
         }
         {
           type = "gpu";
-          key = " 󰘚  GPU    ";
+          key = " 󰘚  GPU";
           keyColor = "red";
         }
         {
           type = "memory";
-          key = "   Memory ";
+          key = "   Memory";
           keyColor = "red";
         }
         {
@@ -117,12 +117,12 @@
         }
         {
           type = "disk";
-          key = " 󰋊  Disk   ";
+          key = " 󰋊  Disk";
           keyColor = "red";
         }
         {
           type = "swap";
-          key = " 󰓡  Swap   ";
+          key = " 󰓡  Swap";
           keyColor = "red";
         }
 
@@ -138,17 +138,17 @@
         }
         {
           type = "bios";
-          key = " 󰘚  BIOS   ";
+          key = " 󰘚  BIOS";
           keyColor = "green";
         }
         {
           type = "sound";
-          key = " 󰎆  Audio  ";
+          key = " 󰎆  Audio";
           keyColor = "green";
         }
         {
           type = "player";
-          key = " 󰝚  Player ";
+          key = " 󰝚  Player";
           keyColor = "green";
         }
 

@@ -102,14 +102,6 @@
           file_ignore_patterns = [
             "^.git/"
             "^node_modules/"
-            "%.jpg"
-            "%.jpeg"
-            "%.png"
-            "%.webp"
-            "%.gif"
-            "%.pdf"
-            "%.zip"
-            "%.tar.gz"
           ];
         };
       };
@@ -319,6 +311,36 @@
             spice = "spice",
             tcl = "tcl"
         },
+      })
+
+      -- Custom Telescope Previewer to cleanly intercept binary and media files
+      local previewers = require("telescope.previewers")
+      local new_maker = function(filepath, bufnr, opts)
+        opts = opts or {}
+        filepath = vim.fn.expand(filepath)
+        
+        -- Check file extension
+        local ext = vim.fn.fnamemodify(filepath, ":e"):lower()
+        local binary_exts = { "png", "jpg", "jpeg", "webp", "gif", "pdf", "zip", "tar", "gz" }
+        
+        if vim.tbl_contains(binary_exts, ext) then
+          -- Show a clean message instead of binary characters!
+          require("telescope.previewers.utils").set_preview_message(
+            bufnr,
+            opts.winid,
+            "Binary / Media File Detected\n\n(Use Space + f + m for Graphical Media Preview)"
+          )
+          return
+        end
+        
+        previewers.buffer_previewer_maker(filepath, bufnr, opts)
+      end
+      
+      -- Setup custom maker
+      require("telescope").setup({
+        defaults = {
+          buffer_previewer_maker = new_maker
+        }
       })
     '';
   };
