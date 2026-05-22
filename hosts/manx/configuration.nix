@@ -283,7 +283,7 @@
     ripgrep
     imagemagick
 
-    # --- PREMIUM SYSTEM HELPERS ---
+    # --- SYSTEM MANAGEMENT HELPERS ---
     nh # Better UI for rebuilds
     nix-output-monitor # Beautiful progress bars
     nvd # Show exactly what packages changed after rebuild

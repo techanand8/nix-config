@@ -81,7 +81,7 @@
         ];
       };
 
-      # Premium Smart Formatter (Works for all systems)
+      # Automated Nix Formatter (Multi-architecture)
       formatter = forAllSystems (
         system:
         let

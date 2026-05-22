@@ -20,7 +20,7 @@ let
     C_MUTED='\033[38;5;244m'     # Dim Grey
     C_WHITE='\033[1;37m'         # Bright White
     C_GOLD='\033[38;5;220m'      # Warm Gold
-    
+
     # Base UI Colors (Compat for legacy shell functions)
     GREEN='\033[1;32m'
     BLUE='\033[1;34m'
@@ -94,74 +94,80 @@ let
 
     case $1 in
       rebuild)
-        log "Starting Premium system rebuild..."
+        log "Executing system synchronization..."
         
-        # Format code
+        # 1. Enforce code style standards (RFC-166)
         nix fmt
         
-        # Git Tracking
+        # 2. Validate configuration integrity before applying
+        log "Validating configuration health..."
+        nom flake check . --all-systems &> /dev/null || error "Configuration audit failed. Please resolve errors before rebuilding."
+        
+        # 3. Stage changes to the local repository
         git add . &> /dev/null || true
         
-        # Capture old generation for the diff
+        # 4. Capture current system state for delta reporting
         OLD_GEN=$(readlink /nix/var/nix/profiles/system)
         
-        # Run rebuild with NH and progress monitor
-        nh os switch . --hostname $HOSTNAME -- --accept-flake-config || error "Rebuild failed."
+        # 5. Apply system configuration via NH
+        log "Applying system updates..."
+        nh os switch . --hostname $HOSTNAME -- --accept-flake-config || error "System rebuild failed."
         
-        # Show what packages changed
+        # 6. Generate package change report
         NEW_GEN=$(readlink /nix/var/nix/profiles/system)
         echo -e "\n''${C_HIGHLIGHT}  Package Changes:''${NC}"
         nvd diff "$OLD_GEN" "$NEW_GEN"
         
-        # Push to GitHub if origin exists
+        # 7. Synchronize with remote repository
         if git remote | grep -q "origin"; then
-            log "Syncing with GitHub..."
+            log "Synchronizing with remote repository..."
             git commit -m "System Update: $(date '+%Y-%m-%d %H:%M')" &> /dev/null || true
-            git push origin main &> /dev/null || info "Push skipped (check remote)"
+            git push origin main &> /dev/null || info "Remote sync skipped."
         fi
 
-        success "System applied successfully!"
+        success "System configuration applied successfully."
         ;;
 
       update)
-        log "Updating all inputs and building..."
-        nh os switch . --update --hostname $HOSTNAME || error "Update failed."
-        success "System updated!"
+        log "Updating system inputs and dependencies..."
+        nh os switch . --update --hostname $HOSTNAME || error "System update failed."
+        success "System updated and synchronized."
         ;;
 
       clean)
-        log "Starting Three-Layer Deep Clean..."
+        log "Performing deep system maintenance..."
         
-        # 1. Clean old generations
-        log "Cleaning old generations (Keeping last 3)..."
+        # LAYER 1: Generation Pruning
+        log "Pruning legacy generations (Keeping last 3)..."
         nh clean all --keep 3
         
-        # 2. Deep Garbage Collection
-        log "Purging unused store objects..."
+        # LAYER 2: Garbage Collection
+        log "Executing garbage collection cycle..."
         sudo nix-collect-garbage -d
         nix-collect-garbage -d
         
-        # 3. Store Optimization
-        log "Optimizing store (Hard-linking)..."
+        # LAYER 3: Store Optimization
+        log "Optimizing Nix store (Hard-linking duplicates)..."
         sudo nix-store --optimise
         
-        success "Deep cleanup complete! Your storage is 100% optimized."
+        success "System maintenance complete. Storage optimized."
         ;;
 
       edit)
+        # Open the primary system configuration
         $EDITOR hosts/$HOSTNAME/configuration.nix
         ;;
 
       search)
         shift
-        log "Searching for: $@"
+        log "Querying Nixpkgs registry for: $@"
         nix-env -qaP "$@"
         ;;
 
       check)
-        log "Checking config health..."
-        nom flake check . --all-systems || error "Integrity check failed."
-        success "Config is stable!"
+        log "Auditing configuration health..."
+        nom flake check . --all-systems || error "Configuration audit failed."
+        success "Configuration verified."
         ;;
 
       shell)
