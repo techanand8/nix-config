@@ -44,11 +44,6 @@
     # Framebuffer resolution for early boot/Linux GOP graphical handoff (ensures high-res Plymouth)
     resolution = "1920x1080";
 
-    # Prepend global intelligence settings to limine.cfg
-    extraConfig = ''
-      remember_last_entry: yes
-    '';
-
     style = {
       # Configure a glowing red textured wallpaper as the system boot background.
       wallpapers = [ ../../modules/system/plymouth/red_glow.jpg ];
