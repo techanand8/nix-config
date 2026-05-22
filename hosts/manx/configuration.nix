@@ -44,6 +44,11 @@
     # Framebuffer resolution for early boot/Linux GOP graphical handoff (ensures high-res Plymouth)
     resolution = "1920x1080";
 
+    # Prepend global intelligence settings to limine.cfg
+    extraConfig = ''
+      remember_last_entry: yes
+    '';
+
     style = {
       # Configure a glowing red textured wallpaper as the system boot background.
       wallpapers = [ ../../modules/system/plymouth/red_glow.jpg ];
@@ -52,19 +57,20 @@
 
       interface = {
         resolution = "1920x1080"; # High-definition graphical mode for the menu interface
-        branding = "◆   M A N X   O S   ◆";
-        brandingColor = "FF2A2A"; # Neon red accent
-        helpColor = "FF8080"; # Soft rose help text
-        helpColorBright = "FF2A2A"; # Bright neon red for boot countdown timer
+        branding = "✦  ───  M A N X   O S   [C A C H Y O S]  ───  ✦";
+        brandingColor = "FF1133"; # Electric Ruby Red
+        helpColor = "D0D2D6"; # Cool Silver/Grey
+        helpColorBright = "FF1133"; # Electric Ruby Red for Countdown
       };
 
       graphicalTerminal = {
-        foreground = "39FF14"; # Cyberpunk Neon Green text for terminal & bootloader loading words
-        background = "80300000"; # 50% translucent deep maroon backdrop matching the red glow theme
-        margin = 150; # Center the terminal into a beautiful floating card container
-        marginGradient = 15; # Add a soft glow border around the card
+        foreground = "FFFFFF"; # Pristine white for ultimate legibility
+        brightForeground = "00F0FF"; # Cyber Cyan for highlighted selections
+        background = "A8080000"; # 65% translucent deep ruby glassmorphic card
+        margin = 180; # Perfect floating card dimensions
+        marginGradient = 25; # Wide glowing red ambient border
         font = {
-          scale = "2x2"; # Double font size for high-DPI screens and ultimate readability
+          scale = "2x2"; # Double font size for high readability
         };
       };
     };
