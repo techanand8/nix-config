@@ -233,6 +233,18 @@ let
             "$HOME/.local/bin/manx-screensaver" --force
             ;;
           
+          toggle)
+            TOGGLE_FILE="$HOME/.local/state/omarchy/toggles/screensaver-off"
+            mkdir -p "$(dirname "$TOGGLE_FILE")"
+            if [ -f "$TOGGLE_FILE" ]; then
+                rm "$TOGGLE_FILE"
+                success "Screensaver ENABLED."
+            else
+                touch "$TOGGLE_FILE"
+                info "Screensaver DISABLED."
+            fi
+            ;;
+          
           reset)
             log "Resetting branding to system defaults..."
             rm -rf "$BRAND_DIR"
@@ -244,6 +256,7 @@ let
             echo -e ""
             echo -e "    ''${C_WHITE}ascii''${NC}   ''${C_MUTED}❯''${NC} Edit your custom ASCII art text"
             echo -e "    ''${C_WHITE}image''${NC}   ''${C_MUTED}❯''${NC} Set an image to be converted to ASCII"
+            echo -e "    ''${C_WHITE}toggle''${NC}  ''${C_MUTED}❯''${NC} Master switch for the screensaver"
             echo -e "    ''${C_WHITE}reset''${NC}   ''${C_MUTED}❯''${NC} Restore default MANX Silicon branding"
             echo -e ""
             ;;
@@ -315,7 +328,7 @@ let
     Enters the high-compatibility Vivado container.
     .TP
     .B screensaver
-    Manages custom branding (ASCII/Image) for the Omarchy-style screensaver.
+    Manages custom branding (ASCII/Image) and the master toggle for the Omarchy-style screensaver.
     .SH AUTHOR
     Mayank Anand.
     EOF

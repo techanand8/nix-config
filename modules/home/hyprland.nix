@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   # --- XDG Config Files (The Nix Way) ---
@@ -583,11 +588,9 @@
                          )
                          effect=''${effects[$RANDOM % ''${#effects[@]}]}
 
-                         # Start TTE animation with absolute centering
-                         # --anchor-text c: Focuses on putting the text in the middle
-                         # Start TTE animation with explicit dimensions and dual centering
-                         # --canvas-width/height: Forces TTE to use the full terminal size
-                         # --anchor-canvas c --anchor-text c: Centers the canvas and the text within it
+                         # Start TTE animation with high-fidelity adaptive scaling and dual centering
+                         # --canvas-width/height: Synchronizes TTE canvas with physical terminal dimensions
+                         # --anchor-canvas c --anchor-text c: Ensures artwork is centered vertically and horizontally
                          echo "$LOGO_TEXT" | tte --frame-rate 60 --xterm-colors --no-restore-cursor \
                                                  --canvas-width "$cols" --canvas-height "$rows" \
                                                  --anchor-canvas c --anchor-text c \
