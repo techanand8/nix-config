@@ -27,6 +27,12 @@
 
     # Official community CachyOS kernel inputs
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
+
+    # Zen Browser - Trusted Community Flake (optimized, auto-updated binary wrap)
+    zen-browser = {
+      url = "github:youwen5/zen-browser-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = { self, nixpkgs, home-manager, nixos-hardware, hyprland, ambxst, nixvim, nix-cachyos-kernel, ... }@inputs:

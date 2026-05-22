@@ -36,18 +36,17 @@ in
   boot.initrd.availableKernelModules = [ "amdgpu" "xhci_pci" "nvme" "usb_storage" "sd_mod" ];
 
   boot.kernelParams = [
-    "quiet"
-    "splash"
-    "boot.shell_on_fail"
-    "loglevel=3"
-    "rd.systemd.show_status=false"
-    "rd.udev.log_level=3"
-    "udev.log_priority=3"
-    "vt.global_cursor_default=0"
-    "fbcon=nodefer" # Prevents framebuffer console from deferred takeover
-    "amdgpu.fastboot=1" # Experimental: skip unnecessary mode sets
+    "quiet" # Master silence flag
+    "splash" # Required for Plymouth
+    "rd.systemd.show_status=false" # Hides systemd status messages in initrd
+    "rd.udev.log_level=0" # Mutes udev in initrd completely
+    "udev.log_priority=0" # Mutes udev in main system completely
+    "vt.global_cursor_default=0" # Hides the blinking underscore cursor
+    "fbcon=nodefer" # Smooth handover to graphics
+    "amdgpu.fastboot=1" # Skips unnecessary mode sets for AMD
+    "boot.shell_on_fail" # Keep this so you can debug if it ever fails
   ];
 
-  # Boot timeout - set to a reasonable value to see the menu
-  boot.loader.timeout = 7;
+  # Boot timeout - optimized for speed on modern SSD while remaining accessible
+  boot.loader.timeout = 2;
 }

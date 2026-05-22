@@ -10,6 +10,7 @@
     ../../modules/system/fonts.nix
     ../../modules/system/vivado.nix
     ../../modules/system/plymouth.nix
+    ../../modules/system/apps.nix
   ];
 
   # --- SYSTEM OPTIMIZATIONS ---
@@ -51,14 +52,20 @@
 
       interface = {
         resolution = "1920x1080"; # High-definition graphical mode for the menu interface
-        branding = "<[  M A Y A N K   N I X O S  ]>";
-        brandingColor = "39FF14"; # Neon green accent
-        helpColor = "39FF14"; # Neon green help text
+        branding = "◆  M A Y A N K   N I X O S  ◆";
+        brandingColor = "FF2A2A"; # Neon red accent
+        helpColor = "FF8080"; # Soft rose help text
+        helpColorBright = "FF2A2A"; # Bright neon red for boot countdown timer
       };
 
       graphicalTerminal = {
-        foreground = "39FF14"; # Neon green terminal text
-        background = "00000000"; # Fully transparent terminal backdrop for floating logo effect
+        foreground = "FFFFFF"; # High-contrast crisp white text
+        background = "80000000"; # 50% translucent black backdrop for high-readability glassmorphism
+        margin = 150; # Center the terminal into a beautiful floating card container
+        marginGradient = 15; # Add a soft glow border around the card
+        font = {
+          scale = "2x2"; # Double font size for high-DPI screens and ultimate readability
+        };
       };
     };
   };
