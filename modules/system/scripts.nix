@@ -7,12 +7,12 @@ let
 
     set -e # Exit on error
 
-    # Configuration
+    # --- CONFIGURATION ---
     CONFIG_DIR="$HOME/nix-config"
     HOSTNAME="MANX"
     EDITOR="nvim"
 
-    # Premium Theme Colors (256-color & truecolor supported terminals like Ghostty/Kitty)
+    # --- PREMIUM UI PALETTE (Optimized for Ghostty/Kitty) ---
     C_PRIMARY='\033[38;5;208m'   # Coral Orange
     C_SECONDARY='\033[38;5;99m'  # Royal Soft Purple
     C_HIGHLIGHT='\033[38;5;43m'  # Vibrant Teal
@@ -20,8 +20,8 @@ let
     C_MUTED='\033[38;5;244m'     # Dim Grey
     C_WHITE='\033[1;37m'         # Bright White
     C_GOLD='\033[38;5;220m'      # Warm Gold
-
-    # Base UI Colors (compat for older shell functions)
+    
+    # Base UI Colors (Compat for legacy shell functions)
     GREEN='\033[1;32m'
     BLUE='\033[1;34m'
     YELLOW='\033[1;33m'
@@ -37,19 +37,15 @@ let
 
     # Help Menu Function
     function show_help() {
-        # Calculate uptime reliably without relying on uptime -p
+        # Calculate uptime reliably
         local uptime_all=$(cat /proc/uptime)
         local uptime_seconds=''${uptime_all%%.*}
         local days=$((uptime_seconds / 86400))
         local hours=$(( (uptime_seconds % 86400) / 3600 ))
         local mins=$(( (uptime_seconds % 3600) / 60 ))
         local uptime_str=""
-        if [ ''$days -gt 0 ]; then
-            uptime_str+="''$days""d "
-        fi
-        if [ ''$hours -gt 0 ]; then
-            uptime_str+="''$hours""h "
-        fi
+        if [ ''$days -gt 0 ]; then uptime_str+="''$days""d "; fi
+        if [ ''$hours -gt 0 ]; then uptime_str+="''$hours""h "; fi
         uptime_str+="''$mins""m"
 
         echo -e ""
@@ -62,27 +58,27 @@ let
         echo -e "  ''${C_SECONDARY}Usage:''${NC} ''${C_WHITE}mayank''${NC} ''${C_GOLD}<command>''${NC}"
         echo -e ""
         echo -e "  ''${C_PRIMARY}󰓅  CONFIGURATION MANAGEMENT''${NC}"
-        echo -e "    ''${C_WHITE}rebuild''${NC}   ''${C_MUTED}❯''${NC} Apply system adjustments & record generation to Git"
-        echo -e "    ''${C_WHITE}update''${NC}    ''${C_MUTED}❯''${NC} Perform flake input upgrade & full system build"
-        echo -e "    ''${C_WHITE}rollback''${NC}  ''${C_MUTED}❯''${NC} Instantly revert system to previous successful generation"
-        echo -e "    ''${C_WHITE}history''${NC}   ''${C_MUTED}❯''${NC} List detailed chronological system generations"
+        echo -e "    ''${C_WHITE}rebuild''${NC}   ''${C_MUTED}❯''${NC} Apply adjustments & show package changes"
+        echo -e "    ''${C_WHITE}update''${NC}    ''${C_MUTED}❯''${NC} Update all inputs and perform full build"
+        echo -e "    ''${C_WHITE}rollback''${NC}  ''${C_MUTED}❯''${NC} Instantly revert to previous generation"
+        echo -e "    ''${C_WHITE}history''${NC}   ''${C_MUTED}❯''${NC} List all system generations"
         echo -e ""
         echo -e "  ''${C_PRIMARY}󰌢  MAINTENANCE & SECURITY''${NC}"
-        echo -e "    ''${C_WHITE}clean''${NC}     ''${C_MUTED}❯''${NC} Perform deep garbage collection & Nix store hard-linking"
-        echo -e "    ''${C_WHITE}check''${NC}     ''${C_MUTED}❯''${NC} Audit syntactical health and config integrity"
+        echo -e "    ''${C_WHITE}clean''${NC}     ''${C_MUTED}❯''${NC} Deep three-layer store optimization"
+        echo -e "    ''${C_WHITE}check''${NC}     ''${C_MUTED}❯''${NC} Audit system health and config integrity"
         echo -e ""
         echo -e "  ''${C_PRIMARY}  DEVELOPMENT UTILITIES''${NC}"
-        echo -e "    ''${C_WHITE}edit''${NC}      ''${C_MUTED}❯''${NC} Open workstation Nix configuration in Neovim"
-        echo -e "    ''${C_WHITE}search''${NC}    ''${C_MUTED}❯''${NC} Efficiently query Nixpkgs software registry"
-        echo -e "    ''${C_WHITE}shell''${NC}     ''${C_MUTED}❯''${NC} Initialize isolated, ephemeral package environments"
-        echo -e "    ''${C_WHITE}vivado''${NC}    ''${C_MUTED}❯''${NC} Initialize or enter AMD Vivado Ubuntu environment"
+        echo -e "    ''${C_WHITE}edit''${NC}      ''${C_MUTED}❯''${NC} Open workstation config in Neovim"
+        echo -e "    ''${C_WHITE}search''${NC}    ''${C_MUTED}❯''${NC} Query the Nixpkgs registry"
+        echo -e "    ''${C_WHITE}shell''${NC}     ''${C_MUTED}❯''${NC} Open ephemeral package shells"
+        echo -e "    ''${C_WHITE}vivado''${NC}    ''${C_MUTED}❯''${NC} Enter the AMD Vivado container"
         echo -e ""
         echo -e "  ''${C_MUTED}──────────────────────────────────────────────────────────────────────''${NC}"
-        echo -e "  ''${C_HIGHLIGHT}󰌢  Type 'man mayank' to access the custom system manual page.''${NC}"
+        echo -e "  ''${C_HIGHLIGHT}󰌢  Type 'man mayank' to see the custom system manual page.''${NC}"
         echo -e ""
     }
 
-    # Ensure Git is initialized in the config dir
+    # Initialize Git tracking if it's missing
     if [ ! -d "$CONFIG_DIR/.git" ]; then
         info "Initializing configuration tracking repository..."
         git init "$CONFIG_DIR" > /dev/null
@@ -93,77 +89,84 @@ let
         exit 0
     fi
 
+    # Jump to the config directory for all operations
+    cd "$CONFIG_DIR"
+
     case $1 in
       rebuild)
-        log "Initializing system rebuild..."
+        log "Starting Premium system rebuild..."
         
         # Format code
-        if command -v nixpkgs-fmt &> /dev/null; then nixpkgs-fmt $CONFIG_DIR; fi
+        nix fmt
         
-        # Git Tracking (Secure Professional Logic)
-        cd $CONFIG_DIR
-        
-        # 1. Stage everything EXCEPT variables.nix (respecting .gitignore strictly)
-        # We use git add . which respects .gitignore.
-        # We specifically do NOT force add variables.nix anymore.
+        # Git Tracking
         git add . &> /dev/null || true
         
-        # 2. Commit only the staged files
-        GEN=$(readlink /nix/var/nix/profiles/system | cut -d- -f2 || echo "N/A")
-        git commit -m "System Update - Generation $GEN - $(date '+%Y-%m-%d %H:%M')" || true
+        # Capture old generation for the diff
+        OLD_GEN=$(readlink /nix/var/nix/profiles/system)
         
-        # 3. Execute Rebuild
-        sudo nixos-rebuild switch --flake $CONFIG_DIR#$HOSTNAME --no-reexec || error "Rebuild process failed."
+        # Run rebuild with NH and progress monitor
+        nh os switch . --hostname $HOSTNAME -- --accept-flake-config || error "Rebuild failed."
         
-        # Auto-Push to GitHub
+        # Show what packages changed
+        NEW_GEN=$(readlink /nix/var/nix/profiles/system)
+        echo -e "\n''${C_HIGHLIGHT}  Package Changes:''${NC}"
+        nvd diff "$OLD_GEN" "$NEW_GEN"
+        
+        # Push to GitHub if origin exists
         if git remote | grep -q "origin"; then
-            log "Synchronizing with GitHub repository..."
-            git push origin main || info "Push skipped (check SSH/Remote settings)"
+            log "Syncing with GitHub..."
+            git commit -m "System Update: $(date '+%Y-%m-%d %H:%M')" &> /dev/null || true
+            git push origin main &> /dev/null || info "Push skipped (check remote)"
         fi
 
-        success "System configuration applied and synchronized successfully."
+        success "System applied successfully!"
         ;;
 
       update)
-        log "Updating all dependency inputs..."
-        pushd $CONFIG_DIR > /dev/null
-        nix flake update || error "Input update failed."
-        popd > /dev/null
-        
-        log "Applying updated configuration..."
-        sudo nixos-rebuild switch --flake $CONFIG_DIR#$HOSTNAME || error "Rebuild after update failed."
-        success "System updated and synchronized."
+        log "Updating all inputs and building..."
+        nh os switch . --update --hostname $HOSTNAME || error "Update failed."
+        success "System updated!"
         ;;
 
       clean)
-        log "Executing storage optimization and legacy cleanup..."
-        sudo nix-env --delete-generations +3 --profile /nix/var/nix/profiles/system
-        nix-env --delete-generations +3
+        log "Starting Three-Layer Deep Clean..."
+        
+        # 1. Clean old generations
+        log "Cleaning old generations (Keeping last 3)..."
+        nh clean all --keep 3
+        
+        # 2. Deep Garbage Collection
+        log "Purging unused store objects..."
         sudo nix-collect-garbage -d
         nix-collect-garbage -d
-        sudo nix store optimise
-        success "Cleanup complete. Storage optimized."
+        
+        # 3. Store Optimization
+        log "Optimizing store (Hard-linking)..."
+        sudo nix-store --optimise
+        
+        success "Deep cleanup complete! Your storage is 100% optimized."
         ;;
 
       edit)
-        $EDITOR $CONFIG_DIR/hosts/$HOSTNAME/configuration.nix
+        $EDITOR hosts/$HOSTNAME/configuration.nix
         ;;
 
       search)
         shift
-        log "Searching registry for: $@"
+        log "Searching for: $@"
         nix-env -qaP "$@"
         ;;
 
       check)
-        log "Validating configuration health..."
-        nix flake check $CONFIG_DIR --all-systems || error "Integrity check failed."
-        success "Configuration verified as stable."
+        log "Checking config health..."
+        nom flake check . --all-systems || error "Integrity check failed."
+        success "Config is stable!"
         ;;
 
       shell)
         shift
-        log "Entering isolated environment for: $@"
+        log "Entering shell for: $@"
         nix-shell -p "$@"
         ;;
 
@@ -172,128 +175,84 @@ let
         ;;
 
       rollback)
-        log "Restoring system to previous state..."
-        sudo nixos-rebuild switch --flake $CONFIG_DIR#$HOSTNAME --rollback
+        log "Rolling back to previous state..."
+        sudo nixos-rebuild switch --flake .#$HOSTNAME --rollback
         ;;
 
       vivado)
-        log "Initializing AMD Vivado development container..."
+        log "Entering AMD Vivado container..."
         
-        # 1. Check if podman or docker is available
         if ! command -v podman &> /dev/null && ! command -v docker &> /dev/null; then
-            error "No container engine found! Please make sure Podman or Docker is enabled."
+            error "No container engine found!"
         fi
 
-        # 2. Allow container to access local display (GUI)
         if command -v xhost &> /dev/null; then
             xhost +local: &> /dev/null || true
         fi
 
-        # 3. Create or enter the Ubuntu 22.04 container specifically for Vivado
         if ! distrobox list | grep -q "mayank-vivado"; then
-            info "Vivado environment 'mayank-vivado' not detected."
-            info "Creating a standard, high-compatibility Ubuntu 22.04 Distrobox container..."
-            
-            # Create the container
-            distrobox create --name mayank-vivado --image ubuntu:22.04 --yes || error "Failed to create 'mayank-vivado' container."
-            
-            success "Vivado environment 'mayank-vivado' created successfully!"
-            info "=========================================================================="
-            info "To install and run Vivado, follow these quick steps:"
-            info "  1. Enter the container:  mayank vivado"
-            info "  2. Update and install standard GUI libs inside the container:"
-            info "     sudo apt update && sudo apt install -y libtinfo5 libxrender1 libxtst6 libxi6"
-            info "  3. Run your Vivado installer binary inside the container:"
-            info "     _JAVA_AWT_WM_NONREPARENTING=1 ./FPGAs_AdaptiveSoCs_Unified_SDI_2025.2_1114_2157_Lin64.bin"
-            info "=========================================================================="
+            info "Vivado environment not found. Creating it..."
+            distrobox create --name mayank-vivado --image ubuntu:22.04 --yes || error "Failed to create container."
+            success "Environment created! Use 'mayank vivado' to install."
         else
-            # 4. Extract and copy high-res Xilinx icons to host so launchers render beautifully
             mkdir -p $HOME/.local/share/icons/xilinx
             distrobox enter mayank-vivado -- bash -c "
                 cp -f /tools/Xilinx/2025.2/Vivado/doc/images/vivado_logo.png \$HOME/.local/share/icons/xilinx/vivado.png 2>/dev/null || true
                 cp -f /tools/Xilinx/ide/electron-app/lnx64/resources/app/resources/icons/vitis-logo-latest.png \$HOME/.local/share/icons/xilinx/vitis.png 2>/dev/null || true
-                cp -f /tools/Xilinx/.xinstall/DocNav/data/images/xlnx_logo.png \$HOME/.local/share/icons/xilinx/docnav.png 2>/dev/null || true
-                cp -f /tools/Xilinx/xic/data/images/xlnx_logo.png \$HOME/.local/share/icons/xilinx/xic.png 2>/dev/null || true
             " &> /dev/null || true
 
-            log "Entering 'mayank-vivado' container... (Type 'exit' to return to NixOS)"
+            log "Entering container. Type 'exit' to return."
             export _JAVA_AWT_WM_NONREPARENTING=1
             distrobox enter mayank-vivado
         fi
         ;;
 
       *)
-        error "Unknown command: $1. Type 'mayank' for usage information."
+        error "Unknown command: $1. Type 'mayank' for help."
         ;;
     esac
   '';
 
-  # Professional Manual Page for Mayank Utility
+  # Custom Manual Page
   man-page = pkgs.runCommand "mayank-man" { } ''
         mkdir -p $out/share/man/man1
         cat <<EOF > $out/share/man/man1/mayank.1
-    .TH MAYANK 1 "May 2026" "v1.0" "Mayank Anand System Manual"
+    .TH MAYANK 1 "May 2026" "v1.1" "MANX OS System Manual"
     .SH NAME
-    mayank \- Advanced NixOS Management Utility for Mayank Anand
+    mayank \- Advanced NixOS Management for Mayank Anand
     .SH SYNOPSIS
     .B mayank
     [\fIcommand\fR]
     .SH DESCRIPTION
     .B mayank
-    is a comprehensive system management tool designed specifically for Mayank Anand's
-    professional engineering workstation on NixOS. It automates system rebuilds, 
-    manages configuration history via Git, and provides optimized maintenance utilities.
+    is a professional management tool for the MANX workstation. It uses NH, NVD, and Deep Clean protocols.
     .SH COMMANDS
     .TP
     .B rebuild
-    Formats the configuration code using nixpkgs-fmt, auto-commits changes to the local 
-    Git repository at ~/nix-config, and applies the new system configuration.
+    Applies the configuration with NH and shows a package diff report.
     .TP
     .B update
-    Synchronizes all flake inputs to their absolute latest versions and performs a 
-    full system rebuild.
+    Updates all inputs and performs a full rebuild.
     .TP
     .B clean
-    Performs a deep system maintenance cycle: removes old generations (keeps last 3), 
-    collects garbage, and optimizes the Nix store to reclaim disk space.
+    A three-layer deep maintenance protocol for storage optimization.
     .TP
     .B check
-    Validates the configuration health, integrity, and syntax correctness.
-    .TP
-    .B rollback
-    Instantly reverts the system to the previous working generation.
-    .TP
-    .B history
-    Displays a detailed chronological list of all system generations.
-    .TP
-    .B edit
-    Opens the primary configuration.nix file in the Neovim editor for rapid adjustment.
-    .TP
-    .B search [query]
-    Queries the Nixpkgs registry for available software packages.
-    .TP
-    .B shell [packages]
-    Opens an isolated, ephemeral shell containing the requested packages without 
-    permanent installation.
+    Validates config integrity with nix-output-monitor.
     .TP
     .B vivado
-    Initializes or enters the high-compatibility Ubuntu 22.04 environment (via Distrobox) 
-    specially optimized for AMD/Xilinx Vivado VLSI and hardware JTAG programming cables.
-    .SH FILES
-    .I ~/nix-config
-    The primary directory for the NixOS flake configuration.
+    Enters the high-compatibility Vivado container.
     .SH AUTHOR
-    Custom-built for Mayank Anand.
+    Mayank Anand.
     EOF
   '';
 in
 {
   environment.systemPackages = [
     mayank-script
-    pkgs.nixpkgs-fmt
+    pkgs.nixfmt
     man-page
   ];
 
-  # Ensure manual pages are enabled
   documentation.man.enable = true;
 }

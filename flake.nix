@@ -38,13 +38,13 @@
   outputs =
     { self, nixpkgs, ... }@inputs:
     let
-      # Supported systems for cross-architecture validation and formatting
+      # Systems we support for the build and formatting
       supportedSystems = [
         "x86_64-linux"
         "aarch64-linux"
       ];
 
-      # Helper function to generate attributes for each supported system
+      # Helper to generate settings for each system
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
 
       hostPlatform = "x86_64-linux";
@@ -81,14 +81,15 @@
         ];
       };
 
-      # Multi-architecture RFC-166 compliant code formatter
-      formatter = forAllSystems (system:
+      # Premium Smart Formatter (Works for all systems)
+      formatter = forAllSystems (
+        system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
         in
         pkgs.writeShellScriptBin "nixfmt" ''
           if [ "$#" -eq 0 ]; then
-            # If no arguments, find all nix files (excluding result symlink) and format them
+            # Auto-find all nix files and format them if no files are specified
             find . -name "*.nix" -not -path "./result/*" -print0 | xargs -0 ${pkgs.nixfmt}/bin/nixfmt
           else
             exec ${pkgs.nixfmt}/bin/nixfmt "$@"

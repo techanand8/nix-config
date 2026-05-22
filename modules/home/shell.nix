@@ -11,11 +11,23 @@
   programs.fish.enable = true;
   programs.home-manager.enable = true;
 
+  # Direnv: The Pro way to handle development shells
+  programs.direnv = {
+    enable = true;
+    nix-direnv.enable = true;
+    enableZshIntegration = true;
+  };
+
   # Ensure user local binaries and Cargo binaries are in the PATH
   home.sessionPath = [
     "${config.home.homeDirectory}/.local/bin"
     "${config.home.homeDirectory}/.cargo/bin"
   ];
+
+  # Global Environment Variables
+  home.sessionVariables = {
+    FLAKE = "${config.home.homeDirectory}/nix-config";
+  };
 
   # Zsh Shell Configuration
   programs.zsh = {

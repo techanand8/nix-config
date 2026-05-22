@@ -283,6 +283,11 @@
     ripgrep
     imagemagick
 
+    # --- PREMIUM SYSTEM HELPERS ---
+    nh # Better UI for rebuilds
+    nix-output-monitor # Beautiful progress bars
+    nvd # Show exactly what packages changed after rebuild
+
     # --- SECURE VPN & CORPORATE NETWORK CONNECTIVITY ---
     openconnect # Cisco AnyConnect, GlobalProtect, Fortinet CLI client
     openfortivpn # Fortinet SSL VPN client
