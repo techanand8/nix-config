@@ -1,9 +1,4 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ config, pkgs, ... }:
 
 {
   # --- XDG Config Files (The Nix Way) ---

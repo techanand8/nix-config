@@ -78,7 +78,7 @@ let
         echo -e "    ''${C_WHITE}vivado''${NC}    ''${C_MUTED}❯''${NC} Enter the AMD Vivado development container"
         echo -e ""
         echo -e "  ''${C_PRIMARY}󰪢  BRANDING & AESTHETICS''${NC}"
-        echo -e "    ''${C_WHITE}screensaver''${NC} ''${C_MUTED}❯''${NC} Manage Omarchy-style screensaver art"
+        echo -e "    ''${C_WHITE}screensaver''${NC} ''${C_MUTED}❯''${NC} Orchestrate immersive workstation branding"
         echo -e ""
         echo -e "  ''${C_MUTED}──────────────────────────────────────────────────────────────────────''${NC}"
         echo -e "  ''${C_HIGHLIGHT}󰌢  Type 'man mayank' to access the system documentation.''${NC}"
