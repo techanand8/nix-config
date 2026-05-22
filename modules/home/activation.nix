@@ -1,7 +1,7 @@
 { config, ... }:
 
 {
-  # --- Home Manager Activation Scripts (The Nix Way) ---
+  # --- Home Manager Activation Scripts ---
   # These handle writable folders, theme syncing, and permanent fixes.
   home.activation = {
     setupAmbxst = config.lib.dag.entryAfter [ "writeBoundary" ] ''

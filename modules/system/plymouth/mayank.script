@@ -1,6 +1,6 @@
 # ==============================================================================
 # ULTIMATE PLYMOUTH THEME FOR MAYANK ANAND
-# "God-Tier" Show-off Edition - Neon Glow V3 (Bug-Free)
+# Professional Neon Glow Edition - Version 3
 # ------------------------------------------------------------------------------
 # Author: Mayank Anand
 # Description: High-performance, cinematic boot splash with neon aesthetics, 
@@ -281,7 +281,7 @@ fun refresh_callback () {
     }
 
     # --- DYNAMIC ASSET TRANSFORMATIONS ---
-    # Breathing Logo Effect: Breathes organically, reacts to keystrokes, and bursts upon login!
+    # Breathing Logo Effect: Breathes organically, reacts to keystrokes, and transitions smoothly upon login.
     scale_factor = 1.0 + 0.02 * Math.Sin(time * 0.6) + 0.04 * keypress_pulse + 0.15 * auth_flash;
     new_logo = logo.original_image.Scale(logo.original_image.GetWidth() * scale_factor, logo.original_image.GetHeight() * scale_factor);
     logo.sprite.SetImage(new_logo);
@@ -294,7 +294,7 @@ fun refresh_callback () {
     reflection.sprite.SetX(screen_width / 2 - scaled_reflection.GetWidth() / 2);
     reflection.sprite.SetY(logo.sprite.GetY() + new_logo.GetHeight() + 5);
 
-    # Sync Ambient Glow with breathing, keystroke shockwaves, and authentication flash!
+    # Sync Ambient Glow with breathing, keystroke shockwaves, and authentication flash.
     ambient_pulse = 0.3 + 0.15 * Math.Sin(time * 0.6) + 0.35 * keypress_pulse + 0.65 * auth_flash;
     ambient.sprite.SetOpacity(alpha * ambient_pulse);
     
@@ -341,5 +341,5 @@ fun quit_callback () { state = "quit"; }
 Plymouth.SetQuitFunction(quit_callback);
 
 # ==============================================================================
-# END OF SCRIPT - GOD-TIER STATUS: ACTIVE
+# END OF SCRIPT
 # ==============================================================================

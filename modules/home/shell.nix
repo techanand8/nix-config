@@ -12,7 +12,7 @@
     "${config.home.homeDirectory}/.cargo/bin"
   ];
 
-  # Zsh Configuration (The Professional Pro Environment)
+  # Zsh Shell Configuration
   programs.zsh = {
     enable = true;
     enableCompletion = true;
@@ -35,7 +35,7 @@
 
       source ${pkgs.zsh-fzf-tab}/share/fzf-tab/fzf-tab.zsh
       
-      # Pro CD function with auto-ls and zoxide fallback
+      # Enhanced cd function with automatic directory listing and zoxide fallback
       function cd() {
         if [[ "$#" -eq 0 ]]; then
           builtin cd ~ && pwd

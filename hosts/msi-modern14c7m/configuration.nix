@@ -45,7 +45,7 @@
     resolution = "1920x1080";
 
     style = {
-      # Adding your glowing red textured image as the background!
+      # Configure a glowing red textured wallpaper as the system boot background.
       wallpapers = [ ../../modules/system/plymouth/red_glow.jpg ];
       wallpaperStyle = "stretched";
       backdrop = "000000"; # Black backdrop for centered/tiled cases
@@ -203,7 +203,7 @@
     experimental-features = [ "nix-command" "flakes" ];
     auto-optimise-store = true;
 
-    # Allows root, users in the 'wheel' group, and your specific user to specify custom binary caches/substituters
+    # Authorize root, users in the 'wheel' group, and the main user account to configure binary cache substituters.
     trusted-users = [ "root" "@wheel" "${vars.username}" ];
 
     substituters = [

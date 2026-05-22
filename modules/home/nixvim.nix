@@ -18,7 +18,7 @@
     # DYNAMIC THEME ENGINE (Ambxst Synchronized)
     # =========================================================================
     # We use Catppuccin as a fallback/base, but the logic in extraConfigLua 
-    # will override it with your current ambxst colors dynamically.
+    # will override it with the active Ambxst system colors dynamically.
     colorschemes.catppuccin = {
       enable = true;
       settings = {

@@ -28,7 +28,7 @@
         ControlMaster = "auto";
         ControlPath = "~/.ssh/master-%r@%h:%p";
 
-        # Enforce strong cryptography (God Mode Encryption)
+        # Enforce strong cryptography standards
         ForwardAgent = "no";
       };
 

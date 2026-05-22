@@ -44,7 +44,7 @@ in
     "vt.global_cursor_default=0" # Hides the blinking underscore cursor
     "fbcon=nodefer" # Smooth handover to graphics
     "amdgpu.fastboot=1" # Skips unnecessary mode sets for AMD
-    "boot.shell_on_fail" # Keep this so you can debug if it ever fails
+    "boot.shell_on_fail" # Retain a shell prompt on boot failure for diagnostics
   ];
 
   # Boot timeout - optimized for speed on modern SSD while remaining accessible

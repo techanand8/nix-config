@@ -1,12 +1,12 @@
 { pkgs, inputs, ... }:
 
 {
-  # Dedicated container for managing your extra system apps
+  # Dedicated container for managing extra system apps
   environment.systemPackages = [
     # Zen Browser (natively packaged via trusted flake input)
     inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
 
-    # Add any extra apps you want in the future here:
+    # Add future additional system-level packages here:
     # pkgs.some-app
   ];
 }
