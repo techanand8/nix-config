@@ -18,7 +18,7 @@
       # ---------------------------------------------------------------------
       logo = {
         source = "${config.home.homeDirectory}/nix-config/modules/system/plymouth/manx_logo.png";
-        type = "auto";
+        type = "kitty";
         width = 32; # Slightly optimized for perfect horizontal fit
         height = 16;
         padding = {
@@ -55,7 +55,7 @@
         }
         {
           type = "custom";
-          format = "\\u001b[90m──────────────────────────────────────────────\\u001b[0m";
+          format = "{#90}──────────────────────────────────────────────{#0}";
         }
 
         # --- Core OS & Environment (Cyan Theme) ---
@@ -151,7 +151,7 @@
         # --- Palette ---
         {
           type = "custom";
-          format = "\\u001b[90m──────────────────────────────────────────────\\u001b[0m";
+          format = "{#90}──────────────────────────────────────────────{#0}";
         }
         "colors"
       ];
