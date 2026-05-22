@@ -328,7 +328,7 @@
           require("telescope.previewers.utils").set_preview_message(
             bufnr,
             opts.winid,
-            "Binary / Media File Detected\n\n(Use Space + f + m for Graphical Media Preview)"
+            "Binary / Media (Space + f + m for Preview)"
           )
           return
         end
