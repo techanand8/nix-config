@@ -103,35 +103,49 @@ fun progress_callback (duration, progress) {
   if (state == "booting" && progress > 0) {
     new_width = progress_bar.image.GetWidth() * progress;
     if (new_width < 1) new_width = 1;
-    # Scale the bar and keep it centered vertically
+    
+    # Scale the bar
     scaled_bar = progress_bar.image.Scale(new_width, progress_bar.image.GetHeight());
     progress_bar.sprite.SetImage(scaled_bar);
-    # Maintain X offset so it starts from the correct position relative to BG
-    progress_bar.sprite.SetX(progress_bg.x + progress_bar.x_offset);
+    
+    # Maintain X and Y offsets perfectly so the bar doesn't shift vertically or horizontally.
+    # Left glow is 8px. To keep the solid bar perfectly aligned at progress_bg.x,
+    # we dynamically offset the X coordinate by 8 * progress.
+    glow_width = 8;
+    progress_bar.sprite.SetX(progress_bg.x - (glow_width * progress));
+    progress_bar.sprite.SetY(progress_bg.y + progress_bar.y_offset);
   }
 }
 Plymouth.SetBootProgressFunction(progress_callback);
 
 # --- STAGE ASSETS: SECURITY & INPUT ---
+# Lock Security Icon: Positioned LEFT of the input box for a sleek "Security Entry" look.
+lock.image = Image("lock_maroon.png").Scale(40, 40);
+lock.sprite = Sprite(lock.image);
+lock.sprite.SetOpacity(0);
+
 # Password Input Field: Clean, minimalist UI for LUKS/User entry.
 input_box.image = Image("input_box.png");
 input_box.sprite = Sprite(input_box.image);
-input_box.x = screen_width / 2 - input_box.image.GetWidth() / 2;
-input_box.y = progress_bg.y + 60;
+
+# Centering both lock and input box together horizontally
+total_width = lock.image.GetWidth() + 12 + input_box.image.GetWidth(); # 40 + 12 + 400 = 452
+start_x = screen_width / 2 - total_width / 2;
+
+lock.x = start_x;
+lock.y = progress_bg.y + 60;
+lock.sprite.SetX(lock.x);
+lock.sprite.SetY(lock.y);
+
+input_box.x = start_x + lock.image.GetWidth() + 12;
+input_box.y = lock.y;
 input_box.sprite.SetX(input_box.x);
 input_box.sprite.SetY(input_box.y);
 input_box.sprite.SetOpacity(0);
 
-# Lock Security Icon: Positioned ABOVE the box for a "Security Terminal" look.
-lock.image = Image("nixos_logo_custom.png").Scale(64, 64);
-lock.sprite = Sprite(lock.image);
-lock.sprite.SetX(screen_width / 2 - 32);
-lock.sprite.SetY(input_box.y - 80); # 80px above the input box
-lock.sprite.SetOpacity(0);
-
 # Bullet (Asterisk) System: Centered password character feedback.
 bullet.image = Image("bullet.png");
-bullet_spacing = 18;
+bullet_spacing = 26; # Solved overlap (bullet width is 20, spacing 26 gives 6px clear gap)
 for (i = 0; i < 20; i++) {
   bullets[i].sprite = Sprite(bullet.image);
   bullets[i].sprite.SetOpacity(0);
