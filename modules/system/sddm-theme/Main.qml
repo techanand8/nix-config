@@ -651,8 +651,8 @@ Rectangle {
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 34
-                spacing: 18
+                anchors.margins: 24
+                spacing: 12
 
                 RowLayout {
                     Layout.fillWidth: true
@@ -752,15 +752,15 @@ Rectangle {
 
                             Image {
                                 anchors.fill: parent
-                                anchors.margins: (selectedUserIcon === "" || selectedUserIcon.indexOf("plymouth_logo.png") !== -1) ? 14 : 8
-                                fillMode: (selectedUserIcon === "" || selectedUserIcon.indexOf("plymouth_logo.png") !== -1) ? Image.PreserveAspectFit : Image.PreserveAspectCrop
-                                source: selectedUserIcon !== "" ? selectedUserIcon : "plymouth_logo.png"
+                                anchors.margins: 8
+                                fillMode: Image.PreserveAspectCrop
+                                source: selectedUserIcon !== "" ? selectedUserIcon : "logo.png"
                                 smooth: true
                                 antialiasing: true
 
                                 onStatusChanged: {
-                                    if (status === Image.Error && source != "plymouth_logo.png")
-                                        source = "plymouth_logo.png"
+                                    if (status === Image.Error && source != "logo.png")
+                                        source = "logo.png"
                                 }
                             }
                         }
@@ -800,16 +800,14 @@ Rectangle {
 
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 240
-                    radius: 20
-                    color: "#11000000"
-                    border.width: 1
-                    border.color: strokeSoft
+                    Layout.preferredHeight: 130
+                    color: "transparent"
 
                     ListView {
                         id: userList
-                        anchors.fill: parent
-                        anchors.margins: 10
+                        width: Math.min(parent.width, count * 140)
+                        height: parent.height
+                        anchors.horizontalCenter: parent.horizontalCenter
                         orientation: ListView.Horizontal
                         model: userModel
                         currentIndex: -1
@@ -833,19 +831,14 @@ Rectangle {
                             id: userCard
                             property string userName: name
                             property string displayName: realName !== "" ? realName : name
-                            property string iconSource: icon !== "" ? icon : "plymouth_logo.png"
+                            property string iconSource: icon !== "" ? icon : "logo.png"
 
-                            width: 200
-                            height: userList.height
-                            radius: 18
-                            color: ListView.isCurrentItem ? selectedFill : hoverFill
-                            border.width: ListView.isCurrentItem ? 2 : 1
-                            border.color: ListView.isCurrentItem ? selectedBorder : strokeSoft
-                            scale: userMouse.containsMouse || ListView.isCurrentItem ? 1.02 : 1.0
+                            width: 130
+                            height: 130
+                            color: "transparent"
+                            scale: userMouse.containsMouse || ListView.isCurrentItem ? 1.05 : 1.0
 
-                            Behavior on color { ColorAnimation { duration: 120 } }
-                            Behavior on border.color { ColorAnimation { duration: 120 } }
-                            Behavior on scale { NumberAnimation { duration: 140 } }
+                            Behavior on scale { NumberAnimation { duration: 120 } }
 
                             MouseArea {
                                 id: userMouse
@@ -854,35 +847,35 @@ Rectangle {
                                 onClicked: {
                                     userList.currentIndex = index
                                     userList.positionViewAtIndex(index, ListView.Contain)
+                                    passwordField.forceActiveFocus()
                                 }
                             }
 
                             ColumnLayout {
                                 anchors.fill: parent
-                                anchors.margins: 14
-                                spacing: 8
+                                spacing: 6
 
                                 Rectangle {
                                     Layout.alignment: Qt.AlignHCenter
-                                    width: 90
-                                    height: 90
-                                    radius: 45
+                                    width: 74
+                                    height: 74
+                                    radius: 37
                                     color: "#16000000"
-                                    border.width: 1
+                                    border.width: ListView.isCurrentItem ? 2 : 1
                                     border.color: ListView.isCurrentItem ? selectedBorder : strokeSoft
                                     clip: true
 
                                     Image {
                                         anchors.fill: parent
-                                        anchors.margins: (userCard.iconSource === "" || userCard.iconSource.indexOf("plymouth_logo.png") !== -1) ? 10 : 0
-                                        fillMode: (userCard.iconSource === "" || userCard.iconSource.indexOf("plymouth_logo.png") !== -1) ? Image.PreserveAspectFit : Image.PreserveAspectCrop
+                                        anchors.margins: 2
+                                        fillMode: Image.PreserveAspectCrop
                                         source: userCard.iconSource
                                         smooth: true
                                         antialiasing: true
 
                                         onStatusChanged: {
-                                            if (status === Image.Error && source != "plymouth_logo.png")
-                                                source = "plymouth_logo.png"
+                                            if (status === Image.Error && source != "logo.png")
+                                                source = "logo.png"
                                         }
                                     }
                                 }
@@ -891,31 +884,21 @@ Rectangle {
                                     Layout.fillWidth: true
                                     text: userCard.displayName
                                     color: textPrimary
-                                    font: actionFont
-                                    horizontalAlignment: Text.AlignHCenter
-                                    elide: Text.ElideRight
-                                }
-
-                                Text {
-                                    Layout.fillWidth: true
-                                    text: userCard.userName
-                                    color: ListView.isCurrentItem ? neonGreen : textMuted
                                     font: bodyFont
                                     horizontalAlignment: Text.AlignHCenter
                                     elide: Text.ElideRight
                                 }
 
-                                Item { Layout.fillHeight: true }
-
                                 Text {
                                     Layout.fillWidth: true
-                                    text: ListView.isCurrentItem ? "ACTIVE PROFILE" : "SELECT PROFILE"
-                                    color: ListView.isCurrentItem ? neonGreen : textMuted
+                                    text: ListView.isCurrentItem ? "ACTIVE" : ""
+                                    color: neonGreen
                                     font.family: "JetBrains Mono"
-                                    font.pixelSize: Math.round(10 * uiScale)
+                                    font.pixelSize: Math.round(9 * uiScale)
                                     font.bold: true
-                                    font.letterSpacing: 2
+                                    font.letterSpacing: 1
                                     horizontalAlignment: Text.AlignHCenter
+                                    visible: ListView.isCurrentItem
                                 }
                             }
                         }
@@ -949,76 +932,7 @@ Rectangle {
                     }
                 }
 
-                Rectangle {
-                    Layout.alignment: Qt.AlignHCenter
-                    Layout.preferredWidth: 64
-                    Layout.preferredHeight: 64
-                    radius: 14
-                    color: "#12000000"
-                    border.width: 1
-                    border.color: strokeSoft
 
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: parent.radius
-                        color: "transparent"
-                        border.width: 1
-                        border.color: selectedBorder
-                        opacity: 0.45
-
-                        SequentialAnimation on opacity {
-                            loops: Animation.Infinite
-                            NumberAnimation { from: 0.25; to: 0.75; duration: 1800; easing.type: Easing.InOutQuad }
-                            NumberAnimation { from: 0.75; to: 0.25; duration: 1800; easing.type: Easing.InOutQuad }
-                        }
-                    }
-
-                    Image {
-                        anchors.fill: parent
-                        anchors.margins: 10
-                        source: "plymouth_logo.png"
-                        fillMode: Image.PreserveAspectFit
-                        smooth: true
-                        antialiasing: true
-                    }
-                }
-
-                Rectangle {
-                    Layout.fillWidth: true
-                    implicitHeight: targetProfileRow.implicitHeight + 20
-                    radius: 14
-                    color: "#12000000"
-                    border.width: 1
-                    border.color: selectedBorder
-
-                    RowLayout {
-                        id: targetProfileRow
-                        anchors.top: parent.top
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.topMargin: 10
-                        anchors.leftMargin: 14
-                        anchors.rightMargin: 14
-                        spacing: 10
-
-                        Text {
-                            text: "◎"
-                            color: neonGreen
-                            font.family: "Orbitron"
-                            font.pixelSize: Math.round(18 * uiScale)
-                            font.bold: true
-                        }
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: selectedSessionName !== "" ? ("TARGET PROFILE // " + selectedSessionName.toUpperCase()) : "TARGET PROFILE // AUTO SELECT"
-                            color: textPrimary
-                            font: bodyFont
-                            elide: Text.ElideRight
-                            verticalAlignment: Text.AlignVCenter
-                        }
-                    }
-                }
 
                 QQC2.ComboBox {
                     id: sessionSelector
