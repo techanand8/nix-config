@@ -10,9 +10,9 @@
 ---
 
 <div align="center">
-  <img src="assets/screenshots/sddm.png" alt="MANX OS SDDM Theme" width="100%">
+  <img src="assets/screenshots/sddm_preview.gif" alt="MANX OS SDDM Theme Preview" width="100%">
   <br/>
-  <i>Modular authentication interface featuring native Verilog syntax highlighting.</i>
+  <i>Live preview of the modular authentication interface with native Verilog syntax highlighting.</i>
 </div>
 
 ---
@@ -109,6 +109,39 @@ The workstation includes a custom-built management utility, `manx`, designed for
 
 ---
 
+## 🖼️ Visual Showcase
+
+<div align="center">
+  <table style="border-collapse: collapse; border: none;">
+    <tr>
+      <td width="50%" align="center">
+        <img src="assets/screenshots/manx_menu.png" alt="Manx CLI Menu" width="100%">
+        <br/><i>The <b>manx</b> system orchestrator.</i>
+      </td>
+      <td width="50%" align="center">
+        <img src="assets/screenshots/manx_screensaver_menu.png" alt="Screensaver Menu" width="100%">
+        <br/><i>Branding & Screensaver control.</i>
+      </td>
+    </tr>
+    <tr>
+      <td width="50%" align="center">
+        <img src="assets/screenshots/manx_edit.png" alt="Interactive Editing" width="100%">
+        <br/><i>Fuzzy-find config navigation.</i>
+      </td>
+      <td width="50%" align="center">
+        <img src="assets/screenshots/manx_edit_search.png" alt="Fuzzy Search" width="100%">
+        <br/><i>Instant preview & search.</i>
+      </td>
+    </tr>
+  </table>
+  <br/>
+  <img src="assets/screenshots/screensaver_effect.png" alt="Silicon Screensaver Effect" width="100%">
+  <br/>
+  <i>Immersive terminal text effects for workstation branding.</i>
+</div>
+
+---
+
 ## 🚀 Installation & Deployment
 
 This configuration supports two paths: a **Professional Stateless Setup** (advanced) and a **Standard Persistent Setup** (recommended for beginners).
@@ -174,9 +207,6 @@ btrfs subvolume snapshot -r /mnt/root /mnt/blank
 ```
 
 ---
-
-## 🎮 System Orchestration (`manx` CLI)
-...
 
 <div align="center">
   <sub>Designed for precision engineering by <b>Mayank Anand</b></sub><br/>
