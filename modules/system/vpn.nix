@@ -58,7 +58,7 @@
   };
 
   # Ensure the OpenConnect plugin is installed and registered with NetworkManager
-  networking.networkmanager.packages = [
+  networking.networkmanager.plugins = [
     pkgs.networkmanager-openconnect
   ];
 

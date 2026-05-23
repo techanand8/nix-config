@@ -530,7 +530,7 @@ Rectangle {
                                     anchors.fill: parent
                                     anchors.leftMargin: 12
                                     anchors.rightMargin: 12
-                                    text: "Suspend • Reboot • Shutdown"
+                                    text: "Suspend • Hibernate • Reboot • Shutdown"
                                     color: textPrimary
                                     font: bodyFont
                                     verticalAlignment: Text.AlignVCenter
