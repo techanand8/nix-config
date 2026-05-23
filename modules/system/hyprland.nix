@@ -16,10 +16,15 @@
   # GPU Screen Recorder support for portal backend
   programs.gpu-screen-recorder.enable = true;
 
+  # Required for hyprlock to work securely on NixOS
+  security.pam.services.hyprlock = { };
+
   # Ambxst system-level requirements & functional utilities
   environment.systemPackages = with pkgs; [
     # UI components are handled by Ambxst (Quickshell)
     # We only keep functional backend tools
+    hypridle
+    hyprlock
     awww
     hyprpolkitagent
     kitty
