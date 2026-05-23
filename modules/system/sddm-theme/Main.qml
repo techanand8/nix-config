@@ -112,6 +112,16 @@ Rectangle {
             timeString = Qt.formatTime(now, "hh:mm")
             dateString = Qt.formatDate(now, "dddd, dd MMM yyyy")
         }
+    Timer {
+        id: resetMessageTimer
+        interval: 3000
+        repeat: false
+        onTriggered: {
+            if (!authenticating) {
+                messageColor = textMuted
+                messageText = "Awaiting secure authentication"
+            }
+        }
     }
 
     Canvas {
@@ -1237,9 +1247,10 @@ Rectangle {
             authenticating = false
             passwordField.text = ""
             passwordField.forceActiveFocus()
-            messageColor = textDanger
+            messageColor = maroonBright
             messageText = "Decryption Core Error: Cryptographic Key Signature Invalid"
             shakeAnim.start()
+            resetMessageTimer.start()
         }
 
         function onLoginSucceeded() {
