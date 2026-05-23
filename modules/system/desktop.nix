@@ -21,7 +21,7 @@ let
   # A highly customized, high-tech Qt6 SDDM theme (Neon Green & Maroon Glow)
   custom-sddm-theme = pkgs.stdenv.mkDerivation {
     pname = "custom-sddm-theme";
-    version = "1.0";
+    version = "1.1";
     src = ./sddm-theme;
 
     installPhase = ''
