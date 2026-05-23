@@ -8,5 +8,6 @@
 
     # Add future additional system-level packages here:
     # pkgs.some-app
+    pkgs.obs-studio
   ];
 }

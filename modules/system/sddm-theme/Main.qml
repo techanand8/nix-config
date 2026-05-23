@@ -107,7 +107,7 @@ Rectangle {
         width: 450
         height: 600
         anchors.centerIn: parent
-        color: "rgba(12, 0, 2, 0.65)" // Translucent deep maroon-black
+        color: Qt.rgba(12/255.0, 0.0, 2/255.0, 0.65) // Translucent deep maroon-black
         border.color: neonGreen
         border.width: 1.5
         radius: 20
@@ -164,7 +164,7 @@ Rectangle {
                     font.pixelSize: 10
                     font.bold: true
                     font.letterSpacing: 2
-                    color: "rgba(168, 8, 0, 0.8)" // Translucent maroon
+                    color: Qt.rgba(168/255.0, 8/255.0, 0.0, 0.8) // Translucent maroon
                     horizontalAlignment: Text.AlignHCenter
                     Layout.fillWidth: true
                 }
@@ -295,7 +295,7 @@ Rectangle {
                         leftPadding: 12
                     }
                     background: Rectangle {
-                        color: hovered ? "rgba(57, 255, 20, 0.15)" : "transparent"
+                        color: hovered ? Qt.rgba(57/255.0, 255/255.0, 20/255.0, 0.15) : "transparent"
                     }
                 }
             }
@@ -384,7 +384,7 @@ Rectangle {
                         leftPadding: 12
                     }
                     background: Rectangle {
-                        color: hovered ? "rgba(57, 255, 20, 0.15)" : "transparent"
+                        color: hovered ? Qt.rgba(57/255.0, 255/255.0, 20/255.0, 0.15) : "transparent"
                     }
                 }
             }
@@ -406,7 +406,7 @@ Rectangle {
                 }
 
                 background: Rectangle {
-                    color: loginButton.hovered ? neonGreen : "rgba(57, 255, 20, 0.08)"
+                    color: loginButton.hovered ? neonGreen : Qt.rgba(57/255.0, 255/255.0, 20/255.0, 0.08)
                     border.color: neonGreen
                     border.width: 1
                     radius: 8
@@ -470,7 +470,7 @@ Rectangle {
             contentItem: Text {
                 text: "💤 " + suspendBtn.text
                 font: suspendBtn.font
-                color: suspendBtn.hovered ? neonGreen : "rgba(255, 255, 255, 0.6)"
+                color: suspendBtn.hovered ? neonGreen : Qt.rgba(1.0, 1.0, 1.0, 0.6)
             }
             background: Item {}
             onClicked: sddm.suspend()
@@ -485,7 +485,7 @@ Rectangle {
             contentItem: Text {
                 text: "🌀 " + rebootBtn.text
                 font: rebootBtn.font
-                color: rebootBtn.hovered ? neonGreen : "rgba(255, 255, 255, 0.6)"
+                color: rebootBtn.hovered ? neonGreen : Qt.rgba(1.0, 1.0, 1.0, 0.6)
             }
             background: Item {}
             onClicked: sddm.reboot()
@@ -500,7 +500,7 @@ Rectangle {
             contentItem: Text {
                 text: "⚡ " + shutdownBtn.text
                 font: shutdownBtn.font
-                color: shutdownBtn.hovered ? neonGreen : "rgba(255, 255, 255, 0.6)"
+                color: shutdownBtn.hovered ? neonGreen : Qt.rgba(1.0, 1.0, 1.0, 0.6)
             }
             background: Item {}
             onClicked: sddm.powerOff()

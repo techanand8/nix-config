@@ -22,7 +22,10 @@
     "sd_mod"
     "rtsx_usb_sdmmc"
   ];
-  boot.initrd.kernelModules = [ "tpm_tis" ];
+  boot.initrd.kernelModules = [
+    "tpm_tis"
+    "amdgpu"
+  ];
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
 
