@@ -1,509 +1,1355 @@
-import QtQuick
-import QtQuick.Controls
-import QtQuick.Layouts
+import QtQuick 2.15
+import QtQuick.Controls 2.15 as QQC2
+import QtQuick.Layouts 1.15
+import SddmComponents 2.0
 
 Rectangle {
     id: root
     width: 1920
     height: 1080
-    color: "#020000"
+    color: "#050107"
 
-    // Custom properties
+    LayoutMirroring.enabled: Qt.locale().textDirection === Qt.RightToLeft
+    LayoutMirroring.childrenInherit: true
+
     readonly property color neonGreen: "#39FF14"
-    readonly property color deepMaroon: "#A80800"
-    readonly property color bgDark: "#0c0002"
-    readonly property color borderDark: "#300005"
-    readonly property font cyberFont: Qt.font({ family: "JetBrains Mono", pixelSize: 14, bold: true })
+    readonly property color maroon: "#A80800"
+    readonly property color maroonBright: "#FF1133"
+    readonly property color panelBase: "#C10B020D"
+    readonly property color panelAlt: "#A10A0211"
+    readonly property color stroke: "#4D39FF14"
+    readonly property color strokeSoft: "#26FFFFFF"
+    readonly property color textPrimary: "#F5FFF0"
+    readonly property color textMuted: "#99F5FFF0"
+    readonly property color textDanger: "#FF6262"
+    readonly property color textWarning: "#FFB347"
+    readonly property color inputFill: "#CC09010A"
+    readonly property color inputBorder: "#6639FF14"
+    readonly property color cardGlow: "#8039FF14"
+    readonly property color maroonGlow: "#80A80800"
+    readonly property color hoverFill: "#1F39FF14"
+    readonly property color selectedFill: "#2B39FF14"
+    readonly property color selectedBorder: "#CC39FF14"
+    readonly property color buttonFill: "#1839FF14"
+    readonly property color buttonTextDark: "#050107"
+    readonly property color subtleLine: "#1FFFFFFF"
+    readonly property color leftPanelTop: "#D20C0312"
+    readonly property color leftPanelBottom: "#9E09020F"
+    readonly property color rightPanelTop: "#CC0D0310"
+    readonly property color rightPanelBottom: "#A009020C"
+    readonly property color chipFill: "#18000000"
+    readonly property color chipBorder: "#3A39FF14"
+    readonly property color sessionGlow: "#1139FF14"
+    readonly property color passwordGlow: "#2239FF14"
+    readonly property color shutdownGlow: "#26FF1133"
 
-    // --- REALTIME DYNAMIC CANVAS GHOST ANIMATION ---
+    readonly property font titleFont: Qt.font({ family: "Orbitron", pixelSize: 30, bold: true, letterSpacing: 5 })
+    readonly property font sectionFont: Qt.font({ family: "JetBrains Mono", pixelSize: 13, bold: true, letterSpacing: 2 })
+    readonly property font bodyFont: Qt.font({ family: "JetBrains Mono", pixelSize: 12, bold: true })
+    readonly property font actionFont: Qt.font({ family: "JetBrains Mono", pixelSize: 14, bold: true, letterSpacing: 1 })
+
+    property bool authenticating: false
+    property string messageText: "Awaiting secure authentication"
+    property color messageColor: textMuted
+    property string selectedUserName: ""
+    property string selectedUserDisplayName: ""
+    property string selectedUserIcon: ""
+    property string selectedSessionName: ""
+    property string timeString: Qt.formatTime(new Date(), "hh:mm")
+    property string dateString: Qt.formatDate(new Date(), "dddd, dd MMM yyyy")
+
+    function syncSelectedUser() {
+        if (userList.currentItem) {
+            selectedUserName = userList.currentItem.userName
+            selectedUserDisplayName = userList.currentItem.displayName
+            selectedUserIcon = userList.currentItem.iconSource
+        }
+    }
+
+    function attemptLogin() {
+        if (authenticating)
+            return
+
+        if (selectedUserName === "") {
+            messageColor = textWarning
+            messageText = "Select a user profile first"
+            userList.forceActiveFocus()
+            return
+        }
+
+        if (sessionSelector.currentIndex < 0) {
+            messageColor = textWarning
+            messageText = "Choose a valid session before login"
+            sessionSelector.forceActiveFocus()
+            return
+        }
+
+        authenticating = true
+        messageColor = neonGreen
+        messageText = "Verifying credentials and preparing session..."
+        sddm.login(selectedUserName, passwordField.text, sessionSelector.currentIndex)
+    }
+
+    TextConstants {
+        id: textConstants
+    }
+
+    Timer {
+        interval: 1000
+        running: true
+        repeat: true
+        onTriggered: {
+            var now = new Date()
+            timeString = Qt.formatTime(now, "hh:mm")
+            dateString = Qt.formatDate(now, "dddd, dd MMM yyyy")
+        }
+    }
+
     Canvas {
         id: bgCanvas
         anchors.fill: parent
-        z: 1
+        z: 0
 
         property var particles: []
-        property int numParticles: 50
+        property int numParticles: 72
+        property real pulse: 0
 
-        onWidthChanged: reinitParticles()
-        onHeightChanged: reinitParticles()
+        onWidthChanged: initParticles()
+        onHeightChanged: initParticles()
 
-        function reinitParticles() {
-            if (width <= 0 || height <= 0) return;
-            particles = [];
-            for (var i = 0; i < numParticles; i++) {
+        Component.onCompleted: initParticles()
+
+        function initParticles() {
+            if (width <= 0 || height <= 0)
+                return
+
+            particles = []
+            for (var i = 0; i < numParticles; ++i) {
                 particles.push({
                     x: Math.random() * width,
                     y: Math.random() * height,
-                    vx: (Math.random() - 0.5) * 1.5,
-                    vy: (Math.random() - 0.5) * 1.5,
-                    r: Math.random() * 2 + 1,
-                    alpha: Math.random() * 0.4 + 0.2
-                });
+                    vx: (Math.random() - 0.5) * 0.9,
+                    vy: (Math.random() - 0.5) * 0.9,
+                    r: Math.random() * 2.6 + 0.8,
+                    a: Math.random() * 0.35 + 0.12
+                })
             }
         }
 
         onPaint: {
-            var ctx = getContext("2d");
-            ctx.clearRect(0, 0, width, height);
+            var ctx = getContext("2d")
+            ctx.reset()
+            ctx.clearRect(0, 0, width, height)
 
-            // 1. Draw Deep Maroon Vignette Gradient
-            var grad = ctx.createRadialGradient(width / 2, height / 2, 50, width / 2, height / 2, Math.max(width, height) * 0.85);
-            grad.addColorStop(0, "#180004"); // Dark Maroon center
-            grad.addColorStop(0.7, "#040001");
-            grad.addColorStop(1, "#000000"); // Pure Black vignette edges
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, width, height);
+            var bg = ctx.createLinearGradient(0, 0, width, height)
+            bg.addColorStop(0.0, "#040107")
+            bg.addColorStop(0.4, "#0B0210")
+            bg.addColorStop(0.7, "#09040C")
+            bg.addColorStop(1.0, "#020203")
+            ctx.fillStyle = bg
+            ctx.fillRect(0, 0, width, height)
 
-            // 2. Update and draw neon green particles & connections
-            for (var i = 0; i < particles.length; i++) {
-                var p = particles[i];
-                p.x += p.vx;
-                p.y += p.vy;
+            var vignette = ctx.createRadialGradient(width * 0.5, height * 0.5, Math.min(width, height) * 0.1,
+                                                    width * 0.5, height * 0.5, Math.max(width, height) * 0.7)
+            vignette.addColorStop(0.0, "rgba(168, 8, 0, 0.18)")
+            vignette.addColorStop(0.45, "rgba(57, 255, 20, 0.04)")
+            vignette.addColorStop(1.0, "rgba(0, 0, 0, 0.92)")
+            ctx.fillStyle = vignette
+            ctx.fillRect(0, 0, width, height)
 
-                // Wrap around edges
-                if (p.x < 0) p.x = width;
-                if (p.x > width) p.x = 0;
-                if (p.y < 0) p.y = height;
-                if (p.y > height) p.y = 0;
+            ctx.strokeStyle = "rgba(57, 255, 20, 0.06)"
+            ctx.lineWidth = 1
+            for (var gy = 0; gy < height; gy += 48) {
+                ctx.beginPath()
+                ctx.moveTo(0, gy)
+                ctx.lineTo(width, gy)
+                ctx.stroke()
+            }
+            for (var gx = 0; gx < width; gx += 64) {
+                ctx.beginPath()
+                ctx.moveTo(gx, 0)
+                ctx.lineTo(gx, height)
+                ctx.stroke()
+            }
 
-                // Draw Particle Glow
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-                ctx.fillStyle = "rgba(57, 255, 20, " + p.alpha + ")";
-                ctx.shadowColor = neonGreen;
-                ctx.shadowBlur = 10;
-                ctx.fill();
+            pulse += 0.012
+            var scanY = (Math.sin(pulse) * 0.5 + 0.5) * height
+            var scan = ctx.createLinearGradient(0, scanY - 80, 0, scanY + 80)
+            scan.addColorStop(0.0, "rgba(0, 0, 0, 0)")
+            scan.addColorStop(0.5, "rgba(57, 255, 20, 0.11)")
+            scan.addColorStop(1.0, "rgba(0, 0, 0, 0)")
+            ctx.fillStyle = scan
+            ctx.fillRect(0, scanY - 80, width, 160)
 
-                // Connections
-                for (var j = i + 1; j < particles.length; j++) {
-                    var p2 = particles[j];
-                    var dist = Math.hypot(p.x - p2.x, p.y - p2.y);
-                    if (dist < 130) {
-                        var alpha = (1.0 - (dist / 130)) * 0.12;
-                        ctx.beginPath();
-                        ctx.moveTo(p.x, p.y);
-                        ctx.lineTo(p2.x, p2.y);
-                        ctx.strokeStyle = "rgba(168, 8, 0, " + alpha + ")"; // Maroon glow connections
-                        ctx.lineWidth = 1;
-                        ctx.shadowBlur = 0;
-                        ctx.stroke();
+            for (var i = 0; i < particles.length; ++i) {
+                var p = particles[i]
+                p.x += p.vx
+                p.y += p.vy
+
+                if (p.x < -10) p.x = width + 10
+                if (p.x > width + 10) p.x = -10
+                if (p.y < -10) p.y = height + 10
+                if (p.y > height + 10) p.y = -10
+
+                ctx.beginPath()
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
+                ctx.fillStyle = "rgba(57, 255, 20, " + p.a + ")"
+                ctx.shadowColor = "#39FF14"
+                ctx.shadowBlur = 12
+                ctx.fill()
+                ctx.shadowBlur = 0
+
+                for (var j = i + 1; j < particles.length; ++j) {
+                    var p2 = particles[j]
+                    var dist = Math.hypot(p.x - p2.x, p.y - p2.y)
+                    if (dist < 120) {
+                        var alpha = (1.0 - dist / 120.0) * 0.08
+                        ctx.beginPath()
+                        ctx.moveTo(p.x, p.y)
+                        ctx.lineTo(p2.x, p2.y)
+                        ctx.strokeStyle = "rgba(168, 8, 0, " + alpha + ")"
+                        ctx.lineWidth = 1
+                        ctx.stroke()
                     }
                 }
             }
         }
 
         Timer {
-            id: animTimer
-            interval: 16 // 60 FPS
+            interval: 16
             running: true
             repeat: true
             onTriggered: bgCanvas.requestPaint()
         }
     }
 
-    // --- CENTRAL GLASSMORPHIC CARD ---
     Rectangle {
-        id: loginCard
-        width: 450
-        height: 600
+        anchors.left: parent.left
+        anchors.top: parent.top
+        width: parent.width * 0.42
+        height: parent.height * 0.5
+        radius: width / 2
+        color: "transparent"
+        z: 1
+        opacity: 0.42
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: "#2839FF14" }
+            GradientStop { position: 1.0; color: "#00000000" }
+        }
+    }
+
+    Rectangle {
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        width: parent.width * 0.5
+        height: parent.height * 0.55
+        radius: width / 2
+        color: "transparent"
+        z: 1
+        opacity: 0.34
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: "#22A80800" }
+            GradientStop { position: 1.0; color: "#00000000" }
+        }
+    }
+
+    Rectangle {
+        anchors.fill: parent
+        color: "transparent"
+        border.width: 1
+        border.color: subtleLine
+        anchors.margins: 18
+        radius: 22
+        z: 1
+    }
+
+    RowLayout {
+        id: shell
         anchors.centerIn: parent
-        color: Qt.rgba(12/255.0, 0.0, 2/255.0, 0.65) // Translucent deep maroon-black
-        border.color: neonGreen
-        border.width: 1.5
-        radius: 20
+        width: Math.min(parent.width - 120, 1420)
+        height: Math.min(parent.height - 120, 820)
+        spacing: 28
         z: 2
-        opacity: 0
 
-        // Subtle glow effect
-        layer.enabled: true
+        Rectangle {
+            Layout.fillHeight: true
+            Layout.preferredWidth: 470
+            radius: 28
+            color: "transparent"
+            gradient: Gradient {
+                orientation: Gradient.Vertical
+                GradientStop { position: 0.0; color: leftPanelTop }
+                GradientStop { position: 1.0; color: leftPanelBottom }
+            }
+            border.width: 1
+            border.color: stroke
+            layer.enabled: true
 
-        // Slide-in / Fade-in animation on load
-        Component.onCompleted: {
-            fadeInAnimation.start();
-        }
-
-        SequentialAnimation {
-            id: fadeInAnimation
-            NumberAnimation { target: loginCard; property: "opacity"; from: 0; to: 1; duration: 800; easing.type: Easing.OutQuad }
-        }
-
-        // --- GLOWING GHOST BORDER PULSING ANIMATION ---
-        SequentialAnimation on border.color {
-            loops: Animation.Infinite
-            ColorAnimation { from: neonGreen; to: deepMaroon; duration: 2500; easing.type: Easing.InOutQuad }
-            ColorAnimation { from: deepMaroon; to: neonGreen; duration: 2500; easing.type: Easing.InOutQuad }
-        }
-
-        ColumnLayout {
-            anchors.fill: parent
-            anchors.margins: 40
-            spacing: 20
-
-            // 1. HEADER (Logo)
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 4
-
-                Text {
-                    text: "MAYANK"
-                    font.family: "Orbitron"
-                    font.pixelSize: 32
-                    font.bold: true
-                    font.letterSpacing: 6
-                    color: neonGreen
-                    horizontalAlignment: Text.AlignHCenter
-                    Layout.fillWidth: true
-                    
-                    style: Text.Outline
-                    styleColor: deepMaroon
-                }
-
-                Text {
-                    text: "SECURE DECRYPTION TERMINAL"
-                    font.family: "JetBrains Mono"
-                    font.pixelSize: 10
-                    font.bold: true
-                    font.letterSpacing: 2
-                    color: Qt.rgba(168/255.0, 8/255.0, 0.0, 0.8) // Translucent maroon
-                    horizontalAlignment: Text.AlignHCenter
-                    Layout.fillWidth: true
-                }
+            Rectangle {
+                anchors.fill: parent
+                radius: parent.radius
+                color: "transparent"
+                border.width: 1
+                border.color: maroonGlow
+                opacity: 0.5
             }
 
-            Item { Layout.fillHeight: true }
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.margins: 34
+                spacing: 18
 
-            // 2. USER PROFILE IMAGE WITH PULSING RING
-            Item {
-                width: 130
-                height: 130
-                Layout.alignment: Qt.AlignHCenter
+                Item {
+                    Layout.alignment: Qt.AlignHCenter
+                    width: 210
+                    height: 210
 
-                // Outer pulsing border
-                Rectangle {
-                    anchors.fill: parent
-                    radius: width / 2
-                    color: "transparent"
-                    border.color: neonGreen
-                    border.width: 2
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: 206
+                        height: 206
+                        radius: 34
+                        color: "transparent"
+                        border.width: 1
+                        border.color: "#3A39FF14"
 
-                    SequentialAnimation on scale {
-                        loops: Animation.Infinite
-                        NumberAnimation { from: 1.0; to: 1.08; duration: 1800; easing.type: Easing.InOutSine }
-                        NumberAnimation { from: 1.08; to: 1.0; duration: 1800; easing.type: Easing.InOutSine }
+                        SequentialAnimation on opacity {
+                            loops: Animation.Infinite
+                            NumberAnimation { from: 0.30; to: 0.72; duration: 2200; easing.type: Easing.InOutQuad }
+                            NumberAnimation { from: 0.72; to: 0.30; duration: 2200; easing.type: Easing.InOutQuad }
+                        }
+
+                        SequentialAnimation on scale {
+                            loops: Animation.Infinite
+                            NumberAnimation { from: 0.98; to: 1.03; duration: 2200; easing.type: Easing.InOutQuad }
+                            NumberAnimation { from: 1.03; to: 0.98; duration: 2200; easing.type: Easing.InOutQuad }
+                        }
                     }
 
-                    SequentialAnimation on opacity {
-                        loops: Animation.Infinite
-                        NumberAnimation { from: 0.8; to: 0.2; duration: 1800; easing.type: Easing.InOutSine }
-                        NumberAnimation { from: 0.2; to: 0.8; duration: 1800; easing.type: Easing.InOutSine }
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: 180
+                        height: 180
+                        radius: 28
+                        color: "#14000000"
+                        border.width: 1
+                        border.color: selectedBorder
+
+                        SequentialAnimation on scale {
+                            loops: Animation.Infinite
+                            NumberAnimation { from: 1.0; to: 1.03; duration: 2200; easing.type: Easing.InOutQuad }
+                            NumberAnimation { from: 1.03; to: 1.0; duration: 2200; easing.type: Easing.InOutQuad }
+                        }
+
+                        Image {
+                            anchors.fill: parent
+                            anchors.margins: 18
+                            fillMode: Image.PreserveAspectFit
+                            source: "logo.png"
+                            smooth: true
+                            antialiasing: true
+                        }
                     }
                 }
 
-                // Inner avatar ring
-                Rectangle {
-                    anchors.fill: parent
-                    anchors.margins: 4
-                    radius: width / 2
-                    color: bgDark
-                    border.color: deepMaroon
-                    border.width: 2
-                    clip: true
+                Text {
+                    Layout.fillWidth: true
+                    text: "MANX // GHOST LEVEL ACCESS"
+                    font: titleFont
+                    color: neonGreen
+                    horizontalAlignment: Text.AlignHCenter
+                }
 
-                    Image {
-                        id: avatarImage
+                Text {
+                    Layout.fillWidth: true
+                    text: "Maroon-core. Neon-field. Hardened SDDM interface."
+                    font: sectionFont
+                    color: textMuted
+                    horizontalAlignment: Text.AlignHCenter
+                    wrapMode: Text.WordWrap
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 1
+                    color: subtleLine
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Text {
+                        text: timeString
+                        font.family: "Orbitron"
+                        font.pixelSize: 52
+                        font.bold: true
+                        color: textPrimary
+                    }
+
+                    Text {
+                        text: dateString
+                        font: bodyFont
+                        color: textMuted
+                    }
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    radius: 20
+                    color: "#12000000"
+                    border.width: 1
+                    border.color: strokeSoft
+
+                    ColumnLayout {
                         anchors.fill: parent
-                        anchors.margins: 2
-                        fillMode: Image.PreserveAspectCrop
-                        source: userSelector.currentText !== "" ? "image://face/" + userSelector.currentText : ""
-                        
-                        onStatusChanged: {
-                            if (status == Image.Error || source == "") {
-                                fallbackIcon.visible = true;
-                                avatarImage.visible = false;
-                            } else {
-                                fallbackIcon.visible = false;
-                                avatarImage.visible = true;
+                        anchors.margins: 18
+                        spacing: 12
+
+                        Text {
+                            text: "SYSTEM STATUS"
+                            font: sectionFont
+                            color: neonGreen
+                        }
+
+                        GridLayout {
+                            columns: 2
+                            columnSpacing: 16
+                            rowSpacing: 10
+                            Layout.fillWidth: true
+
+                            Text { text: "Host"; color: textMuted; font: bodyFont }
+                            Rectangle {
+                                Layout.fillWidth: true
+                                radius: 10
+                                color: chipFill
+                                border.width: 1
+                                border.color: chipBorder
+                                implicitHeight: 32
+                                Text {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 12
+                                    anchors.rightMargin: 12
+                                    text: sddm.hostname ? sddm.hostname : "MANX"
+                                    color: textPrimary
+                                    font: bodyFont
+                                    verticalAlignment: Text.AlignVCenter
+                                    elide: Text.ElideRight
+                                }
+                            }
+
+                            Text { text: "User"; color: textMuted; font: bodyFont }
+                            Rectangle {
+                                Layout.fillWidth: true
+                                radius: 10
+                                color: chipFill
+                                border.width: 1
+                                border.color: chipBorder
+                                implicitHeight: 32
+                                Text {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 12
+                                    anchors.rightMargin: 12
+                                    text: selectedUserDisplayName !== "" ? selectedUserDisplayName : "Awaiting selection"
+                                    color: textPrimary
+                                    font: bodyFont
+                                    verticalAlignment: Text.AlignVCenter
+                                    elide: Text.ElideRight
+                                }
+                            }
+
+                            Text { text: "Session"; color: textMuted; font: bodyFont }
+                            Rectangle {
+                                Layout.fillWidth: true
+                                radius: 10
+                                color: chipFill
+                                border.width: 1
+                                border.color: chipBorder
+                                implicitHeight: 32
+                                Text {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 12
+                                    anchors.rightMargin: 12
+                                    text: sessionSelector.currentText !== "" ? sessionSelector.currentText : "Unavailable"
+                                    color: textPrimary
+                                    font: bodyFont
+                                    verticalAlignment: Text.AlignVCenter
+                                    elide: Text.ElideRight
+                                }
+                            }
+
+                            Text { text: "Power"; color: textMuted; font: bodyFont }
+                            Rectangle {
+                                Layout.fillWidth: true
+                                radius: 10
+                                color: chipFill
+                                border.width: 1
+                                border.color: chipBorder
+                                implicitHeight: 32
+                                Text {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 12
+                                    anchors.rightMargin: 12
+                                    text: "Shutdown • Reboot • Suspend"
+                                    color: textPrimary
+                                    font: bodyFont
+                                    verticalAlignment: Text.AlignVCenter
+                                    elide: Text.ElideRight
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    radius: 22
+                    color: "#10000000"
+                    border.width: 1
+                    border.color: subtleLine
+
+                    ColumnLayout {
+                        anchors.fill: parent
+                        anchors.margins: 18
+                        spacing: 12
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 10
+
+                            Text {
+                                text: "VISUAL CORE"
+                                font: sectionFont
+                                color: neonGreen
+                            }
+
+                            Rectangle {
+                                radius: 9
+                                color: "#1639FF14"
+                                border.width: 1
+                                border.color: selectedBorder
+                                implicitWidth: 110
+                                implicitHeight: 24
+
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 10
+                                    anchors.rightMargin: 10
+                                    spacing: 8
+
+                                    Rectangle {
+                                        Layout.preferredWidth: 7
+                                        Layout.preferredHeight: 7
+                                        radius: 4
+                                        color: neonGreen
+
+                                        SequentialAnimation on opacity {
+                                            loops: Animation.Infinite
+                                            NumberAnimation { from: 0.35; to: 1.0; duration: 700; easing.type: Easing.InOutQuad }
+                                            NumberAnimation { from: 1.0; to: 0.35; duration: 700; easing.type: Easing.InOutQuad }
+                                        }
+                                    }
+
+                                    Text {
+                                        text: "LIVE CORE"
+                                        font.family: "JetBrains Mono"
+                                        font.pixelSize: 10
+                                        font.bold: true
+                                        font.letterSpacing: 1
+                                        color: textPrimary
+                                    }
+                                }
+                            }
+
+                            Item { Layout.fillWidth: true }
+
+                            Text {
+                                text: "◌"
+                                font.family: "Orbitron"
+                                font.pixelSize: 18
+                                font.bold: true
+                                color: neonGreen
+                                opacity: 0.75
+
+                                SequentialAnimation on rotation {
+                                    loops: Animation.Infinite
+                                    NumberAnimation { from: 0; to: 360; duration: 3600; easing.type: Easing.Linear }
+                                }
+                            }
+                        }
+
+                        Text {
+                            text: "• Live animated neon particle field\n• Session-aware login flow\n• Multi-user selection\n• Future desktops show automatically via SDDM sessionModel\n• Power controls integrated at greeter level"
+                            font: bodyFont
+                            color: textMuted
+                            wrapMode: Text.WordWrap
+                            Layout.fillWidth: true
+                        }
+
+                        Item { Layout.fillHeight: true }
+
+                        Text {
+                            text: "AUTH CHANNEL // SECURE"
+                            font: sectionFont
+                            color: maroonBright
+                            opacity: 0.9
+                        }
+                    }
+                }
+            }
+        }
+
+        Rectangle {
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            radius: 28
+            color: "transparent"
+            gradient: Gradient {
+                orientation: Gradient.Vertical
+                GradientStop { position: 0.0; color: rightPanelTop }
+                GradientStop { position: 1.0; color: rightPanelBottom }
+            }
+            border.width: 1
+            border.color: stroke
+            layer.enabled: true
+
+            Rectangle {
+                anchors.fill: parent
+                radius: parent.radius
+                color: "transparent"
+                border.width: 1
+                border.color: maroonGlow
+                opacity: 0.45
+            }
+
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.margins: 34
+                spacing: 18
+
+                RowLayout {
+                    Layout.fillWidth: true
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 6
+
+                        Text {
+                            text: "SECURE USER AUTHENTICATION"
+                            font: titleFont
+                            color: textPrimary
+                        }
+
+                        Text {
+                            text: selectedUserName !== "" ? ("Selected profile // " + selectedUserName) : "Select a profile to continue"
+                            font: bodyFont
+                            color: selectedUserName !== "" ? neonGreen : textMuted
+                        }
+                    }
+
+                    Item {
+                        width: 42
+                        height: 42
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "◈"
+                            font.family: "Orbitron"
+                            font.pixelSize: 28
+                            font.bold: true
+                            color: neonGreen
+                            opacity: 0.82
+
+                            SequentialAnimation on rotation {
+                                loops: Animation.Infinite
+                                NumberAnimation { from: 0; to: 180; duration: 2600; easing.type: Easing.Linear }
+                                NumberAnimation { from: 180; to: 360; duration: 2600; easing.type: Easing.Linear }
                             }
                         }
                     }
 
-                    // Fallback Ghost Icon
+                    Item {
+                        width: 126
+                        height: 126
+
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: 126
+                            height: 126
+                            radius: 63
+                            color: "transparent"
+                            border.width: 1
+                            border.color: "#3039FF14"
+                            opacity: authenticating ? 0.92 : 0.48
+
+                            SequentialAnimation on scale {
+                                loops: Animation.Infinite
+                                NumberAnimation { from: 0.96; to: 1.03; duration: 1800; easing.type: Easing.InOutQuad }
+                                NumberAnimation { from: 1.03; to: 0.96; duration: 1800; easing.type: Easing.InOutQuad }
+                            }
+                        }
+
+                        Rectangle {
+                            width: 110
+                            height: 110
+                            anchors.centerIn: parent
+                            radius: 55
+                            color: "#12000000"
+                            border.width: 2
+                            border.color: authenticating ? maroonBright : selectedBorder
+                            clip: true
+
+                            SequentialAnimation on border.color {
+                                loops: Animation.Infinite
+                                ColorAnimation { from: selectedBorder; to: maroonBright; duration: 2500; easing.type: Easing.InOutQuad }
+                                ColorAnimation { from: maroonBright; to: selectedBorder; duration: 2500; easing.type: Easing.InOutQuad }
+                            }
+
+                            Image {
+                                anchors.fill: parent
+                                anchors.margins: 8
+                                fillMode: Image.PreserveAspectCrop
+                                source: selectedUserIcon !== "" ? selectedUserIcon : "logo.png"
+                                smooth: true
+                                antialiasing: true
+
+                                onStatusChanged: {
+                                    if (status === Image.Error)
+                                        source = "logo.png"
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 1
+                    color: subtleLine
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 10
+
+                    Rectangle {
+                        Layout.preferredWidth: 18
+                        Layout.preferredHeight: 3
+                        radius: 2
+                        color: neonGreen
+                    }
+
                     Text {
-                        id: fallbackIcon
-                        text: "💀"
-                        font.pixelSize: 52
-                        anchors.centerIn: parent
-                        visible: true
+                        text: "USER PROFILES"
+                        font: sectionFont
+                        color: neonGreen
+                    }
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 1
+                        color: subtleLine
+                        opacity: 0.5
                     }
                 }
-            }
 
-            Item { Layout.fillHeight: true }
-
-            // 3. USERNAME SELECTOR
-            ComboBox {
-                id: userSelector
-                Layout.fillWidth: true
-                model: userModel
-                textRole: "name"
-                currentIndex: userModel.lastIndex
-                font: cyberFont
-                
-                contentItem: Text {
-                    text: "USER // " + userSelector.currentText.toUpperCase()
-                    font: userSelector.font
-                    color: neonGreen
-                    verticalAlignment: Text.AlignVCenter
-                    horizontalAlignment: Text.AlignLeft
-                    leftPadding: 12
-                }
-
-                background: Rectangle {
-                    color: bgDark
-                    border.color: borderDark
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 188
+                    radius: 20
+                    color: "#11000000"
                     border.width: 1
-                    radius: 8
-                }
+                    border.color: strokeSoft
 
-                popup: Popup {
-                    width: userSelector.width
-                    height: Math.min(200, contentItem.implicitHeight)
-                    y: userSelector.height + 4
-                    padding: 1
-                    
-                    contentItem: ListView {
-                        model: userSelector.delegateModel
+                    ListView {
+                        id: userList
+                        anchors.fill: parent
+                        anchors.margins: 12
+                        spacing: 10
                         clip: true
-                    }
+                        orientation: ListView.Horizontal
+                        model: userModel
+                        currentIndex: -1
+                        focus: true
+                        highlightMoveDuration: 180
+                        cacheBuffer: 512
 
-                    background: Rectangle {
-                        color: bgDark
-                        border.color: neonGreen
-                        border.width: 1
-                        radius: 8
+                        Keys.onLeftPressed: decrementCurrentIndex()
+                        Keys.onRightPressed: incrementCurrentIndex()
+
+                        Component.onCompleted: {
+                            currentIndex = Math.max(0, userModel.lastIndex)
+                            positionViewAtIndex(currentIndex, ListView.Contain)
+                            syncSelectedUser()
+                        }
+
+                        onCurrentItemChanged: syncSelectedUser()
+
+                        delegate: Rectangle {
+                            id: userCard
+                            property string userName: name
+                            property string displayName: realName !== "" ? realName : name
+                            property string iconSource: icon !== "" ? icon : "logo.png"
+
+                            width: 220
+                            height: userList.height - 4
+                            radius: 18
+                            color: ListView.isCurrentItem ? selectedFill : hoverFill
+                            border.width: ListView.isCurrentItem ? 2 : 1
+                            border.color: ListView.isCurrentItem ? selectedBorder : strokeSoft
+                            scale: userMouse.containsMouse || ListView.isCurrentItem ? 1.02 : 1.0
+
+                            Behavior on color { ColorAnimation { duration: 120 } }
+                            Behavior on border.color { ColorAnimation { duration: 120 } }
+                            Behavior on scale { NumberAnimation { duration: 140 } }
+
+                            MouseArea {
+                                id: userMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                onClicked: {
+                                    userList.currentIndex = index
+                                    userList.positionViewAtIndex(index, ListView.Contain)
+                                }
+                            }
+
+                            ColumnLayout {
+                                anchors.fill: parent
+                                anchors.margins: 14
+                                spacing: 10
+
+                                Rectangle {
+                                    Layout.alignment: Qt.AlignHCenter
+                                    width: 92
+                                    height: 92
+                                    radius: 46
+                                    color: "#16000000"
+                                    border.width: 1
+                                    border.color: ListView.isCurrentItem ? selectedBorder : strokeSoft
+                                    clip: true
+
+                                    Image {
+                                        anchors.fill: parent
+                                        anchors.margins: 6
+                                        fillMode: Image.PreserveAspectCrop
+                                        source: userCard.iconSource
+
+                                        onStatusChanged: {
+                                            if (status === Image.Error)
+                                                source = "logo.png"
+                                        }
+                                    }
+                                }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: userCard.displayName
+                                    color: textPrimary
+                                    font: actionFont
+                                    horizontalAlignment: Text.AlignHCenter
+                                    elide: Text.ElideRight
+                                }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: userCard.userName
+                                    color: ListView.isCurrentItem ? neonGreen : textMuted
+                                    font: bodyFont
+                                    horizontalAlignment: Text.AlignHCenter
+                                    elide: Text.ElideRight
+                                }
+
+                                Item { Layout.fillHeight: true }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: ListView.isCurrentItem ? "ACTIVE PROFILE" : "SELECT PROFILE"
+                                    color: ListView.isCurrentItem ? neonGreen : textMuted
+                                    font.family: "JetBrains Mono"
+                                    font.pixelSize: 10
+                                    font.bold: true
+                                    font.letterSpacing: 2
+                                    horizontalAlignment: Text.AlignHCenter
+                                }
+                            }
+                        }
+
+                        QQC2.ScrollIndicator.horizontal: QQC2.ScrollIndicator {}
                     }
                 }
 
-                delegate: ItemDelegate {
-                    width: parent.width
-                    height: 40
-                    contentItem: Text {
-                        text: model.name.toUpperCase()
-                        color: hovered ? neonGreen : "white"
-                        font: cyberFont
-                        verticalAlignment: Text.AlignVCenter
-                        leftPadding: 12
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 10
+
+                    Rectangle {
+                        Layout.preferredWidth: 18
+                        Layout.preferredHeight: 3
+                        radius: 2
+                        color: neonGreen
                     }
-                    background: Rectangle {
-                        color: hovered ? Qt.rgba(57/255.0, 255/255.0, 20/255.0, 0.15) : "transparent"
+
+                    Text {
+                        text: "SESSION TARGET"
+                        font: sectionFont
+                        color: neonGreen
+                    }
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 1
+                        color: subtleLine
+                        opacity: 0.5
                     }
                 }
-            }
 
-            // 4. PASSWORD FIELD WITH SHADOW
-            TextField {
-                id: passwordField
-                Layout.fillWidth: true
-                echoMode: TextInput.Password
-                passwordCharacter: "•"
-                font: cyberFont
-                placeholderText: "ENTER ENCRYPTION KEY"
-                color: neonGreen
-                horizontalAlignment: TextInput.AlignHCenter
-                focus: true
-                
-                // Clear errors on typing
-                onTextChanged: loginErrorMsg.visible = false
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 10
+                    radius: 6
+                    color: sessionGlow
+                    opacity: 0.75
 
-                placeholderTextColor: "rgba(168, 8, 0, 0.5)"
-
-                background: Rectangle {
-                    color: "#050001"
-                    border.color: passwordField.activeFocus ? neonGreen : borderDark
-                    border.width: passwordField.activeFocus ? 2 : 1
-                    radius: 8
-                    
-                    layer.enabled: passwordField.activeFocus
+                    SequentialAnimation on opacity {
+                        loops: Animation.Infinite
+                        NumberAnimation { from: 0.28; to: 0.82; duration: 1600; easing.type: Easing.InOutQuad }
+                        NumberAnimation { from: 0.82; to: 0.28; duration: 1600; easing.type: Easing.InOutQuad }
+                    }
                 }
 
-                onAccepted: loginButton.clicked()
-            }
-
-            // 5. SESSION SELECTOR
-            ComboBox {
-                id: sessionSelector
-                Layout.fillWidth: true
-                model: sessionModel
-                textRole: "name"
-                currentIndex: sessionModel.lastIndex
-                font: cyberFont
-
-                contentItem: Text {
-                    text: "SESSION // " + sessionSelector.currentText.toUpperCase()
-                    font: sessionSelector.font
-                    color: "white"
-                    verticalAlignment: Text.AlignVCenter
-                    horizontalAlignment: Text.AlignLeft
-                    leftPadding: 12
-                }
-
-                background: Rectangle {
-                    color: bgDark
-                    border.color: borderDark
+                Rectangle {
+                    Layout.fillWidth: true
+                    radius: 14
+                    color: "#12000000"
                     border.width: 1
-                    radius: 8
+                    border.color: selectedBorder
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 14
+                        anchors.rightMargin: 14
+                        anchors.topMargin: 10
+                        anchors.bottomMargin: 10
+                        spacing: 10
+
+                        Text {
+                            text: "◎"
+                            color: neonGreen
+                            font.family: "Orbitron"
+                            font.pixelSize: 18
+                            font.bold: true
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: selectedSessionName !== "" ? ("TARGET PROFILE // " + selectedSessionName.toUpperCase()) : "TARGET PROFILE // AUTO SELECT"
+                            color: textPrimary
+                            font: bodyFont
+                            elide: Text.ElideRight
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                    }
                 }
 
-                popup: Popup {
-                    width: sessionSelector.width
-                    height: Math.min(200, contentItem.implicitHeight)
-                    y: sessionSelector.height + 4
-                    padding: 1
+                QQC2.ComboBox {
+                    id: sessionSelector
+                    Layout.fillWidth: true
+                    model: sessionModel
+                    textRole: "name"
+                    currentIndex: Math.max(0, sessionModel.lastIndex)
+                    font: actionFont
 
-                    contentItem: ListView {
-                        model: sessionSelector.delegateModel
-                        clip: true
-                    }
+                    onCurrentTextChanged: selectedSessionName = currentText
 
-                    background: Rectangle {
-                        color: bgDark
-                        border.color: neonGreen
-                        border.width: 1
-                        radius: 8
-                    }
-                }
-
-                delegate: ItemDelegate {
-                    width: parent.width
-                    height: 40
                     contentItem: Text {
-                        text: model.name.toUpperCase()
-                        color: hovered ? neonGreen : "white"
-                        font: cyberFont
+                        leftPadding: 16
+                        rightPadding: 44
+                        text: sessionSelector.displayText !== "" ? ("SESSION // " + sessionSelector.displayText.toUpperCase()) : "SESSION // UNAVAILABLE"
+                        font: sessionSelector.font
+                        color: textPrimary
                         verticalAlignment: Text.AlignVCenter
-                        leftPadding: 12
+                        elide: Text.ElideRight
                     }
+
+                    indicator: Canvas {
+                        x: sessionSelector.width - width - 16
+                        y: sessionSelector.topPadding + (sessionSelector.availableHeight - height) / 2
+                        width: 14
+                        height: 8
+                        contextType: "2d"
+                        onPaint: {
+                            var ctx = getContext("2d")
+                            ctx.reset()
+                            ctx.moveTo(0, 0)
+                            ctx.lineTo(width, 0)
+                            ctx.lineTo(width / 2, height)
+                            ctx.closePath()
+                            ctx.fillStyle = "#39FF14"
+                            ctx.fill()
+                        }
+                    }
+
                     background: Rectangle {
-                        color: hovered ? Qt.rgba(57/255.0, 255/255.0, 20/255.0, 0.15) : "transparent"
+                        radius: 16
+                        color: inputFill
+                        border.width: sessionSelector.visualFocus ? 2 : 1
+                        border.color: sessionSelector.visualFocus ? selectedBorder : inputBorder
+                    }
+
+                    popup: QQC2.Popup {
+                        y: sessionSelector.height + 6
+                        width: sessionSelector.width
+                        padding: 8
+                        modal: true
+                        closePolicy: QQC2.Popup.CloseOnEscape | QQC2.Popup.CloseOnPressOutside
+
+                        contentItem: ListView {
+                            clip: true
+                            implicitHeight: contentHeight
+                            model: sessionSelector.delegateModel
+                            currentIndex: sessionSelector.highlightedIndex
+                            QQC2.ScrollIndicator.vertical: QQC2.ScrollIndicator {}
+                        }
+
+                        background: Rectangle {
+                            radius: 18
+                            color: panelAlt
+                            border.width: 1
+                            border.color: selectedBorder
+                        }
+                    }
+
+                    delegate: QQC2.ItemDelegate {
+                        width: sessionSelector.width - 16
+                        contentItem: Text {
+                            text: model.name
+                            font: bodyFont
+                            color: highlighted ? neonGreen : textPrimary
+                            verticalAlignment: Text.AlignVCenter
+                            elide: Text.ElideRight
+                        }
+                        background: Rectangle {
+                            radius: 12
+                            color: highlighted ? hoverFill : "transparent"
+                        }
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 10
+
+                    Rectangle {
+                        Layout.preferredWidth: 18
+                        Layout.preferredHeight: 3
+                        radius: 2
+                        color: neonGreen
+                    }
+
+                    Text {
+                        text: "PASSWORD"
+                        font: sectionFont
+                        color: neonGreen
+                    }
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 1
+                        color: subtleLine
+                        opacity: 0.5
+                    }
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: passwordField.activeFocus ? 10 : 4
+                    radius: 6
+                    color: passwordGlow
+                    opacity: passwordField.activeFocus ? 0.95 : 0.35
+
+                    Behavior on opacity { NumberAnimation { duration: 120 } }
+                    Behavior on Layout.preferredHeight { NumberAnimation { duration: 120 } }
+
+                    SequentialAnimation on opacity {
+                        running: passwordField.activeFocus
+                        loops: Animation.Infinite
+                        NumberAnimation { from: 0.35; to: 0.95; duration: 1100; easing.type: Easing.InOutQuad }
+                        NumberAnimation { from: 0.95; to: 0.35; duration: 1100; easing.type: Easing.InOutQuad }
+                    }
+                }
+
+                QQC2.TextField {
+                    id: passwordField
+                    Layout.fillWidth: true
+                    echoMode: TextInput.Password
+                    passwordCharacter: "•"
+                    placeholderText: "ENTER AUTHENTICATION KEY"
+                    font: actionFont
+                    color: textPrimary
+                    horizontalAlignment: TextInput.AlignLeft
+                    selectByMouse: true
+                    focus: true
+
+                    onTextChanged: {
+                        if (!authenticating) {
+                            messageColor = textMuted
+                            messageText = "Awaiting secure authentication"
+                        }
+                    }
+
+                    onAccepted: attemptLogin()
+
+                    background: Rectangle {
+                        radius: 16
+                        color: inputFill
+                        border.width: passwordField.activeFocus ? 2 : 1
+                        border.color: passwordField.activeFocus ? selectedBorder : inputBorder
+                    }
+
+                    placeholderTextColor: textMuted
+                    leftPadding: 16
+                    rightPadding: 16
+                    topPadding: 16
+                    bottomPadding: 16
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 12
+
+                    QQC2.Button {
+                        id: loginButton
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 56
+                        font: actionFont
+                        enabled: !authenticating
+
+                        onClicked: attemptLogin()
+
+                        contentItem: RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 20
+                            anchors.rightMargin: 20
+                            spacing: 12
+
+                            QQC2.BusyIndicator {
+                                running: authenticating
+                                visible: authenticating
+                                Layout.preferredWidth: 18
+                                Layout.preferredHeight: 18
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: authenticating ? "AUTHENTICATING..." : "DECRYPT & ENTER"
+                                font: loginButton.font
+                                color: loginButton.down || loginButton.hovered ? buttonTextDark : neonGreen
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                            }
+                        }
+
+                        background: Rectangle {
+                            radius: 18
+                            color: loginButton.down || loginButton.hovered ? neonGreen : buttonFill
+                            border.width: 1
+                            border.color: selectedBorder
+                            Behavior on color { ColorAnimation { duration: 120 } }
+                        }
+                    }
+
+                    QQC2.Button {
+                        id: clearButton
+                        Layout.preferredWidth: 160
+                        Layout.preferredHeight: 56
+                        font: actionFont
+                        onClicked: passwordField.text = ""
+
+                        contentItem: Text {
+                            text: "CLEAR"
+                            font: clearButton.font
+                            color: clearButton.hovered ? buttonTextDark : textPrimary
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        background: Rectangle {
+                            radius: 18
+                            color: clearButton.hovered ? maroonBright : "#18FF1133"
+                            border.width: 1
+                            border.color: maroonBright
+                            Behavior on color { ColorAnimation { duration: 120 } }
+                        }
+                    }
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    radius: 16
+                    color: "#12000000"
+                    border.width: 1
+                    border.color: messageColor
+
+                    Behavior on border.color { ColorAnimation { duration: 150 } }
+
+                    Rectangle {
+                        anchors.left: parent.left
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+                        width: 5
+                        radius: 16
+                        color: messageColor
+                        Behavior on color { ColorAnimation { duration: 150 } }
+                    }
+
+                    Text {
+                        anchors.fill: parent
+                        anchors.leftMargin: 18
+                        anchors.rightMargin: 14
+                        anchors.topMargin: 14
+                        anchors.bottomMargin: 14
+                        text: messageText
+                        color: messageColor
+                        font: bodyFont
+                        wrapMode: Text.WordWrap
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                }
+
+                Item { Layout.fillHeight: true }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 10
+
+                    QQC2.Button {
+                        id: suspendButton
+                        Layout.fillWidth: true
+                        visible: sddm.canSuspend
+                        onClicked: sddm.suspend()
+                        contentItem: Text {
+                            text: "⏾  SUSPEND"
+                            color: suspendButton.hovered ? buttonTextDark : textPrimary
+                            font: bodyFont
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        background: Rectangle {
+                            radius: 14
+                            color: suspendButton.hovered ? neonGreen : "#12000000"
+                            border.width: 1
+                            border.color: selectedBorder
+                            Behavior on color { ColorAnimation { duration: 120 } }
+                        }
+                    }
+
+                    QQC2.Button {
+                        id: hibernateButton
+                        Layout.fillWidth: true
+                        visible: sddm.canHibernate
+                        onClicked: sddm.hibernate()
+                        contentItem: Text {
+                            text: "❄  HIBERNATE"
+                            color: hibernateButton.hovered ? buttonTextDark : textPrimary
+                            font: bodyFont
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        background: Rectangle {
+                            radius: 14
+                            color: hibernateButton.hovered ? neonGreen : "#12000000"
+                            border.width: 1
+                            border.color: selectedBorder
+                            Behavior on color { ColorAnimation { duration: 120 } }
+                        }
+                    }
+
+                    QQC2.Button {
+                        id: rebootButton
+                        Layout.fillWidth: true
+                        visible: sddm.canReboot
+                        onClicked: sddm.reboot()
+                        contentItem: Text {
+                            text: "↻  REBOOT"
+                            color: rebootButton.hovered ? buttonTextDark : textPrimary
+                            font: bodyFont
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        background: Rectangle {
+                            radius: 14
+                            color: rebootButton.hovered ? neonGreen : "#12000000"
+                            border.width: 1
+                            border.color: selectedBorder
+                            Behavior on color { ColorAnimation { duration: 120 } }
+                        }
+                    }
+
+                    QQC2.Button {
+                        id: shutdownButton
+                        Layout.fillWidth: true
+                        visible: sddm.canPowerOff
+                        onClicked: sddm.powerOff()
+                        contentItem: Text {
+                            text: "⏻  SHUTDOWN"
+                            color: shutdownButton.hovered ? buttonTextDark : textPrimary
+                            font: bodyFont
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        background: Rectangle {
+                            radius: 14
+                            color: shutdownButton.hovered ? maroonBright : "#12000000"
+                            border.width: shutdownButton.hovered ? 2 : 1
+                            border.color: maroonBright
+
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: parent.radius
+                                color: "transparent"
+                                border.width: 1
+                                border.color: shutdownGlow
+                                opacity: shutdownButton.hovered ? 0.85 : 0.25
+
+                                SequentialAnimation on opacity {
+                                    running: shutdownButton.hovered
+                                    loops: Animation.Infinite
+                                    NumberAnimation { from: 0.30; to: 0.90; duration: 700; easing.type: Easing.InOutQuad }
+                                    NumberAnimation { from: 0.90; to: 0.30; duration: 700; easing.type: Easing.InOutQuad }
+                                }
+                            }
+
+                            Behavior on color { ColorAnimation { duration: 120 } }
+                            Behavior on border.width { NumberAnimation { duration: 120 } }
+                        }
                     }
                 }
             }
-
-            // 6. LOGIN BUTTON
-            Button {
-                id: loginButton
-                Layout.fillWidth: true
-                Layout.preferredHeight: 48
-                text: "DECRYPT & ACCESS"
-                font: cyberFont
-                
-                contentItem: Text {
-                    text: loginButton.text
-                    font: loginButton.font
-                    color: loginButton.hovered ? "#000000" : neonGreen
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
-
-                background: Rectangle {
-                    color: loginButton.hovered ? neonGreen : Qt.rgba(57/255.0, 255/255.0, 20/255.0, 0.08)
-                    border.color: neonGreen
-                    border.width: 1
-                    radius: 8
-                    
-                    Behavior on color { ColorAnimation { duration: 150 } }
-                }
-
-                onClicked: {
-                    sddm.login(userSelector.currentText, passwordField.text, sessionSelector.currentIndex)
-                }
-            }
-
-            // 7. ERROR MESSAGE
-            Text {
-                id: loginErrorMsg
-                text: "ACCESS RESTRICTED: INVALID DECRYPTION KEY"
-                font.family: "JetBrains Mono"
-                font.pixelSize: 10
-                font.bold: true
-                color: "#FF1133"
-                horizontalAlignment: Text.AlignHCenter
-                Layout.fillWidth: true
-                visible: false
-
-                SequentialAnimation on opacity {
-                    running: loginErrorMsg.visible
-                    loops: Animation.Infinite
-                    NumberAnimation { from: 1.0; to: 0.3; duration: 500 }
-                    NumberAnimation { to: 1.0; duration: 500 }
-                }
-            }
-
-            Item { Layout.fillHeight: true }
         }
     }
 
-    // --- SDDM LOGIN EVENTS INTERCEPTOR ---
     Connections {
         target: sddm
+
         function onLoginFailed() {
+            authenticating = false
             passwordField.text = ""
             passwordField.forceActiveFocus()
-            loginErrorMsg.visible = true
-        }
-    }
-
-    // --- SYSTEM POWER MANAGEMENT SYSTEM ---
-    RowLayout {
-        anchors.bottom: parent.bottom
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottomMargin: 30
-        spacing: 40
-        z: 3
-
-        Button {
-            id: suspendBtn
-            text: "SUSPEND"
-            font: cyberFont
-            visible: sddm.canSuspend
-            
-            contentItem: Text {
-                text: "💤 " + suspendBtn.text
-                font: suspendBtn.font
-                color: suspendBtn.hovered ? neonGreen : Qt.rgba(1.0, 1.0, 1.0, 0.6)
-            }
-            background: Item {}
-            onClicked: sddm.suspend()
+            messageColor = textDanger
+            messageText = textConstants.loginFailed
         }
 
-        Button {
-            id: rebootBtn
-            text: "REBOOT"
-            font: cyberFont
-            visible: sddm.canReboot
-
-            contentItem: Text {
-                text: "🌀 " + rebootBtn.text
-                font: rebootBtn.font
-                color: rebootBtn.hovered ? neonGreen : Qt.rgba(1.0, 1.0, 1.0, 0.6)
-            }
-            background: Item {}
-            onClicked: sddm.reboot()
+        function onLoginSucceeded() {
+            authenticating = false
+            messageColor = neonGreen
+            messageText = textConstants.loginSucceeded
         }
 
-        Button {
-            id: shutdownBtn
-            text: "SHUTDOWN"
-            font: cyberFont
-            visible: sddm.canPowerOff
-
-            contentItem: Text {
-                text: "⚡ " + shutdownBtn.text
-                font: shutdownBtn.font
-                color: shutdownBtn.hovered ? neonGreen : Qt.rgba(1.0, 1.0, 1.0, 0.6)
-            }
-            background: Item {}
-            onClicked: sddm.powerOff()
+        function onInformationMessage(message) {
+            authenticating = false
+            messageColor = textWarning
+            messageText = message
         }
     }
 }

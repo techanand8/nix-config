@@ -19,7 +19,8 @@
 
     # Key file locations to resolve and decrypt secrets
     age = {
-      # Custom age key file location
+      # Use the existing user-owned age key that is already present on this machine.
+      # This keeps SOPS decryption working immediately after rebuild.
       keyFile = "/home/${vars.username}/.config/sops/age/keys.txt";
     };
 

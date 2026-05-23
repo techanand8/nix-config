@@ -41,6 +41,7 @@ in
     enable = true;
     wayland.enable = true;
     package = lib.mkForce pkgs.kdePackages.sddm;
+    # A highly customized, high-tech Qt6 SDDM theme (Neon Green & Maroon Glow)
     theme = "manx-ghost-theme";
     extraPackages = [
       custom-sddm-theme
@@ -63,6 +64,9 @@ in
     layout = "us";
     variant = "";
   };
+
+  # Enable touchpad/mouse support and gesture mappings (libinput)
+  services.libinput.enable = true;
 
   # Printing Integration (CUPS)
   services.printing.enable = true;

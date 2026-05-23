@@ -7,6 +7,10 @@
 }:
 
 {
+  users.mutableUsers = true;
+  security.sudo.enable = true;
+  security.sudo.wheelNeedsPassword = true;
+
   # --- SECURITY & AUTHENTICATION INTEGRATION ---
   # Automatic unlocking of credentials (GNOME Keyring) upon login
   security.pam.services.login.enableGnomeKeyring = true;
@@ -27,6 +31,12 @@
       "wheel"
       "video"
       "render"
+      "kvm" # VM acceleration
+      "libvirtd" # Virtualization system daemon
+      "input" # Mouse / touchpad raw input control
+      "dialout" # Serial ports & FPGA board programming
+      "uucp" # USB-UART serial debugging / VLSI JTAG
+      "plugdev" # Raw USB devices & external development boards
     ];
     shell = pkgs.zsh;
 

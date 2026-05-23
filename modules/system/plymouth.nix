@@ -24,14 +24,19 @@ in
   };
 
   # --- FLICKER-FREE & ULTRA-FAST BOOT ---
-  # Ensures the screen doesn't blink during the transition from bootloader to OS
-  boot.loader.timeout = 5; # Give time to select generations in Limine
+  # Keep enough time in Limine to select generations manually.
+  boot.loader.timeout = 5;
   boot.consoleLogLevel = 0;
   boot.initrd.verbose = false;
 
-  # Use systemd in initrd for a cleaner, faster handoff to the main system
+  # Use systemd in initrd for a cleaner, faster handoff to the main system.
   boot.initrd.systemd.enable = true;
 
-  # Optimization: Use fbcon=nodefer to prevent the screen from going dark before Plymouth starts
-  boot.kernelParams = [ "fbcon=nodefer" ];
+  # Plymouth can pause for several seconds while waiting for a DRM device,
+  # especially with systemd-initrd on some AMD systems. Let it use the early
+  # simpledrm framebuffer immediately, then hand off cleanly once amdgpu is ready.
+  boot.kernelParams = [
+    "fbcon=nodefer"
+    "plymouth.use-simpledrm"
+  ];
 }
