@@ -103,7 +103,7 @@ The workstation includes a custom-built management utility, `manx`, designed for
 | **Maintenance** | `manx clean` | Deep 3-layer optimization: generation pruning, GC, and hard-linking. |
 | | `manx check` | Comprehensive integrity audit of the flake configuration. |
 | **Development** | `manx vivado` | Enters the high-compatibility Xilinx environment. |
-| | `manx edit` | Direct access to the primary system configuration in Neovim. |
+| | `manx edit` | Interactive fuzzy-find (fzf) or direct file editing in Neovim. |
 | | `manx shell <pkg>` | Initialize transient, isolated development environments. |
 | **Aesthetics** | `manx screensaver` | Orchestrate custom ASCII/Image branding for the workstation. |
 

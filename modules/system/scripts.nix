@@ -118,13 +118,14 @@ let
         
         # 3. Validate configuration integrity before applying
         log "Validating configuration health..."
-        if ! nix flake check . 2>/tmp/nix-check-err; then
-            grep -v -E "incompatible systems|all-systems" /tmp/nix-check-err >&2 || true
-            rm -f /tmp/nix-check-err
+        CHECK_ERR=$(mktemp)
+        if ! nix flake check . 2>"$CHECK_ERR"; then
+            grep -v -E "incompatible systems|all-systems" "$CHECK_ERR" >&2 || true
+            rm -f "$CHECK_ERR"
             error "Configuration audit failed. Please resolve errors before rebuilding."
         else
-            grep -v -E "incompatible systems|all-systems" /tmp/nix-check-err >&2 || true
-            rm -f /tmp/nix-check-err
+            grep -v -E "incompatible systems|all-systems" "$CHECK_ERR" >&2 || true
+            rm -f "$CHECK_ERR"
         fi
         
         # 4. Capture current system state for delta reporting
@@ -198,7 +199,7 @@ let
             if command -v fzf &> /dev/null; then
                 log "Launching interactive configuration navigator..."
                 # Find all .nix and .yaml files, excluding hidden ones and git dirs
-                FILE=$(find . -maxdepth 4 -name "*.nix" -o -name "*.yaml" | grep -v "/.git/" | fzf --preview "bat --color=always --style=numbers {}" --height 80% --layout=reverse --border --prompt="󱄅 Edit Config ❯ ")
+                FILE=$(find . -maxdepth 4 \( -name "*.nix" -o -name "*.yaml" \) -not -path '*/.*' | fzf --preview "bat --color=always --style=numbers {}" --height 80% --layout=reverse --border --prompt="󱄅 Edit Config ❯ ")
                 if [ ! -z "$FILE" ]; then
                     $EDITOR "$FILE"
                 else
@@ -219,13 +220,14 @@ let
 
       check)
         log "Auditing configuration health..."
-        if ! nix flake check . 2>/tmp/nix-check-err; then
-            grep -v -E "incompatible systems|all-systems" /tmp/nix-check-err >&2 || true
-            rm -f /tmp/nix-check-err
+        CHECK_ERR=$(mktemp)
+        if ! nix flake check . 2>"$CHECK_ERR"; then
+            grep -v -E "incompatible systems|all-systems" "$CHECK_ERR" >&2 || true
+            rm -f "$CHECK_ERR"
             error "Configuration audit failed."
         else
-            grep -v -E "incompatible systems|all-systems" /tmp/nix-check-err >&2 || true
-            rm -f /tmp/nix-check-err
+            grep -v -E "incompatible systems|all-systems" "$CHECK_ERR" >&2 || true
+            rm -f "$CHECK_ERR"
             success "Configuration verified."
         fi
         ;;
