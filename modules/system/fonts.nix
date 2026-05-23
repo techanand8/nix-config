@@ -10,6 +10,7 @@
       nerd-fonts.mononoki
 
       # --- Professional & Document Fonts ---
+      orbitron # Specific font for the custom SDDM theme
       corefonts # Arial, Times New Roman, etc.
       liberation_ttf # Open source metric-compatible MS fonts
       noto-fonts # High quality multi-language support

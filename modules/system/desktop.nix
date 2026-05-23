@@ -24,13 +24,9 @@ let
     version = "1.0";
     src = ./sddm-theme;
 
-    dontUnpack = true;
-
     installPhase = ''
-      mkdir -p $out/share/sddm/themes/manx-ghost-theme
-      cp -r $src/* $out/share/sddm/themes/manx-ghost-theme/
       mkdir -p $out/share/sddm/themes/manx
-      cp -r $src/* $out/share/sddm/themes/manx/
+      cp -r * $out/share/sddm/themes/manx/
     '';
   };
 in
@@ -50,6 +46,8 @@ in
       sddm-faces
       pkgs.kdePackages.qtmultimedia
       pkgs.kdePackages.qtsvg
+      pkgs.kdePackages.qt5compat
+      pkgs.kdePackages.qtdeclarative
     ];
   };
 
