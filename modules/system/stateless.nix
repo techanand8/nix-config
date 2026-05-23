@@ -92,10 +92,12 @@ in
       "/var/lib/containers" # Podman system containers
     ];
     files = [
-      "/etc/machine-id"
       # "/etc/adjtime" # If you dual boot with Windows
     ];
   };
+
+  # Manually link the machine-id from persist to avoid impermanence activation collision
+  environment.etc."machine-id".source = "/persist/etc/machine-id";
 
   # --- SECURITY & PERMISSIONS ---
   # Ensure the persistence directory exists with correct permissions
