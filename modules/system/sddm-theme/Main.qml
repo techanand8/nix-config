@@ -95,7 +95,7 @@ Rectangle {
 
         authenticating = true
         messageColor = neonGreen
-        messageText = "Authenticating..."
+        messageText = "Executing cryptographic validation..."
         sddm.login(selectedUserName, passwordField.text, sessionSelector.currentIndex)
     }
 
@@ -381,11 +381,12 @@ Rectangle {
 
                 Text {
                     Layout.fillWidth: true
-                    text: "Maroon-core. Neon-field. Hardened SDDM interface."
+                    text: "◈  DESIGN VERIFICATION & DIGITAL VLSI  ◈"
                     font: sectionFont
-                    color: textMuted
+                    color: neonGreen
                     horizontalAlignment: Text.AlignHCenter
-                    wrapMode: Text.WordWrap
+                    font.bold: true
+                    font.letterSpacing: 1
                 }
 
                 Rectangle {
@@ -526,102 +527,7 @@ Rectangle {
                     }
                 }
 
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    radius: 22
-                    color: "#10000000"
-                    border.width: 1
-                    border.color: subtleLine
 
-                    ColumnLayout {
-                        anchors.fill: parent
-                        anchors.margins: 18
-                        spacing: 12
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: 10
-
-                            Text {
-                                text: "VISUAL CORE"
-                                font: sectionFont
-                                color: neonGreen
-                            }
-
-                            Rectangle {
-                                radius: 9
-                                color: "#1639FF14"
-                                border.width: 1
-                                border.color: selectedBorder
-                                implicitWidth: 110
-                                implicitHeight: 24
-
-                                RowLayout {
-                                    anchors.fill: parent
-                                    anchors.leftMargin: 10
-                                    anchors.rightMargin: 10
-                                    spacing: 8
-
-                                    Rectangle {
-                                        Layout.preferredWidth: 7
-                                        Layout.preferredHeight: 7
-                                        radius: 4
-                                        color: neonGreen
-
-                                        SequentialAnimation on opacity {
-                                            loops: Animation.Infinite
-                                            NumberAnimation { from: 0.35; to: 1.0; duration: 700; easing.type: Easing.InOutQuad }
-                                            NumberAnimation { from: 1.0; to: 0.35; duration: 700; easing.type: Easing.InOutQuad }
-                                        }
-                                    }
-
-                                    Text {
-                                        text: "LIVE CORE"
-                                        font.family: "JetBrains Mono"
-                                        font.pixelSize: Math.round(10 * uiScale)
-                                        font.bold: true
-                                        font.letterSpacing: 1
-                                        color: textPrimary
-                                    }
-                                }
-                            }
-
-                            Item { Layout.fillWidth: true }
-
-                            Text {
-                                text: "◌"
-                                font.family: "Orbitron"
-                                font.pixelSize: Math.round(18 * uiScale)
-                                font.bold: true
-                                color: neonGreen
-                                opacity: 0.75
-
-                                SequentialAnimation on rotation {
-                                    loops: Animation.Infinite
-                                    NumberAnimation { from: 0; to: 360; duration: 3600; easing.type: Easing.Linear }
-                                }
-                            }
-                        }
-
-                        Text {
-                            text: "• Live animated neon particle field\n• Session-aware login flow\n• Multi-user selection\n• Future desktops show automatically via SDDM sessionModel\n• Power controls integrated at greeter level"
-                            font: bodyFont
-                            color: textMuted
-                            wrapMode: Text.WordWrap
-                            Layout.fillWidth: true
-                        }
-
-                        Item { Layout.fillHeight: true }
-
-                        Text {
-                            text: "AUTH CHANNEL // SECURE"
-                            font: sectionFont
-                            color: maroonBright
-                            opacity: 0.9
-                        }
-                    }
-                }
             }
         }
 
@@ -662,15 +568,15 @@ Rectangle {
                         spacing: 6
 
                         Text {
-                            text: "SECURE USER AUTHENTICATION"
+                            text: "module secure_auth_core;"
                             font: titleFont
-                            color: textPrimary
+                            color: maroonBright
                         }
 
                         Text {
-                            text: selectedUserName !== "" ? ("Selected profile // " + selectedUserName) : "Select a profile to continue"
+                            text: selectedUserName !== "" ? ("assign active_user = \"" + selectedUserName + "\";") : "assign active_user = 8'h00;"
                             font: bodyFont
-                            color: selectedUserName !== "" ? neonGreen : textMuted
+                            color: neonGreen
                         }
                     }
 
@@ -800,12 +706,12 @@ Rectangle {
 
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 130
+                    Layout.preferredHeight: 150
                     color: "transparent"
 
                     ListView {
                         id: userList
-                        width: Math.min(parent.width, count * 140)
+                        width: Math.min(parent.width, count * 160)
                         height: parent.height
                         anchors.horizontalCenter: parent.horizontalCenter
                         orientation: ListView.Horizontal
@@ -833,8 +739,8 @@ Rectangle {
                             property string displayName: realName !== "" ? realName : name
                             property string iconSource: icon !== "" ? icon : "logo.png"
 
-                            width: 130
-                            height: 130
+                            width: 150
+                            height: 150
                             color: "transparent"
                             scale: userMouse.containsMouse || ListView.isCurrentItem ? 1.05 : 1.0
 
@@ -853,13 +759,13 @@ Rectangle {
 
                             ColumnLayout {
                                 anchors.fill: parent
-                                spacing: 6
+                                spacing: 8
 
                                 Rectangle {
                                     Layout.alignment: Qt.AlignHCenter
-                                    width: 74
-                                    height: 74
-                                    radius: 37
+                                    width: 100
+                                    height: 100
+                                    radius: 50
                                     color: "#16000000"
                                     border.width: ListView.isCurrentItem ? 2 : 1
                                     border.color: ListView.isCurrentItem ? selectedBorder : strokeSoft
@@ -894,7 +800,7 @@ Rectangle {
                                     text: ListView.isCurrentItem ? "ACTIVE" : ""
                                     color: neonGreen
                                     font.family: "JetBrains Mono"
-                                    font.pixelSize: Math.round(9 * uiScale)
+                                    font.pixelSize: Math.round(10 * uiScale)
                                     font.bold: true
                                     font.letterSpacing: 1
                                     horizontalAlignment: Text.AlignHCenter
@@ -1067,7 +973,7 @@ Rectangle {
                     id: passwordField
                     Layout.fillWidth: true
                     echoMode: TextInput.Password
-                    passwordCharacter: "•"
+                    passwordCharacter: "◈"
                     placeholderText: "ENTER AUTHENTICATION KEY"
                     font: actionFont
                     color: textPrimary
@@ -1094,15 +1000,25 @@ Rectangle {
                             messageColor = textMuted
                             messageText = "Awaiting secure authentication"
                         }
+                        typePulse.restart()
+                    }
+
+                    SequentialAnimation {
+                        id: typePulse
+                        PropertyAnimation { target: passwordBorderRect; property: "border.color"; to: neonGreen; duration: 60 }
+                        PropertyAnimation { target: passwordBorderRect; property: "border.color"; to: passwordField.activeFocus ? selectedBorder : (messageColor === textDanger ? textDanger : inputBorder); duration: 200 }
                     }
 
                     onAccepted: attemptLogin()
 
                     background: Rectangle {
+                        id: passwordBorderRect
                         radius: 16
                         color: inputFill
                         border.width: passwordField.activeFocus ? 2 : 1
                         border.color: passwordField.activeFocus ? selectedBorder : (messageColor === textDanger ? textDanger : inputBorder)
+
+                        Behavior on border.color { ColorAnimation { duration: 150 } }
                     }
 
                     placeholderTextColor: textMuted
@@ -1253,65 +1169,26 @@ Rectangle {
                 Item { Layout.fillHeight: true }
 
                 RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 10
-
-                    QQC2.Button {
-                        id: suspendButton
-                        Layout.fillWidth: true
-                        visible: sddm.canSuspend
-                        onClicked: sddm.suspend()
-                        contentItem: Text {
-                            text: "⏾  SUSPEND"
-                            color: suspendButton.hovered ? buttonTextDark : textPrimary
-                            font: bodyFont
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-                        background: Rectangle {
-                            radius: 14
-                            color: suspendButton.hovered ? neonGreen : "#12000000"
-                            border.width: 1
-                            border.color: selectedBorder
-                            Behavior on color { ColorAnimation { duration: 120 } }
-                        }
-                    }
-
-                    QQC2.Button {
-                        id: hibernateButton
-                        Layout.fillWidth: true
-                        visible: sddm.canHibernate
-                        onClicked: sddm.hibernate()
-                        contentItem: Text {
-                            text: "❄  HIBERNATE"
-                            color: hibernateButton.hovered ? buttonTextDark : textPrimary
-                            font: bodyFont
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-                        background: Rectangle {
-                            radius: 14
-                            color: hibernateButton.hovered ? neonGreen : "#12000000"
-                            border.width: 1
-                            border.color: selectedBorder
-                            Behavior on color { ColorAnimation { duration: 120 } }
-                        }
-                    }
+                    Layout.alignment: Qt.AlignHCenter
+                    spacing: 16
 
                     QQC2.Button {
                         id: rebootButton
-                        Layout.fillWidth: true
+                        Layout.preferredWidth: 140
+                        Layout.preferredHeight: 38
                         visible: true
                         onClicked: sddm.reboot()
+
                         contentItem: Text {
                             text: "↻  REBOOT"
+                            font: actionFont
                             color: rebootButton.hovered ? buttonTextDark : textPrimary
-                            font: bodyFont
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                         }
+
                         background: Rectangle {
-                            radius: 14
+                            radius: 19
                             color: rebootButton.hovered ? neonGreen : "#12000000"
                             border.width: 1
                             border.color: selectedBorder
@@ -1321,18 +1198,21 @@ Rectangle {
 
                     QQC2.Button {
                         id: shutdownButton
-                        Layout.fillWidth: true
+                        Layout.preferredWidth: 140
+                        Layout.preferredHeight: 38
                         visible: true
                         onClicked: sddm.powerOff()
+
                         contentItem: Text {
                             text: "⏻  SHUTDOWN"
+                            font: actionFont
                             color: shutdownButton.hovered ? buttonTextDark : textPrimary
-                            font: bodyFont
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                         }
+
                         background: Rectangle {
-                            radius: 14
+                            radius: 19
                             color: shutdownButton.hovered ? maroonBright : "#12000000"
                             border.width: shutdownButton.hovered ? 2 : 1
                             border.color: maroonBright
