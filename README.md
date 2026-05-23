@@ -109,30 +109,74 @@ The workstation includes a custom-built management utility, `manx`, designed for
 
 ---
 
-## 🚀 Deployment
+## 🚀 Installation & Deployment
 
-1.  **Clone the Repository:**
+This configuration supports two paths: a **Professional Stateless Setup** (advanced) and a **Standard Persistent Setup** (recommended for beginners).
+
+### 1. Initialize the Configuration
+On any NixOS system (or the installer), run:
+```bash
+git clone https://github.com/techanand8/nix-config.git ~/nix-config
+cd ~/nix-config
+
+# Create your local variables file
+cp hosts/manx/variables.nix.example hosts/manx/variables.nix
+# Edit variables.nix with your username, email, and preferred versions.
+```
+
+### 2. Adaptation to Your Hardware
+If you are not using the exact same hardware as this profile, you **must** update the hardware configuration:
+1.  Generate a configuration for your current machine:
     ```bash
-    git clone https://github.com/techanand8/nix-config.git ~/nix-config
-    cd ~/nix-config
+    nixos-generate-config --show-hardware-config > hosts/manx/hardware-configuration.nix
     ```
+2.  Open `hosts/manx/hardware-configuration.nix` and ensure it uses your actual partitions (e.g., `ext4`, `fat32`, etc.).
 
-2.  **Initialize Local Variables:**
-    ```bash
-    cp hosts/manx/variables.nix.example hosts/manx/variables.nix
-    # Fill in your credentials and hardware UUIDs
-    ```
+### 3. Choose Your Setup Type
 
-3.  **Apply Configuration:**
+#### Path A: Standard Installation (Easy)
+If you want a normal, persistent system (like Ubuntu or standard NixOS):
+1.  Open `hosts/manx/configuration.nix`.
+2.  **Comment out or remove** the line: `./modules/system/stateless.nix`.
+3.  Apply the system:
     ```bash
-    # Initial bootstrap
     sudo nixos-rebuild switch --flake .#MANX
-
-    # Subsequent updates
-    manx rebuild
     ```
+
+#### Path B: Professional Stateless Setup (Advanced)
+This requires the "Total Erasure" model using Btrfs snapshots.
+1.  **Requirement:** Your `hardware-configuration.nix` must use Btrfs and include a subvolume named `root` and a snapshot named `blank`.
+2.  Ensure `stateless.nix` is enabled in your imports.
+3.  Follow the [Disk Preparation Guide](#-disk-preparation-manual-steps) below.
 
 ---
+
+## 🛡️ Statelessness & Persistence Architecture (Advanced)
+
+*Only relevant if using Path B.*
+
+This workstation implements a **"Total Erasure"** security model. Every time the system boots, the root partition is wiped clean and restored from a pristine snapshot.
+
+### 💾 Disk Preparation (Manual Steps)
+If you chose the stateless path, you must manually prepare your Btrfs subvolumes before the first boot:
+```bash
+# 1. Mount your top-level Btrfs partition (ID 5)
+mount -t btrfs /dev/mapper/luks-uuid /mnt
+
+# 2. Create the required subvolumes
+btrfs subvolume create /mnt/root
+btrfs subvolume create /mnt/home
+btrfs subvolume create /mnt/nix
+btrfs subvolume create /mnt/persist
+
+# 3. Create the 'blank' snapshot for the rollback script
+btrfs subvolume snapshot -r /mnt/root /mnt/blank
+```
+
+---
+
+## 🎮 System Orchestration (`manx` CLI)
+...
 
 <div align="center">
   <sub>Designed for precision engineering by <b>Mayank Anand</b></sub><br/>
