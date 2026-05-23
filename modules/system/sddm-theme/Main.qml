@@ -18,8 +18,8 @@ Rectangle {
     LayoutMirroring.enabled: Qt.locale().textDirection === Qt.RightToLeft
     LayoutMirroring.childrenInherit: true
 
-    readonly property real scaleFactor: Screen.devicePixelRatio || 1.0
-    readonly property real uiScale: Math.max(0.85, Math.min(width / 1920, height / 1080) * scaleFactor)
+    readonly property real scaleFactor: (Screen.devicePixelRatio > 0) ? Screen.devicePixelRatio : 1.0
+    readonly property real uiScale: Math.max(0.75, Math.min(width / 1920, height / 1080) * scaleFactor)
 
     readonly property color neonGreen: "#39FF14"
     readonly property color maroon: "#A80800"
@@ -56,10 +56,10 @@ Rectangle {
     readonly property color hibernateGlow: shutdownGlow
 
     readonly property font titleFont: Qt.font({ family: "Orbitron", pixelSize: Math.max(16, Math.round(30 * uiScale)), bold: true, letterSpacing: 5 })
-    readonly property font sectionFont: Qt.font({ family: "JetBrains Mono", pixelSize: Math.max(10, Math.round(13 * uiScale)), bold: true, letterSpacing: 2 })
-    readonly property font bodyFont: Qt.font({ family: "JetBrains Mono", pixelSize: Math.max(9, Math.round(12 * uiScale)), bold: true })
-    readonly property font actionFont: Qt.font({ family: "JetBrains Mono", pixelSize: Math.max(11, Math.round(14 * uiScale)), bold: true, letterSpacing: 1 })
-    readonly property font capsWarningFont: Qt.font({ family: "JetBrains Mono", pixelSize: Math.max(9, Math.round(10 * uiScale)), bold: true, letterSpacing: 2 })
+    readonly property font sectionFont: Qt.font({ family: "JetBrainsMono Nerd Font", pixelSize: Math.max(10, Math.round(13 * uiScale)), bold: true, letterSpacing: 2 })
+    readonly property font bodyFont: Qt.font({ family: "JetBrainsMono Nerd Font", pixelSize: Math.max(9, Math.round(12 * uiScale)), bold: true })
+    readonly property font actionFont: Qt.font({ family: "JetBrainsMono Nerd Font", pixelSize: Math.max(11, Math.round(14 * uiScale)), bold: true, letterSpacing: 1 })
+    readonly property font capsWarningFont: Qt.font({ family: "JetBrainsMono Nerd Font", pixelSize: Math.max(9, Math.round(10 * uiScale)), bold: true, letterSpacing: 2 })
 
     property bool authenticating: false
     property string messageText: "Awaiting secure authentication"
@@ -532,7 +532,7 @@ Rectangle {
                                     anchors.rightMargin: 8
                                     text: "Suspend • Hibernate • Reboot • Shutdown"
                                     color: textPrimary
-                                    font.family: bodyFont.family
+                                    font.family: "JetBrainsMono Nerd Font"
                                     font.bold: bodyFont.bold
                                     font.pixelSize: bodyFont.pixelSize
                                     fontSizeMode: Text.Fit
@@ -846,7 +846,7 @@ Rectangle {
                                     Layout.fillWidth: true
                                     text: ListView.isCurrentItem ? "ACTIVE" : ""
                                     color: neonGreen
-                                    font.family: "JetBrains Mono"
+                                    font.family: "JetBrainsMono Nerd Font"
                                     font.pixelSize: Math.round(11 * uiScale)
                                     font.bold: true
                                     font.letterSpacing: 1
