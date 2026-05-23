@@ -1,6 +1,7 @@
 # --- SECRETS & PERSONAL INFO ---
 # This hides mine real name, email, and private paths
 hosts/manx/variables.nix
+secrets/secrets.yaml
 modules/system/plymouth/whatsapp_wallpaper.jpg
 .local/bin/sync_ghostty.sh
 
