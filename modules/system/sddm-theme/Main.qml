@@ -18,7 +18,7 @@ Rectangle {
     LayoutMirroring.childrenInherit: true
 
     readonly property real scaleFactor: Screen.devicePixelRatio || 1.0
-    readonly property real uiScale: Math.min(width / 1920, height / 1080) * scaleFactor
+    readonly property real uiScale: Math.max(0.85, Math.min(width / 1920, height / 1080) * scaleFactor)
 
     readonly property color neonGreen: "#39FF14"
     readonly property color maroon: "#A80800"
@@ -55,6 +55,7 @@ Rectangle {
     readonly property font sectionFont: Qt.font({ family: "JetBrains Mono", pixelSize: Math.max(10, Math.round(13 * uiScale)), bold: true, letterSpacing: 2 })
     readonly property font bodyFont: Qt.font({ family: "JetBrains Mono", pixelSize: Math.max(9, Math.round(12 * uiScale)), bold: true })
     readonly property font actionFont: Qt.font({ family: "JetBrains Mono", pixelSize: Math.max(11, Math.round(14 * uiScale)), bold: true, letterSpacing: 1 })
+    readonly property font capsWarningFont: Qt.font({ family: "JetBrains Mono", pixelSize: Math.max(9, Math.round(10 * uiScale)), bold: true, letterSpacing: 2 })
 
     property bool authenticating: false
     property string messageText: "Awaiting secure authentication"
@@ -372,7 +373,7 @@ Rectangle {
 
                 Text {
                     Layout.fillWidth: true
-                    text: "MANX // GHOST LEVEL ACCESS"
+                    text: "VLSI WORKSTATION"
                     font: titleFont
                     color: neonGreen
                     horizontalAlignment: Text.AlignHCenter
@@ -418,10 +419,16 @@ Rectangle {
                     color: "#12000000"
                     border.width: 1
                     border.color: strokeSoft
+                    implicitHeight: systemStatusColumn.implicitHeight + 36
 
                     ColumnLayout {
-                        anchors.fill: parent
-                        anchors.margins: 18
+                        id: systemStatusColumn
+                        anchors.top: parent.top
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.topMargin: 18
+                        anchors.leftMargin: 18
+                        anchors.rightMargin: 18
                         spacing: 12
 
                         Text {
@@ -745,15 +752,15 @@ Rectangle {
 
                             Image {
                                 anchors.fill: parent
-                                anchors.margins: 8
-                                fillMode: Image.PreserveAspectCrop
-                                source: selectedUserIcon !== "" ? selectedUserIcon : "logo.png"
+                                anchors.margins: (selectedUserIcon === "" || selectedUserIcon.indexOf("plymouth_logo.png") !== -1) ? 14 : 8
+                                fillMode: (selectedUserIcon === "" || selectedUserIcon.indexOf("plymouth_logo.png") !== -1) ? Image.PreserveAspectFit : Image.PreserveAspectCrop
+                                source: selectedUserIcon !== "" ? selectedUserIcon : "plymouth_logo.png"
                                 smooth: true
                                 antialiasing: true
 
                                 onStatusChanged: {
-                                    if (status === Image.Error && source != "logo.png")
-                                        source = "logo.png"
+                                    if (status === Image.Error && source != "plymouth_logo.png")
+                                        source = "plymouth_logo.png"
                                 }
                             }
                         }
@@ -793,7 +800,7 @@ Rectangle {
 
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 188
+                    Layout.preferredHeight: 240
                     radius: 20
                     color: "#11000000"
                     border.width: 1
@@ -801,8 +808,8 @@ Rectangle {
 
                     ListView {
                         id: userList
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
+                        anchors.fill: parent
+                        anchors.margins: 10
                         orientation: ListView.Horizontal
                         model: userModel
                         currentIndex: -1
@@ -826,10 +833,10 @@ Rectangle {
                             id: userCard
                             property string userName: name
                             property string displayName: realName !== "" ? realName : name
-                            property string iconSource: icon !== "" ? icon : "logo.png"
+                            property string iconSource: icon !== "" ? icon : "plymouth_logo.png"
 
-                            width: 220
-                            height: userList.height - 4
+                            width: 200
+                            height: userList.height
                             radius: 18
                             color: ListView.isCurrentItem ? selectedFill : hoverFill
                             border.width: ListView.isCurrentItem ? 2 : 1
@@ -853,13 +860,13 @@ Rectangle {
                             ColumnLayout {
                                 anchors.fill: parent
                                 anchors.margins: 14
-                                spacing: 10
+                                spacing: 8
 
                                 Rectangle {
                                     Layout.alignment: Qt.AlignHCenter
-                                    width: 92
-                                    height: 92
-                                    radius: 46
+                                    width: 90
+                                    height: 90
+                                    radius: 45
                                     color: "#16000000"
                                     border.width: 1
                                     border.color: ListView.isCurrentItem ? selectedBorder : strokeSoft
@@ -867,13 +874,15 @@ Rectangle {
 
                                     Image {
                                         anchors.fill: parent
-                                        anchors.margins: 6
-                                        fillMode: Image.PreserveAspectCrop
+                                        anchors.margins: (userCard.iconSource === "" || userCard.iconSource.indexOf("plymouth_logo.png") !== -1) ? 10 : 0
+                                        fillMode: (userCard.iconSource === "" || userCard.iconSource.indexOf("plymouth_logo.png") !== -1) ? Image.PreserveAspectFit : Image.PreserveAspectCrop
                                         source: userCard.iconSource
+                                        smooth: true
+                                        antialiasing: true
 
                                         onStatusChanged: {
-                                            if (status === Image.Error && source != "logo.png")
-                                                source = "logo.png"
+                                            if (status === Image.Error && source != "plymouth_logo.png")
+                                                source = "plymouth_logo.png"
                                         }
                                     }
                                 }
@@ -941,32 +950,55 @@ Rectangle {
                 }
 
                 Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 10
-                    radius: 6
-                    color: sessionGlow
-                    opacity: 0.75
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.preferredWidth: 64
+                    Layout.preferredHeight: 64
+                    radius: 14
+                    color: "#12000000"
+                    border.width: 1
+                    border.color: strokeSoft
 
-                    SequentialAnimation on opacity {
-                        loops: Animation.Infinite
-                        NumberAnimation { from: 0.28; to: 0.82; duration: 1600; easing.type: Easing.InOutQuad }
-                        NumberAnimation { from: 0.82; to: 0.28; duration: 1600; easing.type: Easing.InOutQuad }
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: parent.radius
+                        color: "transparent"
+                        border.width: 1
+                        border.color: selectedBorder
+                        opacity: 0.45
+
+                        SequentialAnimation on opacity {
+                            loops: Animation.Infinite
+                            NumberAnimation { from: 0.25; to: 0.75; duration: 1800; easing.type: Easing.InOutQuad }
+                            NumberAnimation { from: 0.75; to: 0.25; duration: 1800; easing.type: Easing.InOutQuad }
+                        }
+                    }
+
+                    Image {
+                        anchors.fill: parent
+                        anchors.margins: 10
+                        source: "plymouth_logo.png"
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
+                        antialiasing: true
                     }
                 }
 
                 Rectangle {
                     Layout.fillWidth: true
+                    implicitHeight: targetProfileRow.implicitHeight + 20
                     radius: 14
                     color: "#12000000"
                     border.width: 1
                     border.color: selectedBorder
 
                     RowLayout {
-                        anchors.fill: parent
+                        id: targetProfileRow
+                        anchors.top: parent.top
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.topMargin: 10
                         anchors.leftMargin: 14
                         anchors.rightMargin: 14
-                        anchors.topMargin: 10
-                        anchors.bottomMargin: 10
                         spacing: 10
 
                         Text {
@@ -1173,7 +1205,7 @@ Rectangle {
                     QQC2.Button {
                         id: loginButton
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 56
+                        Layout.preferredHeight: Math.round(56 * uiScale)
                         font: actionFont
                         enabled: !authenticating
                         KeyNavigation.tab: clearButton
@@ -1215,8 +1247,8 @@ Rectangle {
 
                     QQC2.Button {
                         id: clearButton
-                        Layout.preferredWidth: 160
-                        Layout.preferredHeight: 56
+                        Layout.preferredWidth: Math.round(160 * uiScale)
+                        Layout.preferredHeight: Math.round(56 * uiScale)
                         font: actionFont
                         onClicked: passwordField.text = ""
                         KeyNavigation.tab: userList
@@ -1262,8 +1294,7 @@ Rectangle {
 
                     Text {
                         text: "CAPS LOCK WARNING // REVERSE ENTRY HAZARD DETECTED"
-                        font: sectionFont
-                        font.pixelSize: Math.round(10 * uiScale)
+                        font: capsWarningFont
                         color: textWarning
                         Layout.fillWidth: true
                     }
@@ -1271,6 +1302,7 @@ Rectangle {
 
                 Rectangle {
                     Layout.fillWidth: true
+                    implicitHeight: Math.max(50, messageTextItem.implicitHeight + 28)
                     radius: 16
                     color: "#12000000"
                     border.width: 1
@@ -1289,11 +1321,13 @@ Rectangle {
                     }
 
                     Text {
-                        anchors.fill: parent
+                        id: messageTextItem
+                        anchors.top: parent.top
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.topMargin: 14
                         anchors.leftMargin: 18
                         anchors.rightMargin: 14
-                        anchors.topMargin: 14
-                        anchors.bottomMargin: 14
                         text: messageText
                         color: messageColor
                         font: bodyFont
@@ -1353,7 +1387,7 @@ Rectangle {
                     QQC2.Button {
                         id: rebootButton
                         Layout.fillWidth: true
-                        visible: sddm.canReboot
+                        visible: true
                         onClicked: sddm.reboot()
                         contentItem: Text {
                             text: "↻  REBOOT"
@@ -1374,7 +1408,7 @@ Rectangle {
                     QQC2.Button {
                         id: shutdownButton
                         Layout.fillWidth: true
-                        visible: sddm.canPowerOff
+                        visible: true
                         onClicked: sddm.powerOff()
                         contentItem: Text {
                             text: "⏻  SHUTDOWN"
