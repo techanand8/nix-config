@@ -25,6 +25,9 @@
     # This path is where NetworkManager looks for system-wide connections
     path = "/etc/NetworkManager/system-connections/MavenSilicon.nmconnection";
     mode = "0600"; # Critical: NM ignores files with loose permissions
+    owner = "root";
+    group = "root";
+    restartUnits = [ "NetworkManager.service" ];
     content = ''
       [connection]
       id=MavenSilicon
@@ -54,8 +57,14 @@
     '';
   };
 
-  # Ensure the OpenConnect plugin is installed (Host level)
+  # Ensure the OpenConnect plugin is installed and registered with NetworkManager
+  networking.networkmanager.packages = [
+    pkgs.networkmanager-openconnect
+  ];
+
+  # Optional: Also add to systemPackages for CLI usage
   environment.systemPackages = [
     pkgs.networkmanager-openconnect
+    pkgs.openconnect
   ];
 }

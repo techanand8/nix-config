@@ -111,6 +111,11 @@
       grep = "ripgrep";
       anipy-cli = "LD_LIBRARY_PATH=/run/current-system/sw/share/nix-ld/lib anipy-cli";
 
+      # --- SECURE VPN COMMANDS ---
+      "vpn-up" = "nmcli connection up MavenSilicon";
+      "vpn-down" = "nmcli connection down MavenSilicon";
+      "vpn-status" = "nmcli connection show --active | grep MavenSilicon";
+
       # --- AMD Vivado & Tcl Shell Wrappers ---
       vivado = "vrun /tools/Xilinx/${vars.vivadoVersion}/Vivado/bin/vivado";
       vivado-tcl = "vrun /tools/Xilinx/${vars.vivadoVersion}/Vivado/bin/vivado -mode tcl";

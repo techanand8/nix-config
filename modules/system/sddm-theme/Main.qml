@@ -3,6 +3,7 @@ import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import QtQuick.Window 2.15
 import SddmComponents 2.0
+import Qt5Compat.GraphicalEffects
 
 Rectangle {
     id: root
@@ -50,6 +51,7 @@ Rectangle {
     readonly property color sessionGlow: "#1139FF14"
     readonly property color passwordGlow: "#2239FF14"
     readonly property color shutdownGlow: "#26FF1133"
+    readonly property color suspendGlow: "#26FFB347"
 
     readonly property font titleFont: Qt.font({ family: "Orbitron", pixelSize: Math.max(16, Math.round(30 * uiScale)), bold: true, letterSpacing: 5 })
     readonly property font sectionFont: Qt.font({ family: "JetBrains Mono", pixelSize: Math.max(10, Math.round(13 * uiScale)), bold: true, letterSpacing: 2 })
@@ -526,7 +528,7 @@ Rectangle {
                                     anchors.fill: parent
                                     anchors.leftMargin: 12
                                     anchors.rightMargin: 12
-                                    text: "Shutdown • Reboot • Suspend"
+                                    text: "Suspend • Reboot • Shutdown"
                                     color: textPrimary
                                     font: bodyFont
                                     verticalAlignment: Text.AlignVCenter
@@ -641,7 +643,6 @@ Rectangle {
                             color: "#12000000"
                             border.width: 2
                             border.color: authenticating ? maroonBright : selectedBorder
-                            clip: true
 
                             SequentialAnimation {
                                 loops: Animation.Infinite
@@ -667,17 +668,32 @@ Rectangle {
                             }
 
                             Image {
+                                id: avatarImage
                                 anchors.fill: parent
-                                anchors.margins: 8
+                                anchors.margins: 3
                                 fillMode: Image.PreserveAspectCrop
                                 source: selectedUserIcon !== "" ? selectedUserIcon : "logo.png"
                                 smooth: true
                                 antialiasing: true
+                                visible: false
 
                                 onStatusChanged: {
                                     if (status === Image.Error && source != "logo.png")
                                         source = "logo.png"
                                 }
+                            }
+
+                            Rectangle {
+                                id: avatarMask
+                                anchors.fill: avatarImage
+                                radius: width / 2
+                                visible: false
+                            }
+
+                            OpacityMask {
+                                anchors.fill: avatarImage
+                                source: avatarImage
+                                maskSource: avatarMask
                             }
                         }
                     }
@@ -772,6 +788,7 @@ Rectangle {
                                 spacing: 10
 
                                 Rectangle {
+                                    id: cardAvatarRect
                                     Layout.alignment: Qt.AlignHCenter
                                     width: 116
                                     height: 116
@@ -779,20 +796,34 @@ Rectangle {
                                     color: "#16000000"
                                     border.width: ListView.isCurrentItem ? 2 : 1
                                     border.color: ListView.isCurrentItem ? selectedBorder : strokeSoft
-                                    clip: true
 
                                     Image {
+                                        id: cardAvatarImage
                                         anchors.fill: parent
                                         anchors.margins: 2
                                         fillMode: Image.PreserveAspectCrop
                                         source: userCard.iconSource
                                         smooth: true
                                         antialiasing: true
+                                        visible: false
 
                                         onStatusChanged: {
                                             if (status === Image.Error && source != "logo.png")
                                                 source = "logo.png"
                                         }
+                                    }
+
+                                    Rectangle {
+                                        id: cardAvatarMask
+                                        anchors.fill: cardAvatarImage
+                                        radius: width / 2
+                                        visible: false
+                                    }
+
+                                    OpacityMask {
+                                        anchors.fill: cardAvatarImage
+                                        source: cardAvatarImage
+                                        maskSource: cardAvatarMask
                                     }
                                 }
 
@@ -1173,8 +1204,50 @@ Rectangle {
                     spacing: 16
 
                     QQC2.Button {
+                        id: suspendButton
+                        Layout.preferredWidth: 130
+                        Layout.preferredHeight: 38
+                        visible: true
+                        onClicked: sddm.suspend()
+
+                        contentItem: Text {
+                            text: "☾  SUSPEND"
+                            font: actionFont
+                            color: suspendButton.hovered ? buttonTextDark : textPrimary
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        background: Rectangle {
+                            radius: 19
+                            color: suspendButton.hovered ? textWarning : "#12000000"
+                            border.width: suspendButton.hovered ? 2 : 1
+                            border.color: textWarning
+
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: parent.radius
+                                color: "#00000000"
+                                border.width: 1
+                                border.color: suspendGlow
+                                opacity: suspendButton.hovered ? 0.85 : 0.25
+
+                                SequentialAnimation on opacity {
+                                    running: suspendButton.hovered
+                                    loops: Animation.Infinite
+                                    NumberAnimation { from: 0.30; to: 0.90; duration: 700; easing.type: Easing.InOutQuad }
+                                    NumberAnimation { from: 0.90; to: 0.30; duration: 700; easing.type: Easing.InOutQuad }
+                                }
+                            }
+
+                            Behavior on color { ColorAnimation { duration: 120 } }
+                            Behavior on border.width { NumberAnimation { duration: 120 } }
+                        }
+                    }
+
+                    QQC2.Button {
                         id: rebootButton
-                        Layout.preferredWidth: 140
+                        Layout.preferredWidth: 130
                         Layout.preferredHeight: 38
                         visible: true
                         onClicked: sddm.reboot()
@@ -1190,15 +1263,33 @@ Rectangle {
                         background: Rectangle {
                             radius: 19
                             color: rebootButton.hovered ? neonGreen : "#12000000"
-                            border.width: 1
+                            border.width: rebootButton.hovered ? 2 : 1
                             border.color: selectedBorder
+
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: parent.radius
+                                color: "#00000000"
+                                border.width: 1
+                                border.color: passwordGlow
+                                opacity: rebootButton.hovered ? 0.85 : 0.25
+
+                                SequentialAnimation on opacity {
+                                    running: rebootButton.hovered
+                                    loops: Animation.Infinite
+                                    NumberAnimation { from: 0.30; to: 0.90; duration: 700; easing.type: Easing.InOutQuad }
+                                    NumberAnimation { from: 0.90; to: 0.30; duration: 700; easing.type: Easing.InOutQuad }
+                                }
+                            }
+
                             Behavior on color { ColorAnimation { duration: 120 } }
+                            Behavior on border.width { NumberAnimation { duration: 120 } }
                         }
                     }
 
                     QQC2.Button {
                         id: shutdownButton
-                        Layout.preferredWidth: 140
+                        Layout.preferredWidth: 130
                         Layout.preferredHeight: 38
                         visible: true
                         onClicked: sddm.powerOff()

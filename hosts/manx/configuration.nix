@@ -24,7 +24,7 @@
     ../../modules/system/plymouth.nix
     ../../modules/system/apps.nix
     ../../modules/system/stateless.nix
-    # ../../modules/system/vpn.nix
+    ../../modules/system/vpn.nix
   ];
 
   # --- HOST IDENTIFICATION ---
