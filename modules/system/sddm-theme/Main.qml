@@ -194,7 +194,7 @@ Rectangle {
                 ctx.beginPath()
                 ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
                 ctx.fillStyle = "rgba(57, 255, 20, " + p.a + ")"
-                ctx.shadowColor = "#39FF14"
+                ctx.shadowColor = Qt.rgba(0.22, 1.0, 0.08, 1.0)
                 ctx.shadowBlur = 12
                 ctx.fill()
                 ctx.shadowBlur = 0

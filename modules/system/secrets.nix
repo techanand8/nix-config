@@ -19,10 +19,10 @@
 
     # Key file locations to resolve and decrypt secrets
     age = {
-      # Relocate the key file path to the early-mounted, persisted directory.
-      # Because /home is a separate subvolume not yet mounted when neededForUsers
-      # secrets are decrypted, we must use /var/lib/sops-nix/key.txt which mounts early.
-      keyFile = "/var/lib/sops-nix/key.txt";
+      # Relocate the key file path to the physical, early-mounted /persist subvolume.
+      # Since impermanence bind-mounts run too late for neededForUsers password decryption,
+      # pointing directly to the /persist subvolume (which has neededForBoot = true) is required.
+      keyFile = "/persist/var/lib/sops-nix/key.txt";
     };
 
     # --- SECRET MAPPINGS ---
