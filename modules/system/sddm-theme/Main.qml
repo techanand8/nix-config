@@ -1,16 +1,24 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
+import QtQuick.Window 2.15
 import SddmComponents 2.0
 
 Rectangle {
     id: root
-    width: 1920
-    height: 1080
+    width: Screen.width
+    height: Screen.height
     color: "#050107"
+    focus: true
+
+    Keys.onReturnPressed: attemptLogin()
+    Keys.onEnterPressed: attemptLogin()
 
     LayoutMirroring.enabled: Qt.locale().textDirection === Qt.RightToLeft
     LayoutMirroring.childrenInherit: true
+
+    readonly property real scaleFactor: Screen.devicePixelRatio || 1.0
+    readonly property real uiScale: Math.min(width / 1920, height / 1080) * scaleFactor
 
     readonly property color neonGreen: "#39FF14"
     readonly property color maroon: "#A80800"
@@ -20,7 +28,7 @@ Rectangle {
     readonly property color stroke: "#4D39FF14"
     readonly property color strokeSoft: "#26FFFFFF"
     readonly property color textPrimary: "#F5FFF0"
-    readonly property color textMuted: "#99F5FFF0"
+    readonly property color textMuted: "#B8F5FFF0"
     readonly property color textDanger: "#FF6262"
     readonly property color textWarning: "#FFB347"
     readonly property color inputFill: "#CC09010A"
@@ -43,10 +51,10 @@ Rectangle {
     readonly property color passwordGlow: "#2239FF14"
     readonly property color shutdownGlow: "#26FF1133"
 
-    readonly property font titleFont: Qt.font({ family: "Orbitron", pixelSize: 30, bold: true, letterSpacing: 5 })
-    readonly property font sectionFont: Qt.font({ family: "JetBrains Mono", pixelSize: 13, bold: true, letterSpacing: 2 })
-    readonly property font bodyFont: Qt.font({ family: "JetBrains Mono", pixelSize: 12, bold: true })
-    readonly property font actionFont: Qt.font({ family: "JetBrains Mono", pixelSize: 14, bold: true, letterSpacing: 1 })
+    readonly property font titleFont: Qt.font({ family: "Orbitron", pixelSize: Math.max(16, Math.round(30 * uiScale)), bold: true, letterSpacing: 5 })
+    readonly property font sectionFont: Qt.font({ family: "JetBrains Mono", pixelSize: Math.max(10, Math.round(13 * uiScale)), bold: true, letterSpacing: 2 })
+    readonly property font bodyFont: Qt.font({ family: "JetBrains Mono", pixelSize: Math.max(9, Math.round(12 * uiScale)), bold: true })
+    readonly property font actionFont: Qt.font({ family: "JetBrains Mono", pixelSize: Math.max(11, Math.round(14 * uiScale)), bold: true, letterSpacing: 1 })
 
     property bool authenticating: false
     property string messageText: "Awaiting secure authentication"
@@ -86,7 +94,7 @@ Rectangle {
 
         authenticating = true
         messageColor = neonGreen
-        messageText = "Verifying credentials and preparing session..."
+        messageText = "Authenticating..."
         sddm.login(selectedUserName, passwordField.text, sessionSelector.currentIndex)
     }
 
@@ -111,7 +119,7 @@ Rectangle {
         z: 0
 
         property var particles: []
-        property int numParticles: 72
+        property int numParticles: 32
         property real pulse: 0
 
         onWidthChanged: initParticles()
@@ -157,22 +165,26 @@ Rectangle {
             ctx.fillStyle = vignette
             ctx.fillRect(0, 0, width, height)
 
+            pulse += authenticating ? 0.030 : 0.012
+
             ctx.strokeStyle = "rgba(57, 255, 20, 0.06)"
             ctx.lineWidth = 1
-            for (var gy = 0; gy < height; gy += 48) {
+            var gridOffsetY = Math.sin(pulse * 0.4) * 12
+            var gridOffsetX = Math.cos(pulse * 0.4) * 12
+            for (var gy = 0; gy < height + 48; gy += 48) {
+                var y = gy - 24 + gridOffsetY
                 ctx.beginPath()
-                ctx.moveTo(0, gy)
-                ctx.lineTo(width, gy)
+                ctx.moveTo(0, y)
+                ctx.lineTo(width, y)
                 ctx.stroke()
             }
-            for (var gx = 0; gx < width; gx += 64) {
+            for (var gx = 0; gx < width + 64; gx += 64) {
+                var x = gx - 32 + gridOffsetX
                 ctx.beginPath()
-                ctx.moveTo(gx, 0)
-                ctx.lineTo(gx, height)
+                ctx.moveTo(x, 0)
+                ctx.lineTo(x, height)
                 ctx.stroke()
             }
-
-            pulse += 0.012
             var scanY = (Math.sin(pulse) * 0.5 + 0.5) * height
             var scan = ctx.createLinearGradient(0, scanY - 80, 0, scanY + 80)
             scan.addColorStop(0.0, "rgba(0, 0, 0, 0)")
@@ -192,18 +204,23 @@ Rectangle {
                 if (p.y > height + 10) p.y = -10
 
                 ctx.beginPath()
+                ctx.arc(p.x, p.y, p.r * 2.8, 0, Math.PI * 2)
+                ctx.fillStyle = "rgba(57, 255, 20, " + (p.a * 0.25) + ")"
+                ctx.fill()
+
+                ctx.beginPath()
                 ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
                 ctx.fillStyle = "rgba(57, 255, 20, " + p.a + ")"
-                ctx.shadowColor = Qt.rgba(0.22, 1.0, 0.08, 1.0)
-                ctx.shadowBlur = 12
                 ctx.fill()
-                ctx.shadowBlur = 0
 
                 for (var j = i + 1; j < particles.length; ++j) {
                     var p2 = particles[j]
-                    var dist = Math.hypot(p.x - p2.x, p.y - p2.y)
-                    if (dist < 120) {
-                        var alpha = (1.0 - dist / 120.0) * 0.08
+                    var dx = p.x - p2.x
+                    var dy = p.y - p2.y
+                    var distSq = dx * dx + dy * dy
+                    if (distSq < 8100) {
+                        var dist = Math.sqrt(distSq)
+                        var alpha = (1.0 - dist / 90.0) * 0.08
                         ctx.beginPath()
                         ctx.moveTo(p.x, p.y)
                         ctx.lineTo(p2.x, p2.y)
@@ -216,8 +233,8 @@ Rectangle {
         }
 
         Timer {
-            interval: 16
-            running: true
+            interval: authenticating ? 33 : 90
+            running: root.visible
             repeat: true
             onTriggered: bgCanvas.requestPaint()
         }
@@ -229,7 +246,7 @@ Rectangle {
         width: parent.width * 0.42
         height: parent.height * 0.5
         radius: width / 2
-        color: "transparent"
+        color: "#00000000"
         z: 1
         opacity: 0.42
         gradient: Gradient {
@@ -244,7 +261,7 @@ Rectangle {
         width: parent.width * 0.5
         height: parent.height * 0.55
         radius: width / 2
-        color: "transparent"
+        color: "#00000000"
         z: 1
         opacity: 0.34
         gradient: Gradient {
@@ -255,7 +272,7 @@ Rectangle {
 
     Rectangle {
         anchors.fill: parent
-        color: "transparent"
+        color: "#00000000"
         border.width: 1
         border.color: subtleLine
         anchors.margins: 18
@@ -275,7 +292,7 @@ Rectangle {
             Layout.fillHeight: true
             Layout.preferredWidth: 470
             radius: 28
-            color: "transparent"
+            color: "#00000000"
             gradient: Gradient {
                 orientation: Gradient.Vertical
                 GradientStop { position: 0.0; color: leftPanelTop }
@@ -284,11 +301,12 @@ Rectangle {
             border.width: 1
             border.color: stroke
             layer.enabled: true
+            layer.samples: 4
 
             Rectangle {
                 anchors.fill: parent
                 radius: parent.radius
-                color: "transparent"
+                color: "#00000000"
                 border.width: 1
                 border.color: maroonGlow
                 opacity: 0.5
@@ -309,7 +327,7 @@ Rectangle {
                         width: 206
                         height: 206
                         radius: 34
-                        color: "transparent"
+                        color: "#00000000"
                         border.width: 1
                         border.color: "#3A39FF14"
 
@@ -382,7 +400,7 @@ Rectangle {
                     Text {
                         text: timeString
                         font.family: "Orbitron"
-                        font.pixelSize: 52
+                        font.pixelSize: Math.round(52 * uiScale)
                         font.bold: true
                         color: textPrimary
                     }
@@ -554,7 +572,7 @@ Rectangle {
                                     Text {
                                         text: "LIVE CORE"
                                         font.family: "JetBrains Mono"
-                                        font.pixelSize: 10
+                                        font.pixelSize: Math.round(10 * uiScale)
                                         font.bold: true
                                         font.letterSpacing: 1
                                         color: textPrimary
@@ -567,7 +585,7 @@ Rectangle {
                             Text {
                                 text: "◌"
                                 font.family: "Orbitron"
-                                font.pixelSize: 18
+                                font.pixelSize: Math.round(18 * uiScale)
                                 font.bold: true
                                 color: neonGreen
                                 opacity: 0.75
@@ -604,7 +622,7 @@ Rectangle {
             Layout.fillHeight: true
             Layout.fillWidth: true
             radius: 28
-            color: "transparent"
+            color: "#00000000"
             gradient: Gradient {
                 orientation: Gradient.Vertical
                 GradientStop { position: 0.0; color: rightPanelTop }
@@ -613,11 +631,12 @@ Rectangle {
             border.width: 1
             border.color: stroke
             layer.enabled: true
+            layer.samples: 4
 
             Rectangle {
                 anchors.fill: parent
                 radius: parent.radius
-                color: "transparent"
+                color: "#00000000"
                 border.width: 1
                 border.color: maroonGlow
                 opacity: 0.45
@@ -656,7 +675,7 @@ Rectangle {
                             anchors.centerIn: parent
                             text: "◈"
                             font.family: "Orbitron"
-                            font.pixelSize: 28
+                            font.pixelSize: Math.round(28 * uiScale)
                             font.bold: true
                             color: neonGreen
                             opacity: 0.82
@@ -678,7 +697,7 @@ Rectangle {
                             width: 126
                             height: 126
                             radius: 63
-                            color: "transparent"
+                            color: "#00000000"
                             border.width: 1
                             border.color: "#3039FF14"
                             opacity: authenticating ? 0.92 : 0.48
@@ -691,6 +710,7 @@ Rectangle {
                         }
 
                         Rectangle {
+                            id: avatarBorderRect
                             width: 110
                             height: 110
                             anchors.centerIn: parent
@@ -700,10 +720,27 @@ Rectangle {
                             border.color: authenticating ? maroonBright : selectedBorder
                             clip: true
 
-                            SequentialAnimation on border.color {
+                            SequentialAnimation {
                                 loops: Animation.Infinite
-                                ColorAnimation { from: selectedBorder; to: maroonBright; duration: 2500; easing.type: Easing.InOutQuad }
-                                ColorAnimation { from: maroonBright; to: selectedBorder; duration: 2500; easing.type: Easing.InOutQuad }
+                                running: !authenticating
+
+                                ColorAnimation {
+                                    target: avatarBorderRect.border
+                                    property: "color"
+                                    from: selectedBorder
+                                    to: maroonBright
+                                    duration: 2500
+                                    easing.type: Easing.InOutQuad
+                                }
+
+                                ColorAnimation {
+                                    target: avatarBorderRect.border
+                                    property: "color"
+                                    from: maroonBright
+                                    to: selectedBorder
+                                    duration: 2500
+                                    easing.type: Easing.InOutQuad
+                                }
                             }
 
                             Image {
@@ -715,7 +752,7 @@ Rectangle {
                                 antialiasing: true
 
                                 onStatusChanged: {
-                                    if (status === Image.Error)
+                                    if (status === Image.Error && source != "logo.png")
                                         source = "logo.png"
                                 }
                             }
@@ -764,22 +801,21 @@ Rectangle {
 
                     ListView {
                         id: userList
-                        anchors.fill: parent
-                        anchors.margins: 12
-                        spacing: 10
-                        clip: true
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
                         orientation: ListView.Horizontal
                         model: userModel
                         currentIndex: -1
                         focus: true
+                        KeyNavigation.tab: sessionSelector
                         highlightMoveDuration: 180
                         cacheBuffer: 512
 
-                        Keys.onLeftPressed: decrementCurrentIndex()
-                        Keys.onRightPressed: incrementCurrentIndex()
+                        Keys.onLeftPressed: currentIndex = Math.max(0, currentIndex - 1)
+                        Keys.onRightPressed: currentIndex = Math.min(count - 1, currentIndex + 1)
 
                         Component.onCompleted: {
-                            currentIndex = Math.max(0, userModel.lastIndex)
+                            currentIndex = (typeof userModel !== "undefined" && userModel && userModel.count > 0) ? Math.max(0, userModel.lastIndex) : -1
                             positionViewAtIndex(currentIndex, ListView.Contain)
                             syncSelectedUser()
                         }
@@ -836,7 +872,7 @@ Rectangle {
                                         source: userCard.iconSource
 
                                         onStatusChanged: {
-                                            if (status === Image.Error)
+                                            if (status === Image.Error && source != "logo.png")
                                                 source = "logo.png"
                                         }
                                     }
@@ -867,7 +903,7 @@ Rectangle {
                                     text: ListView.isCurrentItem ? "ACTIVE PROFILE" : "SELECT PROFILE"
                                     color: ListView.isCurrentItem ? neonGreen : textMuted
                                     font.family: "JetBrains Mono"
-                                    font.pixelSize: 10
+                                    font.pixelSize: Math.round(10 * uiScale)
                                     font.bold: true
                                     font.letterSpacing: 2
                                     horizontalAlignment: Text.AlignHCenter
@@ -937,7 +973,7 @@ Rectangle {
                             text: "◎"
                             color: neonGreen
                             font.family: "Orbitron"
-                            font.pixelSize: 18
+                            font.pixelSize: Math.round(18 * uiScale)
                             font.bold: true
                         }
 
@@ -957,8 +993,10 @@ Rectangle {
                     Layout.fillWidth: true
                     model: sessionModel
                     textRole: "name"
-                    currentIndex: Math.max(0, sessionModel.lastIndex)
+                    currentIndex: (typeof sessionModel !== "undefined" && sessionModel && sessionModel.count > 0) ? Math.max(0, sessionModel.lastIndex) : -1
                     font: actionFont
+                    KeyNavigation.tab: passwordField
+                    KeyNavigation.backtab: userList
 
                     onCurrentTextChanged: selectedSessionName = currentText
 
@@ -1007,7 +1045,7 @@ Rectangle {
                         contentItem: ListView {
                             clip: true
                             implicitHeight: contentHeight
-                            model: sessionSelector.delegateModel
+                            model: sessionSelector.popup.visible ? sessionSelector.delegateModel : null
                             currentIndex: sessionSelector.highlightedIndex
                             QQC2.ScrollIndicator.vertical: QQC2.ScrollIndicator {}
                         }
@@ -1023,7 +1061,7 @@ Rectangle {
                     delegate: QQC2.ItemDelegate {
                         width: sessionSelector.width - 16
                         contentItem: Text {
-                            text: model.name
+                            text: (typeof modelData !== "undefined" && modelData && modelData.name) ? modelData.name : (model && model.name ? model.name : "")
                             font: bodyFont
                             color: highlighted ? neonGreen : textPrimary
                             verticalAlignment: Text.AlignVCenter
@@ -1090,6 +1128,20 @@ Rectangle {
                     horizontalAlignment: TextInput.AlignLeft
                     selectByMouse: true
                     focus: true
+                    KeyNavigation.tab: loginButton
+                    KeyNavigation.backtab: sessionSelector
+
+                    property real shakeOffset: 0
+                    transform: Translate { x: passwordField.shakeOffset }
+
+                    SequentialAnimation {
+                        id: shakeAnim
+                        NumberAnimation { target: passwordField; property: "shakeOffset"; to: -10; duration: 50; easing.type: Easing.OutQuad }
+                        NumberAnimation { target: passwordField; property: "shakeOffset"; to: 10; duration: 100; easing.type: Easing.InOutQuad }
+                        NumberAnimation { target: passwordField; property: "shakeOffset"; to: -6; duration: 80; easing.type: Easing.InOutQuad }
+                        NumberAnimation { target: passwordField; property: "shakeOffset"; to: 6; duration: 80; easing.type: Easing.InOutQuad }
+                        NumberAnimation { target: passwordField; property: "shakeOffset"; to: 0; duration: 50; easing.type: Easing.InQuad }
+                    }
 
                     onTextChanged: {
                         if (!authenticating) {
@@ -1104,7 +1156,7 @@ Rectangle {
                         radius: 16
                         color: inputFill
                         border.width: passwordField.activeFocus ? 2 : 1
-                        border.color: passwordField.activeFocus ? selectedBorder : inputBorder
+                        border.color: passwordField.activeFocus ? selectedBorder : (messageColor === textDanger ? textDanger : inputBorder)
                     }
 
                     placeholderTextColor: textMuted
@@ -1124,6 +1176,8 @@ Rectangle {
                         Layout.preferredHeight: 56
                         font: actionFont
                         enabled: !authenticating
+                        KeyNavigation.tab: clearButton
+                        KeyNavigation.backtab: passwordField
 
                         onClicked: attemptLogin()
 
@@ -1165,6 +1219,8 @@ Rectangle {
                         Layout.preferredHeight: 56
                         font: actionFont
                         onClicked: passwordField.text = ""
+                        KeyNavigation.tab: userList
+                        KeyNavigation.backtab: loginButton
 
                         contentItem: Text {
                             text: "CLEAR"
@@ -1181,6 +1237,35 @@ Rectangle {
                             border.color: maroonBright
                             Behavior on color { ColorAnimation { duration: 120 } }
                         }
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    visible: typeof keyboard !== "undefined" && keyboard.capsLock
+                    spacing: 8
+                    Layout.topMargin: 4
+                    Layout.bottomMargin: 4
+
+                    Rectangle {
+                        Layout.preferredWidth: 6
+                        Layout.preferredHeight: 6
+                        radius: 3
+                        color: textWarning
+
+                        SequentialAnimation on opacity {
+                            loops: Animation.Infinite
+                            NumberAnimation { from: 0.3; to: 1.0; duration: 600; easing.type: Easing.InOutQuad }
+                            NumberAnimation { from: 1.0; to: 0.3; duration: 600; easing.type: Easing.InOutQuad }
+                        }
+                    }
+
+                    Text {
+                        text: "CAPS LOCK WARNING // REVERSE ENTRY HAZARD DETECTED"
+                        font: sectionFont
+                        font.pixelSize: Math.round(10 * uiScale)
+                        color: textWarning
+                        Layout.fillWidth: true
                     }
                 }
 
@@ -1307,7 +1392,7 @@ Rectangle {
                             Rectangle {
                                 anchors.fill: parent
                                 radius: parent.radius
-                                color: "transparent"
+                                color: "#00000000"
                                 border.width: 1
                                 border.color: shutdownGlow
                                 opacity: shutdownButton.hovered ? 0.85 : 0.25
@@ -1338,6 +1423,7 @@ Rectangle {
             passwordField.forceActiveFocus()
             messageColor = textDanger
             messageText = textConstants.loginFailed
+            shakeAnim.start()
         }
 
         function onLoginSucceeded() {

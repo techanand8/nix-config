@@ -29,6 +29,8 @@ let
     installPhase = ''
       mkdir -p $out/share/sddm/themes/manx-ghost-theme
       cp -r $src/* $out/share/sddm/themes/manx-ghost-theme/
+      mkdir -p $out/share/sddm/themes/manx
+      cp -r $src/* $out/share/sddm/themes/manx/
     '';
   };
 in
@@ -42,7 +44,7 @@ in
     wayland.enable = true;
     package = lib.mkForce pkgs.kdePackages.sddm;
     # A highly customized, high-tech Qt6 SDDM theme (Neon Green & Maroon Glow)
-    theme = "manx-ghost-theme";
+    theme = "manx";
     extraPackages = [
       custom-sddm-theme
       sddm-faces
