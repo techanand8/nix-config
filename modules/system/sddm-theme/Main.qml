@@ -112,6 +112,8 @@ Rectangle {
             timeString = Qt.formatTime(now, "hh:mm")
             dateString = Qt.formatDate(now, "dddd, dd MMM yyyy")
         }
+    }
+
     Timer {
         id: resetMessageTimer
         interval: 3000
