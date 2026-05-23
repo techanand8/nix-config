@@ -106,7 +106,7 @@ let
         # 0. Create pre-rebuild Btrfs snapshots for safety
         if command -v snapper &> /dev/null; then
             log "Creating pre-rebuild snapshots (Time Machine)..."
-            sudo snapper -c root create --description "Pre-rebuild system snapshot" || true
+            # Root is excluded because it is stateless and wiped on every boot
             sudo snapper -c home create --description "Pre-rebuild home snapshot" || true
         fi
 
