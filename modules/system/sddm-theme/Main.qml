@@ -385,8 +385,6 @@ Rectangle {
                     font: sectionFont
                     color: neonGreen
                     horizontalAlignment: Text.AlignHCenter
-                    font.bold: true
-                    font.letterSpacing: 1
                 }
 
                 Rectangle {
