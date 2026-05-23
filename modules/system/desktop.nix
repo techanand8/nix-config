@@ -6,12 +6,56 @@
   ...
 }:
 
+let
+  # A custom declarative package to supply the user avatar (face) to SDDM
+  sddm-faces = pkgs.stdenv.mkDerivation {
+    name = "sddm-faces";
+    dontUnpack = true;
+    installPhase = ''
+      mkdir -p $out/share/sddm/faces
+      cp ${./plymouth/manx_logo.png} $out/share/sddm/faces/${vars.username}.face.icon
+      cp ${./plymouth/manx_logo.png} $out/share/sddm/faces/${vars.username}.face
+    '';
+  };
+
+  # A highly customized, high-tech Qt6 SDDM theme (Neon Green & Maroon Glow)
+  custom-sddm-theme = pkgs.stdenv.mkDerivation {
+    pname = "custom-sddm-theme";
+    version = "1.0";
+    src = ./sddm-theme;
+
+    dontUnpack = true;
+
+    installPhase = ''
+      mkdir -p $out/share/sddm/themes/manx-ghost-theme
+      cp -r $src/* $out/share/sddm/themes/manx-ghost-theme/
+    '';
+  };
+in
 {
   # --- GRAPHICS & DISPLAY SERVERS ---
   services.xserver.enable = true;
 
   # --- KDE PLASMA 6 SYSTEM LAYERS ---
-  services.displayManager.sddm.enable = true;
+  services.displayManager.sddm = {
+    enable = true;
+    wayland.enable = true;
+    package = lib.mkForce pkgs.kdePackages.sddm;
+    theme = "manx-ghost-theme";
+    extraPackages = [
+      custom-sddm-theme
+      sddm-faces
+      pkgs.kdePackages.qtmultimedia
+      pkgs.kdePackages.qtsvg
+    ];
+  };
+
+  # Make the custom theme packages visible in the system path so SDDM can find them
+  environment.systemPackages = [
+    custom-sddm-theme
+    sddm-faces
+  ];
+
   services.desktopManager.plasma6.enable = true;
 
   # Keyboard Map Setup

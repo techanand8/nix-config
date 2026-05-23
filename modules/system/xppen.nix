@@ -1,7 +1,11 @@
-{ pkgs, ... }:
+{
+  pkgs,
+  vars,
+  ...
+}:
 
 let
-  xppen-v4 = import ./xppen-driver.nix { inherit pkgs; };
+  xppen-v4 = import ./xppen-driver.nix { inherit pkgs vars; };
 
   pentablet-shortcut = pkgs.makeDesktopItem {
     name = "pentablet";
@@ -17,14 +21,12 @@ let
   };
 in
 {
-  # Hardware Detection Fix
-  system.activationScripts.xppen-patch = {
-    text = ''
-      mkdir -p /usr/lib/pentablet
-      ln -sfn ${xppen-v4}/lib/pentablet/conf /usr/lib/pentablet/conf
-      ln -sfn ${xppen-v4}/lib/pentablet/resource /usr/lib/pentablet/resource
-    '';
-  };
+  # Hardware Detection Fix - Use tmpfiles to create legacy paths for proprietary drivers
+  # This replaces the activation script that tried to write to read-only /usr/lib
+  systemd.tmpfiles.rules = [
+    "L+ /usr/lib/pentablet/conf - - - - ${xppen-v4}/lib/pentablet/conf"
+    "L+ /usr/lib/pentablet/resource - - - - ${xppen-v4}/lib/pentablet/resource"
+  ];
 
   environment.systemPackages = [
     xppen-v4

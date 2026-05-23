@@ -50,8 +50,8 @@ in
       name = "AMD Vivado ${vivadoVersion} (GUI)";
       genericName = "FPGA & EDA Design Suite";
       comment = "AMD Xilinx Vivado Design Suite (Standalone)";
-      exec = "distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath}";
-      icon = "${config.home.homeDirectory}/.local/share/icons/xilinx/vivado.png";
+      exec = "distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath}";
+      icon = ./assets/icons/xilinx/vivado.png;
       terminal = false;
       categories = [
         "Development"
@@ -64,8 +64,8 @@ in
       name = "AMD Vivado ${vivadoVersion} (Ghostty GUI)";
       genericName = "FPGA & EDA Design Suite";
       comment = "AMD Xilinx Vivado Design Suite in Ghostty Terminal";
-      exec = "ghostty -e distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath}";
-      icon = "${config.home.homeDirectory}/.local/share/icons/xilinx/vivado.png";
+      exec = "ghostty -e distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath}";
+      icon = ./assets/icons/xilinx/vivado.png;
       terminal = false;
       categories = [
         "Development"
@@ -78,8 +78,8 @@ in
       name = "AMD Vivado ${vivadoVersion} (Kitty GUI)";
       genericName = "FPGA & EDA Design Suite";
       comment = "AMD Xilinx Vivado Design Suite in Kitty Terminal";
-      exec = "kitty -e distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath}";
-      icon = "${config.home.homeDirectory}/.local/share/icons/xilinx/vivado.png";
+      exec = "kitty -e distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath}";
+      icon = ./assets/icons/xilinx/vivado.png;
       terminal = false;
       categories = [
         "Development"
@@ -92,8 +92,8 @@ in
       name = "AMD Vivado ${vivadoVersion} Tcl Shell (Ghostty)";
       genericName = "EDA Tcl Console";
       comment = "AMD Vivado Interactive Tcl Shell in Ghostty";
-      exec = "ghostty -e distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath} -mode tcl";
-      icon = "${config.home.homeDirectory}/.local/share/icons/xilinx/vivado.png";
+      exec = "ghostty -e distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath} -mode tcl";
+      icon = ./assets/icons/xilinx/vivado.png;
       terminal = false;
       categories = [
         "Development"
@@ -106,8 +106,8 @@ in
       name = "AMD Vivado ${vivadoVersion} Tcl Shell (Kitty)";
       genericName = "EDA Tcl Console";
       comment = "AMD Vivado Interactive Tcl Shell in Kitty";
-      exec = "kitty -e distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath} -mode tcl";
-      icon = "${config.home.homeDirectory}/.local/share/icons/xilinx/vivado.png";
+      exec = "kitty -e distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath} -mode tcl";
+      icon = ./assets/icons/xilinx/vivado.png;
       terminal = false;
       categories = [
         "Development"
@@ -120,8 +120,8 @@ in
       name = "AMD Vivado ${vivadoVersion} Tcl Shell (xterm)";
       genericName = "EDA Tcl Console";
       comment = "AMD Vivado Interactive Tcl Shell in xterm";
-      exec = "xterm -e distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath} -mode tcl";
-      icon = "${config.home.homeDirectory}/.local/share/icons/xilinx/vivado.png";
+      exec = "xterm -e distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath} -mode tcl";
+      icon = ./assets/icons/xilinx/vivado.png;
       terminal = false;
       categories = [
         "Development"
@@ -134,8 +134,8 @@ in
       name = "AMD Vitis ${vivadoVersion} (GUI)";
       genericName = "Heterogeneous System IDE";
       comment = "AMD Xilinx Vitis Unified Software Platform";
-      exec = "distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vitisPath}";
-      icon = "${config.home.homeDirectory}/.local/share/icons/xilinx/vitis.png";
+      exec = "distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vitisPath}";
+      icon = ./assets/icons/xilinx/vitis.png;
       terminal = false;
       categories = [
         "Development"
@@ -148,8 +148,8 @@ in
       name = "AMD Vitis ${vivadoVersion} (CLI)";
       genericName = "Vitis CLI Developer Prompt";
       comment = "AMD Xilinx Vitis CLI in current terminal";
-      exec = "ghostty -e distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vitisPath} -mode cli";
-      icon = "${config.home.homeDirectory}/.local/share/icons/xilinx/vitis.png";
+      exec = "ghostty -e distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vitisPath} -mode cli";
+      icon = ./assets/icons/xilinx/vitis.png;
       terminal = false;
       categories = [
         "Development"
@@ -162,8 +162,8 @@ in
       name = "AMD DocNav ${vivadoVersion}";
       genericName = "Documentation Navigator";
       comment = "Xilinx Technical Documentation Search Utility";
-      exec = "distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${docnavPath}";
-      icon = "${config.home.homeDirectory}/.local/share/icons/xilinx/docnav.png";
+      exec = "distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${docnavPath}";
+      icon = ./assets/icons/xilinx/docnav.png;
       terminal = false;
       categories = [
         "Development"
@@ -177,8 +177,8 @@ in
       name = "AMD Xilinx Information Center";
       genericName = "Update & Download Manager";
       comment = "Checks for Xilinx Vivado/Vitis downloads and releases";
-      exec = "distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${xicPath}";
-      icon = "${config.home.homeDirectory}/.local/share/icons/xilinx/xic.png";
+      exec = "distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${xicPath}";
+      icon = ./assets/icons/xilinx/xic.png;
       terminal = false;
       categories = [
         "Development"
@@ -191,7 +191,7 @@ in
       name = "AMD Xilinx Uninstaller";
       genericName = "Software Maintenance Tool";
       comment = "Uninstall Xilinx Vivado, Vitis and packages";
-      exec = "distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/.xinstall/${vivadoVersion}/xsetup -uninstall";
+      exec = "distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/.xinstall/${vivadoVersion}/xsetup -uninstall";
       icon = "system-software-update";
       terminal = false;
       categories = [

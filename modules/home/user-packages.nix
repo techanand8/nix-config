@@ -47,5 +47,9 @@
     ghostty
     xterm
     neovide
+
+    # --- ELITE DEVELOPER UTILS ---
+    nix-index # File-to-package indexer
+    comma # Run any nix command without installing (usage: , <cmd>)
   ];
 }

@@ -7,7 +7,7 @@
 
 {
   # =========================================================================
-  # MAIN USER HUB (mayank.nix)
+  # MAIN USER HUB (home-user.nix)
   # This file connects all modular components of the system.
   # =========================================================================
 

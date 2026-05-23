@@ -23,6 +23,8 @@
     ../../modules/system/vivado.nix
     ../../modules/system/plymouth.nix
     ../../modules/system/apps.nix
+    ../../modules/system/stateless.nix
+    # ../../modules/system/vpn.nix
   ];
 
   # --- HOST IDENTIFICATION ---
@@ -47,12 +49,12 @@
   boot.loader.systemd-boot.enable = false;
   boot.loader.limine = {
     enable = true;
-    maxGenerations = 10;
-    enableEditor = false;
+    maxGenerations = 20;
+    enableEditor = true;
     efiSupport = true;
     efiInstallAsRemovable = true; # High compatibility fallback
 
-    resolution = "1920x1080"; # Graphics GOP graphical handoff
+    resolution = "auto"; # Auto-detect for best compatibility
 
     style = {
       wallpapers = [ ../../modules/system/plymouth/red_glow.jpg ];
@@ -60,7 +62,7 @@
       backdrop = "000000";
 
       interface = {
-        resolution = "1920x1080";
+        resolution = "auto";
         branding = "MANX OS [CACHYOS] | SPEED BOOTLOADER";
         brandingColor = "FF1133"; # Electric Ruby Red
         helpColor = "D0D2D6"; # Cool Silver/Grey
@@ -71,7 +73,7 @@
         foreground = "39FF14"; # Neon Green
         brightForeground = "FFFFFF";
         background = "A8080000"; # Translucent Deep Ruby Card
-        margin = 180;
+        margin = 100; # Reduced margin to prevent clipping
         marginGradient = 25;
         font = {
           scale = "2x2";
@@ -92,17 +94,15 @@
     "btusb.enable_autosuspend=0"
     "amd_pstate=active"
 
-    # Silent Boot & Plymouth Handover
-    "quiet" # Master silence flag
-    "splash" # Required for Plymouth boot animation
-    "plymouth.use-simpledrm" # Force Plymouth to use early EFI/SimpleDRM framebuffer (avoids the 8s delay waiting for GPU driver)
-    "rd.systemd.show_status=false" # Hides systemd status messages in initrd
-    "rd.udev.log_level=0" # Mutes udev in initrd completely
-    "udev.log_priority=0" # Mutes udev in main system completely
-    "vt.global_cursor_default=0" # Hides the blinking underscore cursor
-    "fbcon=nodefer" # Smooth handover to graphics
-    "amdgpu.fastboot=1" # Skips unnecessary mode sets for AMD
-    "boot.shell_on_fail" # Retain a shell prompt on boot failure for diagnostics
+    # Fast & Silent Boot (Optimized for Early KMS)
+    "quiet"
+    "splash"
+    "boot.shell_on_fail"
+    "rd.systemd.show_status=false"
+    "rd.udev.log_level=3"
+    "udev.log_priority=3"
+    "vt.global_cursor_default=0"
+    "amdgpu.fastboot=1"
   ];
 
   boot.kernel.sysctl = {
@@ -112,6 +112,7 @@
   # Enable the sched-ext framework (CachyOS specialty)
   services.scx.enable = true;
   services.scx.scheduler = "scx_lavd";
+  systemd.services.scx.restartIfChanged = false;
 
   # --- HOST-SPECIFIC PACKAGES ---
   environment.systemPackages = [

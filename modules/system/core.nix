@@ -10,7 +10,11 @@
 {
   # --- SYSTEM PERFORMANCE OPTIMIZATIONS ---
   services.fstrim.enable = true;
-  zramSwap.enable = true; # High-speed compressed RAM swap
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";
+    memoryPercent = 50; # Use up to 50% of RAM as compressed swap
+  };
   services.power-profiles-daemon.enable = true; # Best power management for Plasma 6
   services.irqbalance.enable = true; # Distribute hardware interrupts across cores
   services.fwupd.enable = true; # Enable firmware updates (BIOS, SSD, etc.)
@@ -22,22 +26,23 @@
   # Prevent log files from growing indefinitely
   services.journald.extraConfig = "SystemMaxUse=100M";
 
-  # Use RAM for /tmp to speed up rebuilds and save SSD
+  # Use RAM for /tmp (fast)
   boot.tmp.useTmpfs = true;
-  boot.tmp.tmpfsSize = "50%"; # Use up to 50% of RAM
+  boot.tmp.tmpfsSize = "50%"; # Up to 50% of RAM for /tmp
+  boot.tmp.cleanOnBoot = true;
+
+  # Force Nix to use the SSD for builds so it doesn't crash your RAM
+  systemd.services.nix-daemon.environment.TMPDIR = "/var/tmp";
 
   # --- NETWORKING BASE ---
   networking.networkmanager.enable = true;
 
   # --- DECLARATIVE PERMISSIONS ---
-  # Fix nix-config permissions permanently (Root Level)
-  system.activationScripts.fix-nix-config-perms = {
-    text = ''
-      chown -R ${vars.username}:users /home/${vars.username}/nix-config
-      chmod -R u+rw /home/${vars.username}/nix-config
-    '';
-    deps = [ ];
-  };
+  # Use systemd-tmpfiles to manage permissions declaratively.
+  # 'Z' recursively sets ownership and permissions on the directory.
+  systemd.tmpfiles.rules = [
+    "Z /home/${vars.username}/nix-config 0755 ${vars.username} users - -"
+  ];
 
   # --- DEEP NIX STORE & FLAKE CONFIGURATIONS ---
   nix.settings = {
@@ -101,6 +106,7 @@
     nh # Better UI for rebuilds
     nix-output-monitor # Beautiful progress bars
     nvd # Show exactly what packages changed after rebuild
+    cryptsetup # LUKS management tools
 
     # --- SECURE DECRYPT / ENCRYPT UTILS (Secrets Management) ---
     sops # Encryption/Decryption tool
@@ -186,4 +192,22 @@
 
   # Rename the distribution system-wide (replaces "NixOS" in bootloader entry titles)
   system.nixos.distroName = "MANX OS";
+
+  # --- BTRFS SNAPSHOTS (TIME MACHINE) ---
+  # Automated snapshots for the home subvolumes.
+  # Root is excluded because it is stateless and wiped on every boot.
+  services.snapper = {
+    configs = {
+      home = {
+        SUBVOLUME = "/home";
+        TIMELINE_CREATE = true;
+        TIMELINE_CLEANUP = true;
+        LIMIT_HOURLY = "10";
+        LIMIT_DAILY = "7";
+        LIMIT_WEEKLY = "3";
+        LIMIT_MONTHLY = "0";
+        LIMIT_YEARLY = "0";
+      };
+    };
+  };
 }

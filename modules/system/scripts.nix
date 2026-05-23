@@ -1,9 +1,9 @@
 { pkgs, vars, ... }:
 
 let
-  mayank-script = pkgs.writeShellScriptBin "mayank" ''
+  manx-script = pkgs.writeShellScriptBin "manx" ''
     # Advanced NixOS Management Utility
-    # Custom-built for Mayank Anand's MANX Workstation
+    # Custom-built for the MANX Engineering Workstation
 
     set -e # Exit on error
 
@@ -53,13 +53,13 @@ let
         uptime_str+="''$mins""m"
 
         echo -e ""
-        echo -e "  ''${C_PRIMARY}󱄅''${NC}  ''${C_WHITE}M A Y A N K   A N A N D''${NC}  ''${C_MUTED}│''${NC}  ''${C_SECONDARY}''${NC}  ''${C_GOLD}NIXOS WORKSTATION''${NC}"
+        echo -e "  ''${C_PRIMARY}󱄅''${NC}  ''${C_WHITE}M A N X   W O R K S T A T I O N''${NC}  ''${C_MUTED}│''${NC}  ''${C_SECONDARY}''${NC}  ''${C_GOLD}NIXOS SYSTEM''${NC}"
         echo -e "  ''${C_MUTED}──────────────────────────────────────────────────────────────────────''${NC}"
         echo -e "  ''${C_HIGHLIGHT}  Host:''${NC} ''${C_WHITE}''$HOSTNAME''${NC}         ''${C_HIGHLIGHT}󰓅  Uptime:''${NC} ''${C_WHITE}''$uptime_str''${NC}"
         echo -e "  ''${C_HIGHLIGHT}  Kernel:''${NC} ''${C_WHITE}''$(uname -r)''${NC}       ''${C_HIGHLIGHT}  Status:''${NC} ''${C_SUCCESS}Online''${NC}"
         echo -e "  ''${C_MUTED}──────────────────────────────────────────────────────────────────────''${NC}"
         echo -e ""
-        echo -e "  ''${C_SECONDARY}Usage:''${NC} ''${C_WHITE}mayank''${NC} ''${C_GOLD}<command>''${NC}"
+        echo -e "  ''${C_SECONDARY}Usage:''${NC} ''${C_WHITE}manx''${NC} ''${C_GOLD}<command>''${NC}"
         echo -e ""
         echo -e "  ''${C_PRIMARY}󰓅  CONFIGURATION MANAGEMENT''${NC}"
         echo -e "    ''${C_WHITE}rebuild''${NC}   ''${C_MUTED}❯''${NC} Synchronize adjustments and show package changes"
@@ -75,13 +75,13 @@ let
         echo -e "    ''${C_WHITE}edit''${NC}      ''${C_MUTED}❯''${NC} Open primary system configuration"
         echo -e "    ''${C_WHITE}search''${NC}    ''${C_MUTED}❯''${NC} Query the Nixpkgs software registry"
         echo -e "    ''${C_WHITE}shell''${NC}     ''${C_MUTED}❯''${NC} Initialize isolated package environments"
-        echo -e "    ''${C_WHITE}vivado''${NC}    ''${C_MUTED}❯''${NC} Enter the AMD Vivado development container"
+        echo -e "    ''${C_WHITE}vivado''${NC}    ''${C_MUTED}❯''${NC} Enter the AMD Vivado design environment"
         echo -e ""
         echo -e "  ''${C_PRIMARY}󰪢  BRANDING & AESTHETICS''${NC}"
         echo -e "    ''${C_WHITE}screensaver''${NC} ''${C_MUTED}❯''${NC} Orchestrate immersive workstation branding"
         echo -e ""
         echo -e "  ''${C_MUTED}──────────────────────────────────────────────────────────────────────''${NC}"
-        echo -e "  ''${C_HIGHLIGHT}󰌢  Type 'man mayank' to access the system documentation.''${NC}"
+        echo -e "  ''${C_HIGHLIGHT}󰌢  Type 'man manx' to access the system documentation.''${NC}"
         echo -e ""
     }
 
@@ -103,7 +103,14 @@ let
       rebuild)
         log "Executing system synchronization..."
         
-        # 1. Enforce code style standards (RFC-166)
+        # 0. Create pre-rebuild Btrfs snapshots for safety
+        if command -v snapper &> /dev/null; then
+            log "Creating pre-rebuild snapshots (Time Machine)..."
+            sudo snapper -c root create --description "Pre-rebuild system snapshot" || true
+            sudo snapper -c home create --description "Pre-rebuild home snapshot" || true
+        fi
+
+        # 1. Enforce code style standards (RFC-166) BEFORE staging
         nix fmt
         
         # 2. Stage changes to ensure Nix Flakes see all current work
@@ -111,7 +118,14 @@ let
         
         # 3. Validate configuration integrity before applying
         log "Validating configuration health..."
-        nix flake check . --all-systems || error "Configuration audit failed. Please resolve errors before rebuilding."
+        if ! nix flake check . 2>/tmp/nix-check-err; then
+            grep -v -E "incompatible systems|all-systems" /tmp/nix-check-err >&2 || true
+            rm -f /tmp/nix-check-err
+            error "Configuration audit failed. Please resolve errors before rebuilding."
+        else
+            grep -v -E "incompatible systems|all-systems" /tmp/nix-check-err >&2 || true
+            rm -f /tmp/nix-check-err
+        fi
         
         # 4. Capture current system state for delta reporting
         OLD_GEN=$(readlink -f /nix/var/nix/profiles/system)
@@ -125,9 +139,11 @@ let
         echo -e "\n''${C_HIGHLIGHT}  Package Changes:''${NC}"
         nvd diff "$OLD_GEN" "$NEW_GEN"
         
-        # 7. Commit changes to maintain a clean Git history
+        # 7. Record system state with a diff summary
         if git status --porcelain | grep -q '^[ MADRCU]'; then
             log "Recording system state to Git history..."
+            echo -e "\n''${C_MUTED}Change Summary:''${NC}"
+            git diff --stat HEAD
             git commit -m "System Update: $(date '+%Y-%m-%d %H:%M')" &> /dev/null || true
         fi
 
@@ -177,13 +193,20 @@ let
       search)
         shift
         log "Querying Nixpkgs registry for: $@"
-        nix-env -qaP "$@"
+        nh search "$@"
         ;;
 
       check)
         log "Auditing configuration health..."
-        nix flake check . --all-systems || error "Configuration audit failed."
-        success "Configuration verified."
+        if ! nix flake check . 2>/tmp/nix-check-err; then
+            grep -v -E "incompatible systems|all-systems" /tmp/nix-check-err >&2 || true
+            rm -f /tmp/nix-check-err
+            error "Configuration audit failed."
+        else
+            grep -v -E "incompatible systems|all-systems" /tmp/nix-check-err >&2 || true
+            rm -f /tmp/nix-check-err
+            success "Configuration verified."
+        fi
         ;;
 
       shell)
@@ -220,7 +243,7 @@ let
           image)
             IMG_PATH="$2"
             if [ -z "$IMG_PATH" ] || [ ! -f "$IMG_PATH" ]; then
-                error "Please provide a valid image path. Usage: mayank screensaver image <path>"
+                error "Please provide a valid image path. Usage: manx screensaver image <path>"
             fi
             
             log "Processing branding image..."
@@ -252,7 +275,7 @@ let
             ;;
             
           *)
-            echo -e "  ''${C_SECONDARY}Usage:''${NC} ''${C_WHITE}mayank screensaver''${NC} ''${C_GOLD}<action>''${NC}"
+            echo -e "  ''${C_SECONDARY}Usage:''${NC} ''${C_WHITE}manx screensaver''${NC} ''${C_GOLD}<action>''${NC}"
             echo -e ""
             echo -e "    ''${C_WHITE}ascii''${NC}   ''${C_MUTED}❯''${NC} Edit your custom ASCII art text"
             echo -e "    ''${C_WHITE}image''${NC}   ''${C_MUTED}❯''${NC} Set an image to be converted to ASCII"
@@ -270,45 +293,45 @@ let
             error "No container engine found!"
         fi
 
-        if command -v xhost &> /dev/null; then
+        if command -v xhost &>/dev/null; then
             xhost +local: &> /dev/null || true
         fi
 
-        if ! distrobox list | grep -q "mayank-vivado"; then
+        if ! distrobox list | grep -q "manx-vivado"; then
             info "Vivado environment not found. Creating it..."
-            distrobox create --name mayank-vivado --image ubuntu:22.04 --yes || error "Failed to create container."
-            success "Environment created! Use 'mayank vivado' to install."
+            distrobox create --name manx-vivado --image ubuntu:22.04 --yes || error "Failed to create container."
+            success "Environment created! Use 'manx vivado' to install."
         else
             mkdir -p $HOME/.local/share/icons/xilinx
-            distrobox enter mayank-vivado -- bash -c "
+            distrobox enter manx-vivado -- bash -c "
                 cp -f /tools/Xilinx/$VIVADO_VERSION/Vivado/doc/images/vivado_logo.png \$HOME/.local/share/icons/xilinx/vivado.png 2>/dev/null || true
                 cp -f /tools/Xilinx/ide/electron-app/lnx64/resources/app/resources/icons/vitis-logo-latest.png \$HOME/.local/share/icons/xilinx/vitis.png 2>/dev/null || true
             " &> /dev/null || true
 
             log "Entering container. Type 'exit' to return."
             export _JAVA_AWT_WM_NONREPARENTING=1
-            distrobox enter mayank-vivado
+            distrobox enter manx-vivado
         fi
         ;;
 
       *)
-        error "Unknown command: $1. Type 'mayank' for help."
+        error "Unknown command: $1. Type 'manx' for help."
         ;;
     esac
   '';
 
   # Custom Manual Page
-  man-page = pkgs.runCommand "mayank-man" { } ''
+  man-page = pkgs.runCommand "manx-man" { } ''
         mkdir -p $out/share/man/man1
-        cat <<EOF > $out/share/man/man1/mayank.1
-    .TH MAYANK 1 "May 2026" "v1.1" "MANX OS System Manual"
+        cat <<EOF > $out/share/man/man1/manx.1
+    .TH MANX 1 "May 2026" "v1.2" "MANX OS System Manual"
     .SH NAME
-    mayank \- Advanced NixOS Management for Mayank Anand
+    manx \- Advanced NixOS Management Utility
     .SH SYNOPSIS
-    .B mayank
+    .B manx
     [\fIcommand\fR]
     .SH DESCRIPTION
-    .B mayank
+    .B manx
     is a professional management tool for the MANX workstation. It uses NH, NVD, and Deep Clean protocols.
     .SH COMMANDS
     .TP
@@ -330,13 +353,13 @@ let
     .B screensaver
     Manages custom branding (ASCII/Image) and the master toggle for the Omarchy-style screensaver.
     .SH AUTHOR
-    Mayank Anand.
+    MANX Engineering.
     EOF
   '';
 in
 {
   environment.systemPackages = [
-    mayank-script
+    manx-script
     pkgs.nixfmt
     man-page
   ];

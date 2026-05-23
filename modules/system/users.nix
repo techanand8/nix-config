@@ -13,10 +13,15 @@
   security.pam.services.sddm.enableGnomeKeyring = true;
 
   # --- DECLARATIVE SYSTEM WORKSTATION USER ---
+  users.users.root = {
+    # Ensure root has a password for emergency recovery
+    hashedPasswordFile = config.sops.secrets."users/primary-user/password".path;
+  };
+
   users.users."${vars.username}" = {
     isNormalUser = true;
     description = vars.fullName;
-    hashedPasswordFile = config.sops.secrets."users/${vars.username}/password".path;
+    hashedPasswordFile = config.sops.secrets."users/primary-user/password".path;
     extraGroups = [
       "networkmanager"
       "wheel"

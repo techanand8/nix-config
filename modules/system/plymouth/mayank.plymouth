@@ -1,8 +1,0 @@
-[Plymouth Theme]
-Name=Mayank
-Description=Custom theme for Mayank Anand
-ModuleName=script
-
-[script]
-ImageDir=/etc/plymouth/themes/mayank
-ScriptFile=/etc/plymouth/themes/mayank/mayank.script

@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, inputs, ... }:
 
 {
   # --- Home Manager Activation Scripts ---
@@ -22,7 +22,7 @@
       fi
 
       # Copy presets if they are missing
-      PRESET_SRC="/nix/store/$(ls /nix/store | grep ambxst-shell | head -n 1)/assets/presets"
+      PRESET_SRC="${inputs.ambxst}/assets/presets"
       if [ -d "$PRESET_SRC" ]; then
         $DRY_RUN_CMD cp -rn $VERBOSE_ARG $PRESET_SRC/* $HOME/.config/ambxst/colors/
       fi

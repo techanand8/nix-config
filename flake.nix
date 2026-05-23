@@ -39,6 +39,9 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Statelessness / Impermanence
+    impermanence.url = "github:nix-community/impermanence";
   };
 
   outputs =
@@ -87,7 +90,7 @@
             home-manager.users."${vars.username}" = {
               imports = [
                 inputs.nixvim.homeModules.nixvim
-                ./modules/home/mayank.nix
+                ./modules/home/home-user.nix
               ];
             };
           }

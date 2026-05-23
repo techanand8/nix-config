@@ -72,8 +72,8 @@
 
       # Distrobox Safety Guard (Prevents accidental deletion of the Vivado container)
       function distrobox() {
-        if [[ "$1" == "rm" && "$*" == *"mayank-vivado"* ]]; then
-          echo -e "\033[1;31m󰅚  [CRITICAL WARNING] You are attempting to delete 'mayank-vivado'!\033[0m"
+        if [[ "$1" == "rm" && "$*" == *"manx-vivado"* ]]; then
+          echo -e "\033[1;31m󰅚  [CRITICAL WARNING] You are attempting to delete 'manx-vivado'!\033[0m"
           echo -e "\033[1;33m󰌢  Deleting this container will wipe out your entire Vivado installation files.\033[0m"
           echo -n "Are you absolutely sure? (Type 'YES-DELETE-VIVADO' to confirm): "
           read confirm
@@ -87,7 +87,7 @@
 
       # High-performance Xilinx Distrobox Executer Helper
       function vrun() {
-        distrobox enter mayank-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 "$@"
+        distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 "$@"
       }    '';
 
     shellAliases = {
@@ -105,7 +105,7 @@
       gc = "git commit";
       gp = "git push";
       gl = "git log --oneline --graph --decorate";
-      m = "mayank";
+      m = "manx";
       v = "nvim";
       gv = "gvim";
       grep = "ripgrep";
@@ -142,5 +142,12 @@
   programs.zoxide = {
     enable = true;
     enableZshIntegration = true;
+  };
+
+  # Nix-Index: The "Missing Library" & "Command-not-found" solution
+  programs.nix-index = {
+    enable = true;
+    enableZshIntegration = true;
+    enableBashIntegration = true;
   };
 }

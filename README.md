@@ -1,19 +1,19 @@
 <div align="center">
 
 # 🌌 High-Performance Engineering Workstation
-### Declarative Microelectronics & Functional Hardware Verification Environment
+### Fully Declarative & Reproducible Microelectronics Environment
 
 [![NixOS](https://img.shields.io/badge/NixOS-Unstable-blue.svg?style=flat-square&logo=nixos&logoColor=white)](https://nixos.org)
 [![Kernel](https://img.shields.io/badge/Kernel-CachyOS_v3-ea00d9.svg?style=flat-square&logo=linux&logoColor=white)](https://github.com/CachyOS)
+[![Storage](https://img.shields.io/badge/Storage-Btrfs_LUKS-00ff00.svg?style=flat-square&logo=nixos&logoColor=white)](https://btrfs.readthedocs.io/en/latest/index.html)
 [![WM](https://img.shields.io/badge/WM-Hyprland-ffb59e.svg?style=flat-square&logo=hyprland&logoColor=white)](https://hyprland.org)
 [![Editor](https://img.shields.io/badge/Editor-Nixvim-green.svg?style=flat-square&logo=neovim&logoColor=white)](https://github.com/nix-community/nixvim)
-[![License](https://img.shields.io/badge/License-MIT-gray.svg?style=flat-square)](LICENSE)
 
 ---
 
-**A mathematically reproducible, modular NixOS workstation deployment configured for advanced digital design, functional verification (DV), custom silicon physical layouts, and streamlined interactive computing. Crafted specifically for hardware engineering enthusiasts, VLSI career professionals, and passionately curious digital logic designers.**
+**A 100% declarative, mathematically reproducible NixOS workstation. This configuration is engineered for high-performance VLSI design and verification, utilizing industry-standard tooling alongside cutting-edge Linux optimizations.**
 
-[Host Identity & Optimizations](#-host-identity--optimizations) • [System Architecture](#-system-architecture) • [VLSI & Verification Stack](#-vlsi--verification-stack) • [Branding & Aesthetics](#-branding--immersive-aesthetics) • [Binary Compatibility](#-fhs-interoperability--binary-compatibility) • [IDE Architecture](#-integrated-development-environment) • [Workspace Controls](#-system-management) • [Credits](#-acknowledgments--credits)
+[Host Identity](#-host-identity--optimizations) • [Storage Architecture](#-storage-architecture) • [System Architecture](#-system-architecture) • [VLSI & Verification Stack](#-vlsi--verification-stack) • [Installation Guide](#-deployment--installation)
 
 ---
 
@@ -21,58 +21,82 @@
 
 ## 💻 Host Identity & Optimizations (`MANX`)
 
-At the core of this workstation is the custom host configuration **`MANX`**. Tailored specifically for modern AMD architecture and highly intensive silicon modeling workloads, it bridges extreme system responsiveness with strict declarative stability.
+The **`MANX`** workstation is a specialized host profile optimized for modern AMD architectures and high-intensity silicon modeling workloads.
 
-### Key Workstation Capabilities:
-*   **CachyOS Kernel Optimization:** Runs the highly optimized **CachyOS Linux Kernel** (`linuxPackages-cachyos-latest-x86_64-v3`) utilizing `-v3` microarchitecture instructions, yielding improved memory throughput and execution speeds.
-*   **Next-Gen Task Scheduling:** Leverages the **sched-ext** user-space scheduling framework with the `scx_lavd` (Latency-Aware Virtual Desktop) scheduler, providing unmatched interactive smoothness even under heavy multi-threaded VLSI compilations.
-*   **Fluid Boot Sequence:** Employs the **Limine Bootloader** styled with a bespoke translucent deep ruby glassmorphic menu card, glowing electric red borders, neon green standard terminals, and a custom **Plymouth boot animation** powered by early-graphical SimpleDRM handover.
-*   **System Integrity & Resiliency:** Automated monthly **Btrfs filesystem scrubbing** to prevent bit-rot, rapid `zram` compressed swap allocation for dynamic memory expansion, and CPU performance governing configured via `power-profiles-daemon`.
-*   **Security & Hardening:** Robust underlying LUKS encryption, secure automated Gnome Keyring hooks, pre-integrated VPN configurations (OpenConnect, OpenFortiVPN, WireGuard), and graphic writing tablet integrations via specialized XP-PEN kernel drivers.
+### Performance Stack:
+*   **CachyOS Kernel:** Runs the optimized **CachyOS Kernel** (`linuxPackages-cachyos-latest-x86_64-v3`) with `-v3` microarchitecture optimizations for superior throughput.
+*   **Latency-Aware Scheduling:** Leverages the **sched-ext** framework with the `scx_lavd` scheduler for unmatched interactive smoothness.
+*   **Limine Bootloader:** A high-speed, modern graphical bootloader with custom styling and a translucent ruby-red glassmorphic interface.
+*   **Storage Efficiency:** Native **Btrfs** with `zstd` compression, `zram` swap allocation, and automated maintenance protocols to prevent bit-rot.
+
+---
+
+### 💾 Storage Architecture
+
+This workstation utilizes a manual but highly optimized hardware configuration, ensuring maximum stability and performance across different drive layouts.
+
+#### 🛡️ Full-Disk Encryption & Partitioning
+The storage configuration is manually mapped in `hosts/manx/hardware-configuration.nix` and implements a professional-grade security model:
+*   **LUKS2 Encryption:** Native full-disk encryption for both the root system and the dedicated swap partition, utilizing `allowDiscards` for SSD longevity.
+*   **TPM2 Hardware Security:** This workstation is **TPM2 Ready**. It leverages the onboard Trusted Platform Module to securely and automatically unlock the LUKS partitions during boot. This provides a "Zero-Touch" decryption experience—maintaining high security while removing the friction of manual password entry at every startup.
+*   **Btrfs Subvolume Topology:** A sophisticated layout for better isolation and snapshot management:
+    *   `/` (Root System)
+    *   `/home` (User Data)
+    *   `/nix` (Nix Store)
+    *   `/srv` (Service Data)
+    *   `/var/lib/portables` & `/var/lib/machines` (Systemd Containers)
+    *   `/var/tmp` (Persistent temporary storage for heavy builds)
+*   **RAM-Based Temp Storage:** `/tmp` is mounted as a **tmpfs** (RAM) to minimize SSD wear and maximize speed for small temporary files.
+*   **SSD Optimization:** Uses `discard=async` and `zstd:3` compression for high-performance operations—ideal for modern NVMe drives.
 
 ---
 
 ## 🏗️ System Architecture
 
-This repository adopts a strictly decoupled, modular configuration layout. By isolating system-wide resources, user preferences, and hardware properties, the workstation guarantees absolute reproducibility and clean maintenance boundaries.
+This repository adopts a decoupled, modular layout to isolate system drivers, user preferences, and hardware properties.
 
 ```mermaid
 graph TD
+    %% Entry Points
     Flake["flake.nix<br/>(System Entry Point)"]
-    
-    subgraph Hosts["hosts/manx/ (Host Profile)"]
+
+    %% Host Specifics
+    subgraph Hosts["Hosts (MANX Profile)"]
         HostConf["configuration.nix<br/>(System Master)"]
-        HostVar["variables.nix<br/>(User Variables - Gitignored)"]
-        HostHW["hardware-configuration.nix<br/>(Target Disk Layout)"]
-    end
-    
-    subgraph SystemModules["modules/system/ (Core Drivers)"]
-        SysAMD["amd.nix<br/>(AMD Graphic Stack)"]
-        SysFonts["fonts.nix<br/>(Typography Subsystem)"]
-        SysHypr["hyprland.nix<br/>(Display Manager & WM)"]
-        SysPlymouth["plymouth.nix<br/>(Graphical Boot Theme)"]
-        SysScripts["scripts.nix<br/>(System Control Scripts)"]
-        SysVivado["vivado.nix<br/>(Hardware Udev Rules)"]
-        SysXPPen["xppen.nix / xppen-driver.nix<br/>(XP-PEN Tablet Configuration)"]
-        SysApps["apps.nix<br/>(Essential System Packages)"]
-    end
-    
-    subgraph HomeModules["modules/home/ (Home Manager Profile)"]
-        HomeHub["mayank.nix<br/>(Central User Hub)"]
-        HomeNixvim["nixvim.nix<br/>(Specialized RTL IDE Setup)"]
-        HomeVLSI["vlsi.nix<br/>(EDA / VLSI Packages & Launchers)"]
-        HomeHypr["hyprland.nix<br/>(Workspace Rules & Gestures)"]
-        HomeShell["shell.nix / starship.nix<br/>(Interactive Zsh Shell)"]
-        HomeApps["apps.nix / user-packages.nix<br/>(User Applications)"]
-        HomeMisc["git.nix / ssh.nix / yazi.nix / fastfetch.nix<br/>(Personalized Dotfiles)"]
-        HomeHooks["activation.nix<br/>(Runtime Activation Hooks)"]
+        HostVar["variables.nix<br/>(Private Variables)"]
+        HostHW["hardware-configuration.nix<br/>(Anonymized Drivers)"]
     end
 
+    %% System Modules
+    subgraph SystemModules["System Modules"]
+        SysCore["core.nix<br/>(Performance & RAM)"]
+        SysAMD["amd.nix<br/>(GPU Optimization)"]
+        SysHypr["hyprland.nix<br/>(Window Manager)"]
+        SysBoot["plymouth.nix<br/>(Ruby Red Boot)"]
+        SysApps["apps.nix<br/>(System Tools)"]
+    end
+
+    %% Home Manager
+    subgraph HomeModules["Home Manager"]
+        HomeHub["home-user.nix<br/>(User Hub)"]
+        HomeNixvim["nixvim.nix<br/>(RTL IDE)"]
+        HomeVLSI["vlsi.nix<br/>(EDA Toolchain)"]
+        HomeGit["git.nix<br/>(Git Identity)"]
+    end
+
+    %% Secret Management
+    subgraph Security["Security"]
+        Sops["secrets.nix<br/>(SOPS-Nix)"]
+        Secrets["secrets.yaml<br/>(Encrypted Data)"]
+    end
+
+    %% Flow Logic
     Flake --> HostConf
     HostConf --> HostVar
     HostConf --> HostHW
-    
     HostConf --> SystemModules
+    HostConf --> Sops
+    Sops --> Secrets
     
     Flake --> HomeHub
     HomeHub --> HomeModules
@@ -82,223 +106,108 @@ graph TD
 
 ## 🔬 VLSI & Verification Stack
 
-This workstation provisions a production-grade, pre-configured collection of academic and industry-standard Electronic Design Automation (EDA) applications. The packages are organized to support advanced Hardware Description Languages (HDLs), Hardware Verification Languages (HVLs), and formal proof frameworks.
+Provisioned with a production-grade Electronic Design Automation (EDA) toolchain for RTL design, functional verification (DV), and physical layout.
 
-### Core Toolchain Matrix
-
-| Design & Verification Domain | Tech Utilities | Supported Standards & Methodologies |
+| Domain | Tools | Standards |
 | :--- | :--- | :--- |
-| **Universal Verification** | `surelog` | **UVM (Universal Verification Methodology)**, SystemVerilog (IEEE 1800) |
-| **Logic Simulation** | `verilator`, `iverilog`, `nvc`, `ghdl` | Highly-optimized C++ RTL compilation, Verilog (IEEE 1364), VHDL (IEEE 1076) |
-| **Formal Analysis** | `sby` (SymbiYosys), `yosys` | Bounded Model Checking (BMC), Temporal Logic Assertions, RTL Equivalence |
-| **Waveform Visualization** | `surfer`, `gtkwave` | High-throughput FST, VCD, and GHW hardware execution trace analysis |
-| **Physical Implementation** | `magic-vlsi`, `klayout` | Custom GDSII / OASIS layout design, DRC (Design Rule Checking) |
-| **Schematic & Netlisting** | `xschem`, `netlistsvg` | Hierarchical SPICE/Verilog capture, vector schematic generation |
-| **Analog Simulation** | `ngspice` | SPICE engine mixed-level & mixed-signal simulation |
-| **Code Diagnostic & LSP** | `svls`, `svlint`, `verible` | SystemVerilog Language Server Protocol, strict standard-compliance linters |
-| **Hardware Modeling** | `veryl` | Modern logic-design dialect transpiling directly to SystemVerilog |
-| **Documentation & Timing** | `python3Packages.wavedrom` | Declarative JSON-to-SVG digital timing diagram rendering |
+| **Verification** | `surelog`, `verilator` | UVM, SystemVerilog |
+| **Simulation** | `iverilog`, `ghdl`, `nvc` | Verilog, VHDL |
+| **Formal Analysis** | `sby`, `yosys` | Bounded Model Checking |
+| **Physical Design** | `magic-vlsi`, `klayout` | GDSII Layout, DRC |
+| **Schematic** | `xschem`, `ngspice` | SPICE Simulation |
 
-> [!NOTE]
-> **A Passionately Curious Approach to Hardware Engineering:**
-> This configuration represents a personal, evolving journey into the deep and fascinating world of silicon design. Driven by genuine curiosity and a passion for microelectronics, this ecosystem is actively maintained and expanded. As my knowledge in functional verification, advanced architectures, and physical design continues to grow, I am committed to exploring and configuring new EDA tools, synthesis frameworks, and design methodologies to keep this system at the absolute cutting edge.
+### 🚀 AMD Vivado Integration (Distrobox)
+This workstation solves the complex dependency issues of EDA tools by running the **AMD Vivado & Vitis Design Suite** entirely within an optimized **Distrobox** container (`manx-vivado`). This provides full hardware acceleration and X11/Wayland GUI support while keeping the NixOS host pristine.
 
-### Integrated AMD Xilinx Vivado & Vitis Environment
+#### Setting up Vivado:
+1. **Initialize the Container:**
+   Simply run the custom workstation command:
+   ```bash
+   manx vivado
+   ```
+   *If the container doesn't exist, this automatically creates an Ubuntu 22.04 environment named `manx-vivado` and mounts your home directory.*
 
-To support hardware syntheses and target FPGA development, the configuration implements isolated desktop launchers running the **AMD Vivado & Vitis 2025.2 Design Suite** inside an optimized **Distrobox container** (`mayank-vivado`). This setup keeps the root Nix store completely pristine while giving the applications full acceleration and access to system devices:
+2. **Install the Tools (Inside the container):**
+   * Download the Xilinx Unified Installer (e.g., 2025.2) to your host machine.
+   * Inside the `manx vivado` shell, navigate to the installer and run it:
+     ```bash
+     cd ~/Downloads/Xilinx_Unified_*
+     sudo ./xsetup
+     ```
+   * **Important:** Install the tools to `/tools/Xilinx` (the default path expected by the NixOS launchers).
 
-*   **AMD Vivado (GUI & Terminal):** Standard standalone graphical launch and integrated Tcl shell environments running inside Ghostty, Kitty, or xterm.
-*   **AMD Vitis Unified IDE:** Integrated software platforms for heterogeneous system designs (GUI & CLI environments).
-*   **Support Utilities:** Interactive Documentation Navigator (`DocNav`), Xilinx Information Center (`XIC`), and safe integrated uninstall mechanisms.
-
-### 🚀 Expanding Your VLSI Toolkit (Future Explorations)
-
-This workstation is designed to grow alongside your journey in silicon engineering. As you explore new microelectronics concepts, physical design workflows, or advanced digital logic architectures, you can seamlessly append new Electronic Design Automation (EDA) utilities to your environment.
-
-To integrate additional tools into your declarative stack:
-1.  **Search the Nixpkgs Index:** Find the package attribute name for the utility you want by searching [search.nixos.org](https://search.nixos.org).
-2.  **Open the VLSI Profile:** Load your user-space engineering configuration file:
-    ```bash
-    nvim ~/nix-config/modules/home/vlsi.nix
-    ```
-3.  **Append the Package:** Locate the `home.packages = with pkgs; [` block and add the new tool attribute cleanly within the list:
-    ```nix
-    home.packages = with pkgs; [
-      # --- VLSI TOOLS (DV & PD focus) ---
-      surelog
-      verilator
-      your-new-eda-utility # Append your discovered tools here
-    ];
-    ```
-4.  **Synchronize and Deploy:** Compile the new environment transaction immediately using your developer system wrapper:
-    ```bash
-    mayank rebuild
-    ```
+3. **Seamless Desktop Integration:**
+   * Desktop shortcuts for Vivado (GUI/Tcl), Vitis, and DocNav are automatically generated by `modules/home/vlsi.nix`.
+   * These shortcuts seamlessly execute the tools from the container directly onto your Hyprland desktop.
 
 ---
 
-## 󰪢 Branding & Immersive Aesthetics
+## 🛡️ Compatibility Layer
+*   **Envfs (`services.envfs.enable = true`):** Dynamically resolves hardcoded paths (e.g., `#!/bin/bash`) to correct Nix store paths.
+*   **Nix-LD (`programs.nix-ld`):** Injects required libraries into unpatched commercial binaries, allowing legacy CAD tools to run seamlessly on NixOS.
 
-This workstation implements a **Production-grade** immersive environment inspired by the latest **Omarchy 3.8** standards. It transforms the display into a mission-critical "Silicon Security" dashboard that balances visual sophistication with functional system monitoring.
-
-### The "Silicon Workstation" Screensaver
-
-Powered by a GPU-accelerated Alacritty engine and **TerminalTextEffects (TTE)**, this screensaver is engineered for maximum visual fidelity and system harmony.
-
-*   **High-Fidelity Adaptive Scaling:** Automatically detects native screen resolution to scale artwork dynamically. This ensures branding is perfectly **Centered** and optimized for any display size.
-*   **Real-time Aesthetic Synchronization:** The screensaver environment is permanently coupled with the global **Ambxst theme**. It dynamically updates terminal color palettes and typography (**JetBrains Mono, Size 16**) in real-time without session interruption.
-*   **Comprehensive Animation Suite:** Includes 37+ specialized TTE effects (e.g., *Matrix, Blackhole, VHS Tape*) cycling through a robust, self-healing orchestration loop.
-*   **Integrated Performance Analytics:** A live telemetry dashboard embedded in the ASCII art provides real-time monitoring of **CPU Load** and **RAM Utilization**.
-*   **Seamless Architectural Integration:** 
-    *   **Atomic Handover:** Orchestrated to yield instantly to the **Ambxst Lock Screen**, ensuring a clean, flicker-free transition between art and security.
-    *   **Workflow Preservation:** Intelligently inhibits execution during active user input, media playback, or high-intensity VLSI simulations.
-    *   **Manual Override:** Full compatibility with the Ambxst "Caffeine" master switch for total environmental control.
-
-### 🎨 Management CLI: `mayank screensaver`
-
-A streamlined interface for managing workstation aesthetics without manual configuration overhead.
-
-| Command | Operational Workflow |
-| :--- | :--- |
-| `mayank screensaver ascii` | Initializes a live editor for custom ASCII art. Applies updates with immediate, centered previews. |
-| `mayank screensaver image <path>` | Transcodes any image (PNG/JPG) into high-resolution terminal symbols with an automated visual preview. |
-| `mayank screensaver reset` | Restores the default **MANX Silicon Workstation** branding and system telemetry dashboard. |
-
----
-
-## 🛡️ FHS Interoperability & Binary Compatibility
-
-To bridge the gap between NixOS’s isolated store topology and legacy commercial microelectronics CAD tools, the workstation implements a seamless dual-layer compatibility layer:
-
-```
-  Unpatched Commercial Binary / Legacy Shell Script
-                        │
-                        ├──► [Envfs FUSE Layer] ────────► Resolves /bin/bash & shebang paths dynamically
-                        │
-                        └──► [Nix-LD Dynamic Shim] ─────► Injects NIX_LD_LIBRARY_PATH (glibc, X11, GTK3)
-```
-
-1.  **Envfs shebang Virtualization (`services.envfs.enable = true`):** Dynamically intercepts and virtualizes hardcoded directory paths in scripts (such as `#!/bin/bash`, `#!/usr/bin/env python`, or `#!/bin/sh`), pointing them transparently to correct active Nix store paths without requiring manual patching.
-2.  **Nix-LD Dynamic Library Injection (`programs.nix-ld`):** Intercepts standard Linux ELF dynamic linkers, injecting a custom loader path populated with critical graphics, system, font, and desktop libraries (including `glibc`, `zlib`, X11, OpenGL, GTK3, and ALSA). This allows proprietary binaries to execute exactly as they would on traditional FHS-compliant systems.
-
----
-
-## 📟 Integrated Development Environment
-
-Hardware development is anchored by a highly customized, responsive **Nixvim** configurations. The editor is optimized specifically for writing error-free hardware descriptions and system verifications.
-
-*   **Real-time Semantic Analysis:** Language server protocols configured for `Verible` (SystemVerilog), `VHDL-LS` (VHDL), and `Clangd` (SystemC/C++).
-*   **Structural Outlines:** In-depth tree-based code exploration using `Aerial.nvim` to track hierarchical RTL and UVM structures.
-*   **Unified Formatting:** Standardized coding styling applied automatically on save via the `Conform` framework (utilizing `verible-verilog-format`).
-*   **Interactive Utilities:** File explorers managed through `yazi`, rapid terminal toggles, and customized aesthetic extensions.
 ---
 
 ## 🚀 Deployment & Installation
 
-This workstation configuration is fully reproducible. To deploy this environment on a target system cleanly without compilation errors, follow these sequential steps:
-
-### 1. Clone the Configuration
-Clone the repository directly into the home directory of the target machine:
+### 1. Initialize the Flake
 ```bash
 git clone https://github.com/techanand8/nix-config.git ~/nix-config
+cd ~/nix-config
 ```
 
-### 2. Configure Gitignored Variables (Mandatory)
-To protect personal developer details (such as keys, primary emails, and specific home boundaries), this system decouples variables into a gitignored `variables.nix` file. This file **must** be created before triggering a rebuild, or the compilation will error due to a missing source.
-
-Initialize your local variables file using the provided configuration template:
+### 2. Configure Variables
+Initialize your local variables (this file is gitignored to protect your privacy):
 ```bash
-cp ~/nix-config/hosts/manx/variables.nix.example ~/nix-config/hosts/manx/variables.nix
+cp hosts/manx/variables.nix.example hosts/manx/variables.nix
+# Edit variables.nix with your username, email, and preferences
 ```
-Open the newly created `variables.nix` in your text editor and adjust the attributes:
-*   `username` / `fullName` / `email`: Configure your standard system credentials.
-*   `timezone` / `locale`: Set your localized region settings.
-*   `cpuType` / `gpuType`: Set according to your graphic and processor stack (e.g., `amd`).
 
-### 3. Generate Target Hardware Configuration
-Extract your local disk mapping and core device drives into the host directory:
+### 3. Generate Hardware Config
+If installing on new hardware, generate the base configuration:
 ```bash
-nixos-generate-config --show-hardware-config > ~/nix-config/hosts/manx/hardware-configuration.nix
+nixos-generate-config --show-hardware-config > hosts/manx/hardware-configuration.nix
+# Manually adjust UUIDs and mount options for Btrfs/LUKS as needed
 ```
 
-### 4. Execute the System Rebuild
-Apply the configuration cleanly using the specialized system utility:
+### 4. Apply System
 ```bash
 sudo nixos-rebuild switch --flake .#MANX
 ```
-*Note: From this point forward, you should use the professional `mayank rebuild` command for all system adjustments.*
 
 ---
 
-## ⚙️ Workstation Customization
+## 🛠️ Customization & Hardware Adaptation
 
-This configuration is designed for clean user adjustments and kernel configurations:
+While this configuration is optimized for the `MANX` workstation, it is designed for extensibility. If you are adapting this for your own system, follow these steps:
 
-### 1. Customizing the Hostname
-To assign a unique network identity to your workstation:
-1. Open `hosts/manx/variables.nix` and set the `hostname` string to your preference (e.g., `hostname = "custom-node";`).
-2. Open `flake.nix` at line 44 and update the system output handle from `nixosConfigurations.MANX` to match your target hostname (e.g., `nixosConfigurations.custom-node`).
-3. Deploy the build using the customized flake handle:
-   ```bash
-   sudo nixos-rebuild switch --flake ~/nix-config#custom-node
-   ```
+### 1. Identify Your Hardware
+Update `hosts/manx/variables.nix` with your specific parameters:
+*   **CPU/GPU Type:** Set `cpuType` and `gpuType` (e.g., `amd`, `intel`, `nvidia`).
+*   **Main Disk:** Identify your target drive using `lsblk`.
 
-### 2. Tailoring Kernel Selections
-You can select different kernel configurations inside `hosts/manx/configuration.nix` at line 74:
-*   **CachyOS Latest (Default):** Runs the highly responsive, performance-optimized kernel compiled with modern `x86_64-v3` architecture instructions:
-    ```nix
-    boot.kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest-x86_64-v3;
-    ```
-*   **CachyOS LTS:** Switches to the Long-Term Support kernel branch, maintaining optimized execution loops with enhanced regression stability:
-    ```nix
-    boot.kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-lts-x86_64-v3;
-    ```
-*   **NixOS Standard Vanilla Kernel:** Falls back cleanly to upstream standard packages, bypassing CachyOS optimizations if needed:
-    ```nix
-    boot.kernelPackages = pkgs.linuxPackages_latest;
-    ```
+### 2. Tailor System Modules
+The repository uses modular driver sets. In `hosts/manx/configuration.nix`:
+*   **AMD Users:** Keep `../../modules/system/amd.nix` and the `nixos-hardware` AMD modules in `flake.nix`.
+*   **NVIDIA Users:** Replace the AMD module with a dedicated NVIDIA module (e.g., `../../modules/system/nvidia.nix`) and ensure `hardware.nvidia` settings match your card generation.
+*   **Intel Users:** Adjust the `nixos-hardware` imports in `flake.nix` to `common-cpu-intel` and `common-gpu-intel`.
 
-> [!NOTE]
-> **Performance Architecture & LTO (Link-Time Optimization) Rationale:**
-> Link-Time Optimization (LTO) enables the compiler to generate slightly tighter binaries. However, building a custom Linux kernel locally with LTO from source takes several hours, places intense thermal stress on the hardware, and exhausts extensive memory structures.
-> 
-> Furthermore, custom source-compiled kernels with extreme LTO flags frequently introduce severe compilation, signing, or runtime conflicts with out-of-tree proprietary kernel modules—most notably **VMware Workstation virtual machine monitors** and specific custom device drivers.
-> 
-> **Why VMware Workstation is the Primary Integrated Hypervisor (Over KVM/QEMU):**
-> In the professional microelectronics and EDA industry, high-end commercial CAD suites (such as Cadence Virtuoso/Spectre, Synopsys Design Compiler, or Mentor Graphics) utilize highly complex, proprietary node-locked or hardware-dongle license-daemon bindings.
-> 
-> For educational exploration, independent research, and sandboxed validation of these specialized tools, pre-configured legacy system appliances and license environments are **strictly optimized and verified solely for VMware hypervisor virtualization layers**. Attempting to run these commercial workloads inside vanilla KVM/QEMU, VirtualBox, or other open-source hypervisors routinely corrupts licensing daemon loopbacks, breaks virtualized GPU hardware-acceleration mappings, or causes major kernel panics inside the guest image.
-> 
-> To maintain a clean, safe, and rapid deployment pipeline, this setup **avoids compiling custom source code kernels with LTO locally**. Instead, it pulls pre-compiled, highly responsive **CachyOS kernel binaries** (optimized natively with `-v3` microarchitecture instructions) directly from verified community cache substituters. This delivers **99% of the scheduling responsiveness and execution gains of an LTO-optimized kernel** instantly, ensuring full out-of-the-box compatibility with VMware Workstation virtualization suites and hardware JTAG device hooks without compile overhead or update delays.
+### 3. Stability Note (For New Deployments)
+If you experience a black screen during the *initial* activation on high-performance schedulers:
+*   This configuration includes `systemd.services.scx.restartIfChanged = false;` which prevents the kernel from swapping schedulers while the desktop is active.
+*   **Recommendation:** Perform your first rebuild from a TTY (Ctrl+Alt+F3) or reboot immediately after the first rebuild to ensure the new scheduler state is cleanly loaded.
 
 ---
 
-## ⚡ System Management
-
-Rebuilding, updating, and optimizing the system is driven by a custom developer CLI utility. This utility leverages modern Nix helpers (**NH**, **NOM**, and **NVD**) to provide a high-fidelity, professional orchestration experience.
-
-| Command | Engineering Pipeline & Rationale |
+| Command | Operational Workflow |
 | :--- | :--- |
-| `mayank rebuild` | Executes a complete system transaction: Validates syntax via **NOM**, enforces **RFC-166** formatting, stages changes to Git, applies configuration via **NH**, and generates a visual package delta report using **NVD**. |
-| `mayank update` | Synchronizes all flake inputs to their absolute latest versions and performs an atomic full-system rebuild. |
-| `mayank clean` | Initiates a **Three-Layer Deep Maintenance** protocol: Intelligent generation pruning, full store garbage collection, and hardware-level hard-link optimization (`nix-store --optimise`). |
-| `mayank check` | Performs a comprehensive syntactical health and integrity audit of the entire flake configuration using **nix-output-monitor**. |
-| `nix fmt` | Automatically formats all Nix configuration files in the repository using the official community RFC-166 standard. |
-
----
-
-## 💖 Credits & Community Inspiration
-
-This workstation configuration stands on the shoulders of giants. The modular architecture, performance profiling, and visual elegance of this ecosystem have been profoundly inspired by outstanding open-source projects. Sincere gratitude and respect are extended to:
-
-*   **[ambxst](https://github.com/ambxst) (Axenide/Ambxst):** For establishing the phenomenal modular NixOS architecture and Home-Manager directory blueprints. This configuration adopts their structural philosophy as its foundational system design, enabling seamless declarative scaling.
-*   **[illogical-impulse](https://github.com/end4) (end4/hyprland):** For crafting the breathtaking visual aesthetics, dynamic window rules, micro-animations, and fluid touchpad gestural physics. Their work sets the absolute gold standard for modern desktop usability and has heavily guided the design of this Hyprland environment.
-*   **[Omarchy](https://github.com/omarchy) (Omarchy Linux):** For inspiring the jaw-dropping, GPU-accelerated fullscreen terminal screensaver workflow. Their creative implementation of dynamic Terminal Text Effects during system idleness sets a new benchmark for system customizability and hacker aesthetics.
-
-*Thank you to these upstream creators and the broader open-source community for fostering a culture of limitless collaborative learning!*
+| `manx rebuild` | Atomic system rebuild with **NH**, **NOM**, and visual delta reports. |
+| `manx update` | Synchronizes all flake inputs and performs a full system refresh. |
+| `manx clean` | Deep maintenance: garbage collection and store optimization. |
+| `manx check` | Integrity audit of the entire flake configuration. |
 
 ---
 
 <div align="center">
-  <sub>Designed & Maintained by **Mayank Anand** • Driven by Passionate Curiosity • Configured Declaratively</sub>
+  <sub>Designed & Maintained by **Mayank Anand** • Driven by Passionate Curiosity • Fully Declarative</sub>
 </div>

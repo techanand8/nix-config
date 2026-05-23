@@ -6,6 +6,7 @@
   lib,
   pkgs,
   modulesPath,
+  vars,
   ...
 }:
 
@@ -21,46 +22,124 @@
     "sd_mod"
     "rtsx_usb_sdmmc"
   ];
-  boot.initrd.kernelModules = [ ];
+  boot.initrd.kernelModules = [ "tpm_tis" ];
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
 
+  # --- DISK MANAGEMENT (TPM2 Ready) ---
+  boot.initrd.luks.devices."luks-${vars.luksSystemUUID}" = {
+    device = "/dev/disk/by-uuid/${vars.luksSystemUUID}";
+    allowDiscards = true;
+    # Enable TPM2 unlocking
+    crypttabExtraOpts = [ "tpm2-device=auto" ];
+  };
+  boot.initrd.luks.devices."luks-${vars.luksSwapUUID}" = {
+    device = "/dev/disk/by-uuid/${vars.luksSwapUUID}";
+    allowDiscards = true;
+    # Enable TPM2 unlocking
+    crypttabExtraOpts = [ "tpm2-device=auto" ];
+  };
+
   fileSystems."/" = {
-    device = "/dev/mapper/luks-43f71712-badb-4a95-93b1-50bc2ceaf981";
+    device = "/dev/mapper/luks-${vars.luksSystemUUID}";
     fsType = "btrfs";
     options = [
-      "compress=zstd"
+      # UNCOMMENT 'subvol=root' ONLY AFTER manual migration!
+      "subvol=root"
+      "compress=zstd:3"
       "noatime"
+      "discard=async"
+      "space_cache=v2"
     ];
   };
 
-  boot.initrd.luks.devices."luks-43f71712-badb-4a95-93b1-50bc2ceaf981".device =
-    "/dev/disk/by-uuid/43f71712-badb-4a95-93b1-50bc2ceaf981";
-  boot.initrd.luks.devices."luks-6a6e61c8-3a4f-4223-9a31-47a2c6368b03".device =
-    "/dev/disk/by-uuid/6a6e61c8-3a4f-4223-9a31-47a2c6368b03";
-
   fileSystems."/home" = {
-    device = "/dev/mapper/luks-43f71712-badb-4a95-93b1-50bc2ceaf981";
+    device = "/dev/mapper/luks-${vars.luksSystemUUID}";
     fsType = "btrfs";
     options = [
       "subvol=home"
-      "compress=zstd"
+      "compress=zstd:3"
       "noatime"
+      "discard=async"
+      "space_cache=v2"
     ];
   };
 
   fileSystems."/nix" = {
-    device = "/dev/mapper/luks-43f71712-badb-4a95-93b1-50bc2ceaf981";
+    device = "/dev/mapper/luks-${vars.luksSystemUUID}";
     fsType = "btrfs";
     options = [
       "subvol=nix"
-      "compress=zstd"
+      "compress=zstd:3"
       "noatime"
+      "discard=async"
+      "space_cache=v2"
+    ];
+  };
+
+  fileSystems."/srv" = {
+    device = "/dev/mapper/luks-${vars.luksSystemUUID}";
+    fsType = "btrfs";
+    options = [
+      "subvol=srv"
+      "compress=zstd:3"
+      "noatime"
+      "discard=async"
+      "space_cache=v2"
+    ];
+  };
+
+  fileSystems."/var/lib/portables" = {
+    device = "/dev/mapper/luks-${vars.luksSystemUUID}";
+    fsType = "btrfs";
+    options = [
+      "subvol=var/lib/portables"
+      "compress=zstd:3"
+      "noatime"
+      "discard=async"
+      "space_cache=v2"
+    ];
+  };
+
+  fileSystems."/var/lib/machines" = {
+    device = "/dev/mapper/luks-${vars.luksSystemUUID}";
+    fsType = "btrfs";
+    options = [
+      "subvol=var/lib/machines"
+      "compress=zstd:3"
+      "noatime"
+      "discard=async"
+      "space_cache=v2"
+    ];
+  };
+
+  fileSystems."/var/tmp" = {
+    device = "/dev/mapper/luks-${vars.luksSystemUUID}";
+    fsType = "btrfs";
+    options = [
+      "subvol=var/tmp"
+      "compress=zstd:3"
+      "noatime"
+      "discard=async"
+      "space_cache=v2"
+    ];
+  };
+
+  fileSystems."/persist" = {
+    device = "/dev/mapper/luks-${vars.luksSystemUUID}";
+    fsType = "btrfs";
+    neededForBoot = true;
+    options = [
+      "subvol=persist"
+      "compress=zstd:3"
+      "noatime"
+      "discard=async"
+      "space_cache=v2"
     ];
   };
 
   fileSystems."/boot" = {
-    device = "/dev/disk/by-uuid/63FA-7885";
+    device = "/dev/disk/by-uuid/${vars.bootUUID}";
     fsType = "vfat";
     options = [
       "fmask=0077"
@@ -68,8 +147,16 @@
     ];
   };
 
-  swapDevices = [ { device = "/dev/mapper/luks-6a6e61c8-3a4f-4223-9a31-47a2c6368b03"; } ];
+  swapDevices = [
+    {
+      device = "/dev/mapper/luks-${vars.luksSwapUUID}";
+      priority = 100;
+    }
+  ];
 
+  boot.resumeDevice = "/dev/mapper/luks-${vars.luksSwapUUID}";
+
+  # --- HARDWARE PLATFORM ---
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 }

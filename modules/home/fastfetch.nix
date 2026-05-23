@@ -22,7 +22,7 @@
       # LOGO CONFIGURATION (Transparent Cyber-Cat Emblem)
       # ---------------------------------------------------------------------
       logo = {
-        source = "${config.home.homeDirectory}/nix-config/modules/system/plymouth/manx_logo.png";
+        source = ../system/plymouth/manx_logo.png;
         type = "kitty";
         width = 32; # Slightly optimized for perfect horizontal fit
         height = 16;

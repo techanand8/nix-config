@@ -1,11 +1,15 @@
-{ pkgs }:
+{
+  pkgs,
+  vars,
+  ...
+}:
 
 pkgs.stdenv.mkDerivation rec {
   pname = "xppen-mini7v2-official";
   version = "4.0.15-260422";
 
   src = pkgs.fetchurl {
-    url = "https://github.com/techanand8/xpendriver4.13for-mini7v2/raw/main/XPPenLinux4.0.15-260422.deb";
+    url = vars.xppenDriverUrl;
     sha256 = "sha256-QUzJ/7mFVSDTGHS3Z5IEcok68GkrefhR82wm3CiUrss=";
   };
 

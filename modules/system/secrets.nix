@@ -27,7 +27,7 @@
     # These secrets are decrypted from secrets.yaml and placed in /run/secrets/
     secrets = {
       # 1. User Password (Used in users.nix)
-      "users/${vars.username}/password" = {
+      "users/primary-user/password" = {
         neededForUsers = true;
       };
 
