@@ -1,9 +1,9 @@
 [SddmGreeterTheme]
-Name=manx
-Description=Ghost Level Maroon & Neon Green theme for Mayank
+Name=manx-vlsi
+Description=VLSI Workstation - High-Fidelity Maroon & Neon Green theme
 Author=Antigravity
 Type=sddm-theme
-Version=1.0
+Version=2.0
 MainScript=Main.qml
 Theme-API=2.0
 QtVersion=6

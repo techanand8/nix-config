@@ -19,14 +19,14 @@ let
   };
 
   # A highly customized, high-tech Qt6 SDDM theme (Neon Green & Maroon Glow)
-  custom-sddm-theme = pkgs.stdenv.mkDerivation {
-    pname = "custom-sddm-theme";
-    version = "1.1";
+  manx-vlsi-theme = pkgs.stdenv.mkDerivation {
+    pname = "manx-vlsi-theme";
+    version = "2.0";
     src = ./sddm-theme;
 
     installPhase = ''
-      mkdir -p $out/share/sddm/themes/manx
-      cp -r * $out/share/sddm/themes/manx/
+      mkdir -p $out/share/sddm/themes/manx-vlsi
+      cp -r * $out/share/sddm/themes/manx-vlsi/
     '';
   };
 in
@@ -40,9 +40,9 @@ in
     wayland.enable = true;
     package = lib.mkForce pkgs.kdePackages.sddm;
     # A highly customized, high-tech Qt6 SDDM theme (Neon Green & Maroon Glow)
-    theme = "manx";
+    theme = "manx-vlsi";
     extraPackages = [
-      custom-sddm-theme
+      manx-vlsi-theme
       sddm-faces
       pkgs.kdePackages.qtmultimedia
       pkgs.kdePackages.qtsvg
@@ -53,7 +53,7 @@ in
 
   # Make the custom theme packages visible in the system path so SDDM can find them
   environment.systemPackages = [
-    custom-sddm-theme
+    manx-vlsi-theme
     sddm-faces
   ];
 
