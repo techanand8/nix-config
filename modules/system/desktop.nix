@@ -13,8 +13,8 @@ let
     dontUnpack = true;
     installPhase = ''
       mkdir -p $out/share/sddm/faces
-      cp ${./plymouth/manx_logo.png} $out/share/sddm/faces/${vars.username}.face.icon
-      cp ${./plymouth/manx_logo.png} $out/share/sddm/faces/${vars.username}.face
+      cp ${./face.icon} $out/share/sddm/faces/${vars.username}.face.icon
+      cp ${./face.icon} $out/share/sddm/faces/${vars.username}.face
     '';
   };
 
