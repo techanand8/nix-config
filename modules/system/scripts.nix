@@ -72,7 +72,7 @@ let
         echo -e "    ''${C_WHITE}check''${NC}     ''${C_MUTED}❯''${NC} Validate configuration health and integrity"
         echo -e ""
         echo -e "  ''${C_PRIMARY}  DEVELOPMENT UTILITIES''${NC}"
-        echo -e "    ''${C_WHITE}edit''${NC}      ''${C_MUTED}❯''${NC} Open primary system configuration"
+        echo -e "    ''${C_WHITE}edit''${NC}      ''${C_MUTED}❯''${NC} Interactive fuzzy-find or direct file edit"
         echo -e "    ''${C_WHITE}search''${NC}    ''${C_MUTED}❯''${NC} Query the Nixpkgs software registry"
         echo -e "    ''${C_WHITE}shell''${NC}     ''${C_MUTED}❯''${NC} Initialize isolated package environments"
         echo -e "    ''${C_WHITE}vivado''${NC}    ''${C_MUTED}❯''${NC} Enter the AMD Vivado design environment"
@@ -186,8 +186,29 @@ let
         ;;
 
       edit)
-        # Open the primary system configuration (Dynamically resolved path)
-        $EDITOR hosts/$HOST_DIR/configuration.nix
+        # 1. Direct Edit (if filename provided)
+        if [ ! -z "$2" ]; then
+            if [ -f "$2" ]; then
+                $EDITOR "$2"
+            else
+                error "File not found: $2"
+            fi
+        # 2. Interactive Fuzzy Find (if no filename provided)
+        else
+            if command -v fzf &> /dev/null; then
+                log "Launching interactive configuration navigator..."
+                # Find all .nix and .yaml files, excluding hidden ones and git dirs
+                FILE=$(find . -maxdepth 4 -name "*.nix" -o -name "*.yaml" | grep -v "/.git/" | fzf --preview "bat --color=always --style=numbers {}" --height 80% --layout=reverse --border --prompt="󱄅 Edit Config ❯ ")
+                if [ ! -z "$FILE" ]; then
+                    $EDITOR "$FILE"
+                else
+                    info "No file selected. Exiting."
+                fi
+            else
+                # Fallback to default if fzf is missing
+                $EDITOR hosts/$HOST_DIR/configuration.nix
+            fi
+        fi
         ;;
 
       search)
