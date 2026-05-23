@@ -95,7 +95,7 @@ Rectangle {
 
         authenticating = true
         messageColor = neonGreen
-        messageText = "Executing cryptographic validation..."
+        messageText = "Opening MANX VLSI Customized Workstation..."
         sddm.login(selectedUserName, passwordField.text, sessionSelector.currentIndex)
     }
 
@@ -704,12 +704,12 @@ Rectangle {
 
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 150
+                    Layout.preferredHeight: 180
                     color: "transparent"
 
                     ListView {
                         id: userList
-                        width: Math.min(parent.width, count * 160)
+                        width: Math.min(parent.width, count * 180)
                         height: parent.height
                         anchors.horizontalCenter: parent.horizontalCenter
                         orientation: ListView.Horizontal
@@ -737,8 +737,8 @@ Rectangle {
                             property string displayName: realName !== "" ? realName : name
                             property string iconSource: icon !== "" ? icon : "logo.png"
 
-                            width: 150
-                            height: 150
+                            width: 170
+                            height: 180
                             color: "transparent"
                             scale: userMouse.containsMouse || ListView.isCurrentItem ? 1.05 : 1.0
 
@@ -757,13 +757,13 @@ Rectangle {
 
                             ColumnLayout {
                                 anchors.fill: parent
-                                spacing: 8
+                                spacing: 10
 
                                 Rectangle {
                                     Layout.alignment: Qt.AlignHCenter
-                                    width: 100
-                                    height: 100
-                                    radius: 50
+                                    width: 116
+                                    height: 116
+                                    radius: 58
                                     color: "#16000000"
                                     border.width: ListView.isCurrentItem ? 2 : 1
                                     border.color: ListView.isCurrentItem ? selectedBorder : strokeSoft
@@ -788,7 +788,7 @@ Rectangle {
                                     Layout.fillWidth: true
                                     text: userCard.displayName
                                     color: textPrimary
-                                    font: bodyFont
+                                    font: actionFont
                                     horizontalAlignment: Text.AlignHCenter
                                     elide: Text.ElideRight
                                 }
@@ -798,7 +798,7 @@ Rectangle {
                                     text: ListView.isCurrentItem ? "ACTIVE" : ""
                                     color: neonGreen
                                     font.family: "JetBrains Mono"
-                                    font.pixelSize: Math.round(10 * uiScale)
+                                    font.pixelSize: Math.round(11 * uiScale)
                                     font.bold: true
                                     font.letterSpacing: 1
                                     horizontalAlignment: Text.AlignHCenter
@@ -841,6 +841,7 @@ Rectangle {
                 QQC2.ComboBox {
                     id: sessionSelector
                     Layout.fillWidth: true
+                    implicitHeight: 52
                     model: sessionModel
                     textRole: "name"
                     currentIndex: (typeof sessionModel !== "undefined" && sessionModel && sessionModel.count > 0) ? Math.max(0, sessionModel.lastIndex) : -1
@@ -852,10 +853,11 @@ Rectangle {
 
                     contentItem: Text {
                         leftPadding: 16
-                        rightPadding: 44
+                        rightPadding: 16
                         text: sessionSelector.displayText !== "" ? ("SESSION // " + sessionSelector.displayText.toUpperCase()) : "SESSION // UNAVAILABLE"
                         font: sessionSelector.font
                         color: textPrimary
+                        horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                         elide: Text.ElideRight
                     }
@@ -914,6 +916,7 @@ Rectangle {
                             text: (typeof modelData !== "undefined" && modelData && modelData.name) ? modelData.name : (model && model.name ? model.name : "")
                             font: bodyFont
                             color: highlighted ? neonGreen : textPrimary
+                            horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                             elide: Text.ElideRight
                         }
@@ -974,7 +977,7 @@ Rectangle {
                     passwordCharacter: "◈"
                     placeholderText: "ENTER AUTHENTICATION KEY"
                     font: actionFont
-                    color: textPrimary
+                    color: passwordField.text !== "" ? maroonBright : textPrimary
                     horizontalAlignment: TextInput.AlignLeft
                     selectByMouse: true
                     focus: true
@@ -1130,7 +1133,7 @@ Rectangle {
 
                 Rectangle {
                     Layout.fillWidth: true
-                    implicitHeight: Math.max(50, messageTextItem.implicitHeight + 28)
+                    implicitHeight: 52
                     radius: 16
                     color: "#12000000"
                     border.width: 1
@@ -1138,29 +1141,16 @@ Rectangle {
 
                     Behavior on border.color { ColorAnimation { duration: 150 } }
 
-                    Rectangle {
-                        anchors.left: parent.left
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
-                        width: 5
-                        radius: 16
-                        color: messageColor
-                        Behavior on color { ColorAnimation { duration: 150 } }
-                    }
-
                     Text {
                         id: messageTextItem
-                        anchors.top: parent.top
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.topMargin: 14
-                        anchors.leftMargin: 18
-                        anchors.rightMargin: 14
+                        anchors.fill: parent
+                        anchors.margins: 8
                         text: messageText
                         color: messageColor
                         font: bodyFont
-                        wrapMode: Text.WordWrap
+                        horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
+                        elide: Text.ElideRight
                     }
                 }
 
@@ -1248,14 +1238,14 @@ Rectangle {
             passwordField.text = ""
             passwordField.forceActiveFocus()
             messageColor = textDanger
-            messageText = textConstants.loginFailed
+            messageText = "Decryption Core Error: Cryptographic Key Signature Invalid"
             shakeAnim.start()
         }
 
         function onLoginSucceeded() {
             authenticating = false
             messageColor = neonGreen
-            messageText = textConstants.loginSucceeded
+            messageText = "Access Granted! Loading Manx VLSI Environment..."
         }
 
         function onInformationMessage(message) {
