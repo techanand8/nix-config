@@ -18,7 +18,7 @@
       ghostscript
       chafa
       ffmpegthumbnailer
-      nixpkgs-fmt
+      nixfmt
     ];
 
     # =========================================================================
@@ -161,7 +161,7 @@
           enable = true;
           settings = {
             nixpkgs.expr = "import <nixpkgs> { }";
-            formatting.command = [ "nixpkgs-fmt" ];
+            formatting.command = [ "nixfmt" ];
             options = {
               nixos.expr = "(builtins.getFlake \"$HOME/nix-config\").nixosConfigurations.MANX.options";
               home_manager.expr = "(builtins.getFlake \"$HOME/nix-config\").nixosConfigurations.MANX.options.home-manager.users.value.${vars.username}";
@@ -189,7 +189,7 @@
           timeout_ms = 500;
         };
         formatters_by_ft = {
-          nix = [ "nixpkgs-fmt" ];
+          nix = [ "nixfmt" ];
           verilog = [ "verible-verilog-format" ];
           systemverilog = [ "verible-verilog-format" ];
         };

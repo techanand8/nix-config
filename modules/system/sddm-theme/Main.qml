@@ -528,13 +528,17 @@ Rectangle {
                                 implicitHeight: 32
                                 Text {
                                     anchors.fill: parent
-                                    anchors.leftMargin: 12
-                                    anchors.rightMargin: 12
+                                    anchors.leftMargin: 8
+                                    anchors.rightMargin: 8
                                     text: "Suspend • Hibernate • Reboot • Shutdown"
                                     color: textPrimary
-                                    font: bodyFont
+                                    font.family: bodyFont.family
+                                    font.bold: bodyFont.bold
+                                    font.pixelSize: bodyFont.pixelSize
+                                    fontSizeMode: Text.Fit
+                                    minimumPixelSize: 8
+                                    horizontalAlignment: Text.AlignHCenter
                                     verticalAlignment: Text.AlignVCenter
-                                    elide: Text.ElideRight
                                 }
                             }
                         }
