@@ -52,6 +52,8 @@ Rectangle {
     readonly property color passwordGlow: "#2239FF14"
     readonly property color shutdownGlow: "#26FF1133"
     readonly property color suspendGlow: "#26FFB347"
+    readonly property color hibernateBorder: maroonBright
+    readonly property color hibernateGlow: shutdownGlow
 
     readonly property font titleFont: Qt.font({ family: "Orbitron", pixelSize: Math.max(16, Math.round(30 * uiScale)), bold: true, letterSpacing: 5 })
     readonly property font sectionFont: Qt.font({ family: "JetBrains Mono", pixelSize: Math.max(10, Math.round(13 * uiScale)), bold: true, letterSpacing: 2 })
@@ -1205,7 +1207,7 @@ Rectangle {
 
                     QQC2.Button {
                         id: suspendButton
-                        Layout.preferredWidth: 130
+                        Layout.preferredWidth: 145
                         Layout.preferredHeight: 38
                         visible: true
                         onClicked: sddm.suspend()
@@ -1246,8 +1248,50 @@ Rectangle {
                     }
 
                     QQC2.Button {
+                        id: hibernateButton
+                        Layout.preferredWidth: 145
+                        Layout.preferredHeight: 38
+                        visible: true
+                        onClicked: sddm.hibernate()
+
+                        contentItem: Text {
+                            text: "⏾  HIBERNATE"
+                            font: actionFont
+                            color: hibernateButton.hovered ? buttonTextDark : textPrimary
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        background: Rectangle {
+                            radius: 19
+                            color: hibernateButton.hovered ? hibernateBorder : "#12000000"
+                            border.width: hibernateButton.hovered ? 2 : 1
+                            border.color: hibernateBorder
+
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: parent.radius
+                                color: "#00000000"
+                                border.width: 1
+                                border.color: hibernateGlow
+                                opacity: hibernateButton.hovered ? 0.85 : 0.25
+
+                                SequentialAnimation on opacity {
+                                    running: hibernateButton.hovered
+                                    loops: Animation.Infinite
+                                    NumberAnimation { from: 0.30; to: 0.90; duration: 700; easing.type: Easing.InOutQuad }
+                                    NumberAnimation { from: 0.90; to: 0.30; duration: 700; easing.type: Easing.InOutQuad }
+                                }
+                            }
+
+                            Behavior on color { ColorAnimation { duration: 120 } }
+                            Behavior on border.width { NumberAnimation { duration: 120 } }
+                        }
+                    }
+
+                    QQC2.Button {
                         id: rebootButton
-                        Layout.preferredWidth: 130
+                        Layout.preferredWidth: 145
                         Layout.preferredHeight: 38
                         visible: true
                         onClicked: sddm.reboot()
@@ -1289,7 +1333,7 @@ Rectangle {
 
                     QQC2.Button {
                         id: shutdownButton
-                        Layout.preferredWidth: 130
+                        Layout.preferredWidth: 145
                         Layout.preferredHeight: 38
                         visible: true
                         onClicked: sddm.powerOff()
