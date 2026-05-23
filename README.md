@@ -1,7 +1,5 @@
-<div align="center">
-
-# 🌌 High-Performance Engineering Workstation
-### Fully Declarative & Reproducible Microelectronics Environment
+# 🛰️ MANX OS: Engineering-Grade Workstation
+### A Declarative Ecosystem for VLSI, Deep Learning, and Hardware Design
 
 [![NixOS](https://img.shields.io/badge/NixOS-Unstable-blue.svg?style=flat-square&logo=nixos&logoColor=white)](https://nixos.org)
 [![Kernel](https://img.shields.io/badge/Kernel-CachyOS_v3-ea00d9.svg?style=flat-square&logo=linux&logoColor=white)](https://github.com/CachyOS)
@@ -11,203 +9,132 @@
 
 ---
 
-**A 100% declarative, mathematically reproducible NixOS workstation. This configuration is engineered for high-performance VLSI design and verification, utilizing industry-standard tooling alongside cutting-edge Linux optimizations.**
-
-[Host Identity](#-host-identity--optimizations) • [Storage Architecture](#-storage-architecture) • [System Architecture](#-system-architecture) • [VLSI & Verification Stack](#-vlsi--verification-stack) • [Installation Guide](#-deployment--installation)
-
----
-
+<div align="center">
+  <img src="assets/screenshots/sddm.png" alt="MANX OS SDDM Theme" width="100%">
+  <br/>
+  <i>Modular authentication interface featuring native Verilog syntax highlighting.</i>
 </div>
 
-## 💻 Host Identity & Optimizations (`MANX`)
+---
 
-The **`MANX`** workstation is a specialized host profile optimized for modern AMD architectures and high-intensity silicon modeling workloads.
+## 🔬 Core Mission
+This workstation is a specialized NixOS distribution designed for **Microelectronics Engineers** and **Deep Learning Researchers**. It bridges the gap between the cutting-edge Linux ecosystem and the historically rigid world of proprietary EDA (Electronic Design Automation) tools.
 
-### Performance Stack:
-*   **CachyOS Kernel:** Runs the optimized **CachyOS Kernel** (`linuxPackages-cachyos-latest-x86_64-v3`) with `-v3` microarchitecture optimizations for superior throughput.
-*   **Latency-Aware Scheduling:** Leverages the **sched-ext** framework with the `scx_lavd` scheduler for unmatched interactive smoothness.
-*   **Limine Bootloader:** A high-speed, modern graphical bootloader with custom styling and a translucent ruby-red glassmorphic interface.
-*   **Storage Efficiency:** Native **Btrfs** with `zstd` compression, `zram` swap allocation, and automated maintenance protocols to prevent bit-rot.
+The environment is built on **Stateless Btrfs Architecture**, meaning the system resets to a pristine state on every boot, ensuring absolute stability and preventing "configuration drift" over years of heavy engineering work.
 
 ---
 
-### 💾 Storage Architecture
+## 🏗️ System Architecture & Reliability
 
-This workstation utilizes a manual but highly optimized hardware configuration, ensuring maximum stability and performance across different drive layouts.
+### 🛡️ Stateless Integrity (Impermanence)
+*   **Root Rollback:** The root partition (`/`) is wiped and restored from a blank Btrfs snapshot during the `initrd` phase of every boot.
+*   **Persistent State:** Only critical data (SSH keys, NetworkManager profiles, and the Nix Config) is preserved in `/persist` via bind-mounts.
+*   **Time-Machine Backups:** The `/home` directory is protected by **Snapper**, providing automated hourly snapshots for accidental data recovery.
 
-#### 🛡️ Full-Disk Encryption & Partitioning
-The storage configuration is manually mapped in `hosts/manx/hardware-configuration.nix` and implements a professional-grade security model:
-*   **LUKS2 Encryption:** Native full-disk encryption for both the root system and the dedicated swap partition, utilizing `allowDiscards` for SSD longevity.
-*   **TPM2 Hardware Security:** This workstation is **TPM2 Ready**. It leverages the onboard Trusted Platform Module to securely and automatically unlock the LUKS partitions during boot. This provides a "Zero-Touch" decryption experience—maintaining high security while removing the friction of manual password entry at every startup.
-*   **Btrfs Subvolume Topology:** A sophisticated layout for better isolation and snapshot management:
-    *   `/` (Root System)
-    *   `/home` (User Data)
-    *   `/nix` (Nix Store)
-    *   `/srv` (Service Data)
-    *   `/var/lib/portables` & `/var/lib/machines` (Systemd Containers)
-    *   `/var/tmp` (Persistent temporary storage for heavy builds)
-*   **RAM-Based Temp Storage:** `/tmp` is mounted as a **tmpfs** (RAM) to minimize SSD wear and maximize speed for small temporary files.
-*   **SSD Optimization:** Uses `discard=async` and `zstd:3` compression for high-performance operations—ideal for modern NVMe drives.
+### ⚡ Performance Tuning
+*   **CachyOS Kernel:** Optimized for the `x86_64-v3` microarchitecture to maximize throughput in simulation and training workloads.
+*   **Latency Management:** Leverages the **sched-ext** framework with the `scx_lavd` scheduler for a zero-lag desktop experience even under 100% CPU load.
+*   **GPU Acceleration:** Integrated **ROCm** stack for AMD hardware, enabling native HIP and OpenCL support for Deep Learning frameworks and GPU-accelerated simulators.
 
 ---
 
-## 🏗️ System Architecture
+## 🛠️ The Engineering Stack
 
-This repository adopts a decoupled, modular layout to isolate system drivers, user preferences, and hardware properties.
+### 🟦 VLSI & Digital Verification
+A production-grade toolchain for RTL design and functional verification:
+*   **Simulation:** `Verilator` (High-performance C++ cycle-accurate), `Icarus Verilog`, `NVC` (VHDL).
+*   **Formal Verification:** `SBY` (SymbiYosys) for bounded model checking.
+*   **Physical Design:** `Magic-VLSI` and `KLayout` for GDSII layout and DRC.
+*   **Python-Based DV:** Native `cocotb` integration for modern coroutine-based cosimulation.
+
+### 🧠 Deep Learning & AI
+Optimized environment for high-intensity computation:
+*   **Frameworks:** Full support for `PyTorch` and `TensorFlow` via the ROCm/HIP backend.
+*   **Data Science:** Production-ready `NumPy`, `Pandas`, and `Matplotlib` pre-configured in the system shell.
+*   **Workflow:** Custom `nix-ld` configuration allows running unpatched pre-compiled binaries (like Conda environments or proprietary AI models) seamlessly.
+
+### 🚀 AMD Vivado & Vitis (The Pragmatic Bridge)
+This workstation solves the complex "Nix vs EDA" problem by utilizing a **Distrobox** container system.
+*   The **AMD Xilinx** suite runs inside an optimized Ubuntu container for 100% binary compatibility.
+*   **Native Integration:** Desktop launchers (Vivado GUI, Vitis IDE, DocNav) are mapped from the container to the host, making them feel like native NixOS applications.
+*   **Hardware Access:** Kernel-level `udev` rules enable rootless JTAG and hardware-in-the-loop debugging directly from the container.
+
+---
+
+## 🗺️ Project Structure
 
 ```mermaid
 graph TD
-    %% Entry Points
-    Flake["flake.nix<br/>(System Entry Point)"]
-
-    %% Host Specifics
-    subgraph Hosts["Hosts (MANX Profile)"]
-        HostConf["configuration.nix<br/>(System Master)"]
-        HostVar["variables.nix<br/>(Private Variables)"]
-        HostHW["hardware-configuration.nix<br/>(Anonymized Drivers)"]
-    end
-
-    %% System Modules
-    subgraph SystemModules["System Modules"]
-        SysCore["core.nix<br/>(Performance & RAM)"]
-        SysAMD["amd.nix<br/>(GPU Optimization)"]
-        SysHypr["hyprland.nix<br/>(Window Manager)"]
-        SysBoot["plymouth.nix<br/>(Ruby Red Boot)"]
-        SysApps["apps.nix<br/>(System Tools)"]
-    end
-
-    %% Home Manager
-    subgraph HomeModules["Home Manager"]
-        HomeHub["home-user.nix<br/>(User Hub)"]
-        HomeNixvim["nixvim.nix<br/>(RTL IDE)"]
-        HomeVLSI["vlsi.nix<br/>(EDA Toolchain)"]
-        HomeGit["git.nix<br/>(Git Identity)"]
-    end
-
-    %% Secret Management
-    subgraph Security["Security"]
-        Sops["secrets.nix<br/>(SOPS-Nix)"]
-        Secrets["secrets.yaml<br/>(Encrypted Data)"]
-    end
-
-    %% Flow Logic
-    Flake --> HostConf
-    HostConf --> HostVar
-    HostConf --> HostHW
-    HostConf --> SystemModules
-    HostConf --> Sops
-    Sops --> Secrets
+    Flake["flake.nix<br/>(Entry Point)"]
     
-    Flake --> HomeHub
-    HomeHub --> HomeModules
+    subgraph Host["Host: MANX"]
+        HostConf["configuration.nix<br/>(System Master)"]
+        HostVar["variables.nix<br/>(Local Settings)"]
+        HostHW["hardware.nix<br/>(Device Drivers)"]
+    end
+
+    subgraph Modules["Modular Layers"]
+        Sys["System Modules<br/>(Kernel, Boot, Security)"]
+        Home["Home Manager<br/>(VLSI, Shell, Neovim)"]
+    end
+
+    subgraph Secrets["Security Vault"]
+        Sops["SOPS-Nix<br/>(Encryption)"]
+        YAML["secrets.yaml<br/>(Encrypted)"]
+    end
+
+    Flake --> HostConf
+    HostConf --> HostVar & HostHW & Sys & Home & Sops
+    Sops --> YAML
 ```
 
 ---
 
-## 🔬 VLSI & Verification Stack
+## 🎮 System Orchestration (`manx` CLI)
 
-Provisioned with a production-grade Electronic Design Automation (EDA) toolchain for RTL design, functional verification (DV), and physical layout.
+The workstation includes a custom-built management utility, `manx`, designed for high-efficiency system maintenance and professional development workflows.
 
-| Domain | Tools | Standards |
+| Category | Command | Function |
 | :--- | :--- | :--- |
-| **Verification** | `surelog`, `verilator` | UVM, SystemVerilog |
-| **Simulation** | `iverilog`, `ghdl`, `nvc` | Verilog, VHDL |
-| **Formal Analysis** | `sby`, `yosys` | Bounded Model Checking |
-| **Physical Design** | `magic-vlsi`, `klayout` | GDSII Layout, DRC |
-| **Schematic** | `xschem`, `ngspice` | SPICE Simulation |
-
-### 🚀 AMD Vivado Integration (Distrobox)
-This workstation solves the complex dependency issues of EDA tools by running the **AMD Vivado & Vitis Design Suite** entirely within an optimized **Distrobox** container (`manx-vivado`). This provides full hardware acceleration and X11/Wayland GUI support while keeping the NixOS host pristine.
-
-#### Setting up Vivado:
-1. **Initialize the Container:**
-   Simply run the custom workstation command:
-   ```bash
-   manx vivado
-   ```
-   *If the container doesn't exist, this automatically creates an Ubuntu 22.04 environment named `manx-vivado` and mounts your home directory.*
-
-2. **Install the Tools (Inside the container):**
-   * Download the Xilinx Unified Installer (e.g., 2025.2) to your host machine.
-   * Inside the `manx vivado` shell, navigate to the installer and run it:
-     ```bash
-     cd ~/Downloads/Xilinx_Unified_*
-     sudo ./xsetup
-     ```
-   * **Important:** Install the tools to `/tools/Xilinx` (the default path expected by the NixOS launchers).
-
-3. **Seamless Desktop Integration:**
-   * Desktop shortcuts for Vivado (GUI/Tcl), Vitis, and DocNav are automatically generated by `modules/home/vlsi.nix`.
-   * These shortcuts seamlessly execute the tools from the container directly onto your Hyprland desktop.
+| **System** | `manx rebuild` | Atomic sync, code formatting, and detailed package diff reporting. |
+| | `manx update` | Full input synchronization and system-wide refresh. |
+| | `manx rollback` | Instant restoration of the previous successful system state. |
+| | `manx history` | View the chronological audit log of all system generations. |
+| **Maintenance** | `manx clean` | Deep 3-layer optimization: generation pruning, GC, and hard-linking. |
+| | `manx check` | Comprehensive integrity audit of the flake configuration. |
+| **Development** | `manx vivado` | Enters the high-compatibility Xilinx environment. |
+| | `manx edit` | Direct access to the primary system configuration in Neovim. |
+| | `manx shell <pkg>` | Initialize transient, isolated development environments. |
+| **Aesthetics** | `manx screensaver` | Orchestrate custom ASCII/Image branding for the workstation. |
 
 ---
 
-## 🛡️ Compatibility Layer
-*   **Envfs (`services.envfs.enable = true`):** Dynamically resolves hardcoded paths (e.g., `#!/bin/bash`) to correct Nix store paths.
-*   **Nix-LD (`programs.nix-ld`):** Injects required libraries into unpatched commercial binaries, allowing legacy CAD tools to run seamlessly on NixOS.
+## 🚀 Deployment
 
----
+1.  **Clone the Repository:**
+    ```bash
+    git clone https://github.com/techanand8/nix-config.git ~/nix-config
+    cd ~/nix-config
+    ```
 
-## 🚀 Deployment & Installation
+2.  **Initialize Local Variables:**
+    ```bash
+    cp hosts/manx/variables.nix.example hosts/manx/variables.nix
+    # Fill in your credentials and hardware UUIDs
+    ```
 
-### 1. Initialize the Flake
-```bash
-git clone https://github.com/techanand8/nix-config.git ~/nix-config
-cd ~/nix-config
-```
+3.  **Apply Configuration:**
+    ```bash
+    # Initial bootstrap
+    sudo nixos-rebuild switch --flake .#MANX
 
-### 2. Configure Variables
-Initialize your local variables (this file is gitignored to protect your privacy):
-```bash
-cp hosts/manx/variables.nix.example hosts/manx/variables.nix
-# Edit variables.nix with your username, email, and preferences
-```
-
-### 3. Generate Hardware Config
-If installing on new hardware, generate the base configuration:
-```bash
-nixos-generate-config --show-hardware-config > hosts/manx/hardware-configuration.nix
-# Manually adjust UUIDs and mount options for Btrfs/LUKS as needed
-```
-
-### 4. Apply System
-```bash
-sudo nixos-rebuild switch --flake .#MANX
-```
-
----
-
-## 🛠️ Customization & Hardware Adaptation
-
-While this configuration is optimized for the `MANX` workstation, it is designed for extensibility. If you are adapting this for your own system, follow these steps:
-
-### 1. Identify Your Hardware
-Update `hosts/manx/variables.nix` with your specific parameters:
-*   **CPU/GPU Type:** Set `cpuType` and `gpuType` (e.g., `amd`, `intel`, `nvidia`).
-*   **Main Disk:** Identify your target drive using `lsblk`.
-
-### 2. Tailor System Modules
-The repository uses modular driver sets. In `hosts/manx/configuration.nix`:
-*   **AMD Users:** Keep `../../modules/system/amd.nix` and the `nixos-hardware` AMD modules in `flake.nix`.
-*   **NVIDIA Users:** Replace the AMD module with a dedicated NVIDIA module (e.g., `../../modules/system/nvidia.nix`) and ensure `hardware.nvidia` settings match your card generation.
-*   **Intel Users:** Adjust the `nixos-hardware` imports in `flake.nix` to `common-cpu-intel` and `common-gpu-intel`.
-
-### 3. Stability Note (For New Deployments)
-If you experience a black screen during the *initial* activation on high-performance schedulers:
-*   This configuration includes `systemd.services.scx.restartIfChanged = false;` which prevents the kernel from swapping schedulers while the desktop is active.
-*   **Recommendation:** Perform your first rebuild from a TTY (Ctrl+Alt+F3) or reboot immediately after the first rebuild to ensure the new scheduler state is cleanly loaded.
-
----
-
-| Command | Operational Workflow |
-| :--- | :--- |
-| `manx rebuild` | Atomic system rebuild with **NH**, **NOM**, and visual delta reports. |
-| `manx update` | Synchronizes all flake inputs and performs a full system refresh. |
-| `manx clean` | Deep maintenance: garbage collection and store optimization. |
-| `manx check` | Integrity audit of the entire flake configuration. |
+    # Subsequent updates
+    manx rebuild
+    ```
 
 ---
 
 <div align="center">
-  <sub>Designed & Maintained by **Mayank Anand** • Driven by Passionate Curiosity • Fully Declarative</sub>
+  <sub>Designed for precision engineering by <b>Mayank Anand</b></sub><br/>
+  <sub>Fully Declarative • Repositories are mathematically reproducible</sub>
 </div>

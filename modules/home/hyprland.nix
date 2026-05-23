@@ -180,6 +180,9 @@
     "hypr/hyprland/general.lua".text = ''
       hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "1" })
       hl.config({
+          general = {
+              resize_on_border = true,
+          },
           gestures = {
               workspace_swipe_distance = 700,
               workspace_swipe_cancel_ratio = 0.2,
