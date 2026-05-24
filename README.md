@@ -172,7 +172,7 @@ graph TD
   <br/>
   
   <details>
-    <summary><b>✨ VIEW TERMINAL IDLE STATES & BRANDING</b></summary>
+    <summary><b>✨ Preview</b></summary>
     <br/>
     <div align="center">
       <img src="assets/screenshots/screensaver_effect.png" alt="Terminal Idle State" width="100%" style="border-radius: 6px; border: 1px solid #444;">
