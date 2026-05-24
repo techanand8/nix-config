@@ -47,6 +47,10 @@
           "chi_tra": false,
           "kor": false
         },
+        "recorder": {
+          "backend": "gpu-screen-recorder",
+          "usePortal": true
+        },
         "pomodoro": {
           "workTime": 1500,
           "restTime": 300,
@@ -124,6 +128,9 @@
       hl.env("_JAVA_AWT_WM_NONREPARENTING", "1")
       hl.env("QT_QPA_PLATFORMTHEME", "kde")
       hl.env("XDG_MENU_PREFIX", "plasma-")
+      hl.env("XDG_CURRENT_DESKTOP", "Hyprland")
+      hl.env("XDG_SESSION_TYPE", "wayland")
+      hl.env("XDG_SESSION_DESKTOP", "Hyprland")
       local xdg_data_dirs_old = os.getenv("XDG_DATA_DIRS") or ""
       hl.env("XDG_DATA_DIRS", home_dir .. "/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share:/usr/share:" .. xdg_data_dirs_old)
     '';

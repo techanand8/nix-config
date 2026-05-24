@@ -12,8 +12,21 @@
 
   # Required for screen sharing and portals
   services.dbus.enable = true;
+  xdg.portal = {
+    enable = true;
+    extraPortals = [
+      inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland
+      pkgs.xdg-desktop-portal-gtk
+    ];
+    config.common.default = [ "hyprland" ];
+    config.hyprland.default = [
+      "hyprland"
+      "gtk"
+    ];
+  };
 
   # GPU Screen Recorder support for portal backend
+  # This provides the necessary setuid wrappers for hardware-accelerated recording
   programs.gpu-screen-recorder.enable = true;
 
   # Required for hyprlock to work securely on NixOS
@@ -23,6 +36,9 @@
   environment.systemPackages = with pkgs; [
     # UI components are handled by Ambxst (Quickshell)
     # We only keep functional backend tools
+    inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland
+    xdg-desktop-portal-gtk
+    gpu-screen-recorder
     hypridle
     hyprlock
     awww

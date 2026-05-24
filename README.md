@@ -1,18 +1,28 @@
 # 🛰️ MANX OS: Engineering-Grade Workstation
 ### A Declarative Ecosystem for VLSI, Deep Learning, and Hardware Design
 
-[![NixOS](https://img.shields.io/badge/NixOS-Unstable-blue.svg?style=flat-square&logo=nixos&logoColor=white)](https://nixos.org)
-[![Kernel](https://img.shields.io/badge/Kernel-CachyOS_v3-ea00d9.svg?style=flat-square&logo=linux&logoColor=white)](https://github.com/CachyOS)
-[![Storage](https://img.shields.io/badge/Storage-Btrfs_LUKS-00ff00.svg?style=flat-square&logo=nixos&logoColor=white)](https://btrfs.readthedocs.io/en/latest/index.html)
-[![WM](https://img.shields.io/badge/WM-Hyprland-ffb59e.svg?style=flat-square&logo=hyprland&logoColor=white)](https://hyprland.org)
-[![Editor](https://img.shields.io/badge/Editor-Nixvim-green.svg?style=flat-square&logo=neovim&logoColor=white)](https://github.com/nix-community/nixvim)
+<div align="center">
+
+[![NixOS](https://img.shields.io/badge/NixOS-Unstable-blue.svg?style=for-the-badge&logo=nixos&logoColor=white)](https://nixos.org)
+[![Kernel](https://img.shields.io/badge/Kernel-CachyOS_v3-ea00d9.svg?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/CachyOS)
+[![Storage](https://img.shields.io/badge/Storage-Btrfs_LUKS-00ff00.svg?style=for-the-badge&logo=nixos&logoColor=white)](https://btrfs.readthedocs.io/en/latest/index.html)
+[![WM](https://img.shields.io/badge/WM-Hyprland-ffb59e.svg?style=for-the-badge&logo=hyprland&logoColor=white)](https://hyprland.org)
+[![Editor](https://img.shields.io/badge/Editor-Nixvim-green.svg?style=for-the-badge&logo=neovim&logoColor=white)](https://github.com/nix-community/nixvim)
+
+</div>
 
 ---
 
 <div align="center">
-  <img src="assets/screenshots/sddm_preview.gif" alt="MANX OS SDDM Theme Preview" width="100%">
+  <img src="assets/screenshots/sddm.png" alt="MANX OS SDDM Preview" width="100%" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
   <br/>
-  <i>Live preview of the modular authentication interface with native Verilog syntax highlighting.</i>
+  
+  <details>
+    <summary><b>🎬 VIEW HIGH-FIDELITY SDDM ANIMATION</b></summary>
+    <br/>
+    <video src="https://github.com/user-attachments/assets/550ed2ea-9580-4388-a82f-c8c525f316d5" width="100%" controls autoplay muted loop style="border-radius: 8px; border: 1px solid #333;"></video>
+    <p><i>Live demonstration of the modular authentication interface with native Verilog syntax highlighting.</i></p>
+  </details>
 </div>
 
 ---
@@ -26,42 +36,64 @@ The environment is built on **Stateless Btrfs Architecture**, meaning the system
 
 ## 🏗️ System Architecture & Reliability
 
-### 🛡️ Stateless Integrity (Impermanence)
-*   **Root Rollback:** The root partition (`/`) is wiped and restored from a blank Btrfs snapshot during the `initrd` phase of every boot.
-*   **Persistent State:** Only critical data (SSH keys, NetworkManager profiles, and the Nix Config) is preserved in `/persist` via bind-mounts.
-*   **Time-Machine Backups:** The `/home` directory is protected by **Snapper**, providing automated hourly snapshots for accidental data recovery.
+<details>
+  <summary><b>🛡️ STATELESS INTEGRITY (IMPERMANENCE)</b></summary>
+  <br/>
+  
+  *   **Root Rollback:** The root partition (`/`) is wiped and restored from a blank Btrfs snapshot during the `initrd` phase of every boot.
+  *   **Persistent State:** Only critical data (SSH keys, NetworkManager profiles, and the Nix Config) is preserved in `/persist` via bind-mounts.
+  *   **Time-Machine Backups:** The `/home` directory is protected by **Snapper**, providing automated hourly snapshots for accidental data recovery.
+</details>
 
-### ⚡ Performance Tuning
-*   **CachyOS Kernel:** Optimized for the `x86_64-v3` microarchitecture to maximize throughput in simulation and training workloads.
-*   **Latency Management:** Leverages the **sched-ext** framework with the `scx_lavd` scheduler for a zero-lag desktop experience even under 100% CPU load.
-*   **GPU Acceleration:** Integrated **ROCm** stack for AMD hardware, enabling native HIP and OpenCL support for Deep Learning frameworks and GPU-accelerated simulators.
+<details>
+  <summary><b>⚡ PERFORMANCE TUNING & GPU ACCELERATION</b></summary>
+  <br/>
+
+  *   **CachyOS Kernel:** Optimized for the `x86_64-v3` microarchitecture to maximize throughput in simulation and training workloads.
+  *   **Latency Management:** Leverages the **sched-ext** framework with the `scx_lavd` scheduler for a zero-lag desktop experience even under 100% CPU load.
+  *   **GPU Acceleration:** Integrated **ROCm** stack for AMD hardware, enabling native HIP and OpenCL support for Deep Learning frameworks and GPU-accelerated simulators.
+</details>
 
 ---
 
 ## 🛠️ The Engineering Stack
 
-### 🟦 VLSI & Digital Verification
-A production-grade toolchain for RTL design and functional verification:
-*   **Simulation:** `Verilator` (High-performance C++ cycle-accurate), `Icarus Verilog`, `NVC` (VHDL).
-*   **Formal Verification:** `SBY` (SymbiYosys) for bounded model checking.
-*   **Physical Design:** `Magic-VLSI` and `KLayout` for GDSII layout and DRC.
-*   **Python-Based DV:** Native `cocotb` integration for modern coroutine-based cosimulation.
+<details>
+  <summary><b>🟦 VLSI & DIGITAL VERIFICATION</b></summary>
+  <br/>
 
-### 🧠 Deep Learning & AI
-Optimized environment for high-intensity computation:
-*   **Frameworks:** Full support for `PyTorch` and `TensorFlow` via the ROCm/HIP backend.
-*   **Data Science:** Production-ready `NumPy`, `Pandas`, and `Matplotlib` pre-configured in the system shell.
-*   **Workflow:** Custom `nix-ld` configuration allows running unpatched pre-compiled binaries (like Conda environments or proprietary AI models) seamlessly.
+  A production-grade toolchain for RTL design and functional verification:
+  *   **Simulation:** `Verilator` (High-performance C++ cycle-accurate), `Icarus Verilog`, `NVC` (VHDL).
+  *   **Formal Verification:** `SBY` (SymbiYosys) for bounded model checking.
+  *   **Physical Design:** `Magic-VLSI` and `KLayout` for GDSII layout and DRC.
+  *   **Python-Based DV:** Native `cocotb` integration for modern coroutine-based cosimulation.
+</details>
 
-### 🚀 AMD Vivado & Vitis (The Pragmatic Bridge)
-This workstation solves the complex "Nix vs EDA" problem by utilizing a **Distrobox** container system.
-*   The **AMD Xilinx** suite runs inside an optimized Ubuntu container for 100% binary compatibility.
-*   **Native Integration:** Desktop launchers (Vivado GUI, Vitis IDE, DocNav) are mapped from the container to the host, making them feel like native NixOS applications.
-*   **Hardware Access:** Kernel-level `udev` rules enable rootless JTAG and hardware-in-the-loop debugging directly from the container.
+<details>
+  <summary><b>🧠 DEEP LEARNING & AI RESEARCH</b></summary>
+  <br/>
+
+  Optimized environment for high-intensity computation:
+  *   **Frameworks:** Full support for `PyTorch` and `TensorFlow` via the ROCm/HIP backend.
+  *   **Data Science:** Production-ready `NumPy`, `Pandas`, and `Matplotlib` pre-configured in the system shell.
+  *   **Workflow:** Custom `nix-ld` configuration allows running unpatched pre-compiled binaries (like Conda environments or proprietary AI models) seamlessly.
+</details>
+
+<details>
+  <summary><b>🚀 AMD VIVADO & VITIS (THE PRAGMATIC BRIDGE)</b></summary>
+  <br/>
+
+  This workstation solves the complex "Nix vs EDA" problem by utilizing a **Distrobox** container system.
+  *   The **AMD Xilinx** suite runs inside an optimized Ubuntu container for 100% binary compatibility.
+  *   **Native Integration:** Desktop launchers (Vivado GUI, Vitis IDE, DocNav) are mapped from the container to the host, making them feel like native NixOS applications.
+  *   **Hardware Access:** Kernel-level `udev` rules enable rootless JTAG and hardware-in-the-loop debugging directly from the container.
+</details>
 
 ---
 
 ## 🗺️ Project Structure
+
+<div align="center">
 
 ```mermaid
 graph TD
@@ -88,11 +120,17 @@ graph TD
     Sops --> YAML
 ```
 
+</div>
+
 ---
 
 ## 🎮 System Orchestration (`manx` CLI)
 
 The workstation includes a custom-built management utility, `manx`, designed for high-efficiency system maintenance and professional development workflows.
+
+<details>
+  <summary><b>🛠️ VIEW CLI COMMAND REFERENCE</b></summary>
+  <br/>
 
 | Category | Command | Function |
 | :--- | :--- | :--- |
@@ -107,6 +145,8 @@ The workstation includes a custom-built management utility, `manx`, designed for
 | | `manx shell <pkg>` | Initialize transient, isolated development environments. |
 | **Aesthetics** | `manx screensaver` | Orchestrate custom ASCII/Image branding for the workstation. |
 
+</details>
+
 ---
 
 ## 🖼️ Visual Showcase
@@ -115,96 +155,85 @@ The workstation includes a custom-built management utility, `manx`, designed for
   <table style="border-collapse: collapse; border: none;">
     <tr>
       <td width="50%" align="center">
-        <img src="assets/screenshots/manx_menu.png" alt="Manx CLI Menu" width="100%">
+        <img src="assets/screenshots/manx_menu.png" alt="Manx CLI Menu" width="100%" style="border-radius: 8px;">
         <br/><i>The <b>manx</b> system orchestrator.</i>
       </td>
       <td width="50%" align="center">
-        <img src="assets/screenshots/manx_screensaver_menu.png" alt="Screensaver Menu" width="100%">
+        <img src="assets/screenshots/manx_screensaver_menu.png" alt="Screensaver Menu" width="100%" style="border-radius: 8px;">
         <br/><i>Branding & Screensaver control.</i>
       </td>
     </tr>
     <tr>
       <td width="50%" align="center">
-        <img src="assets/screenshots/manx_edit.png" alt="Interactive Editing" width="100%">
+        <img src="assets/screenshots/manx_edit.png" alt="Interactive Editing" width="100%" style="border-radius: 8px;">
         <br/><i>Fuzzy-find config navigation.</i>
       </td>
       <td width="50%" align="center">
-        <img src="assets/screenshots/manx_edit_search.png" alt="Fuzzy Search" width="100%">
+        <img src="assets/screenshots/manx_edit_search.png" alt="Fuzzy Search" width="100%" style="border-radius: 8px;">
         <br/><i>Instant preview & search.</i>
       </td>
     </tr>
   </table>
   <br/>
-  <img src="assets/screenshots/screensaver_effect.png" alt="Silicon Screensaver Effect" width="100%">
-  <br/>
-  <i>Immersive terminal text effects for workstation branding.</i>
+  
+  <details>
+    <summary><b>✨ VIEW SILICON SCREENSAVER PREVIEW</b></summary>
+    <br/>
+    <img src="assets/screenshots/screensaver_effect.png" alt="Silicon Screensaver Effect" width="100%" style="border-radius: 8px; border: 1px solid #333;">
+    <p><i>Immersive terminal text effects for workstation branding.</i></p>
+  </details>
 </div>
 
 ---
 
 ## 🚀 Installation & Deployment
 
-This configuration supports two paths: a **Professional Stateless Setup** (advanced) and a **Standard Persistent Setup** (recommended for beginners).
+<details>
+  <summary><b>📦 STEP 1: INITIALIZE CONFIGURATION</b></summary>
+  <br/>
 
-### 1. Initialize the Configuration
-On any NixOS system (or the installer), run:
-```bash
-git clone https://github.com/techanand8/nix-config.git ~/nix-config
-cd ~/nix-config
+  On any NixOS system (or the installer), run:
+  ```bash
+  git clone https://github.com/techanand8/nix-config.git ~/nix-config
+  cd ~/nix-config
 
-# Create your local variables file
-cp hosts/manx/variables.nix.example hosts/manx/variables.nix
-# Edit variables.nix with your username, email, and preferred versions.
-```
+  # Create your local variables file
+  cp hosts/manx/variables.nix.example hosts/manx/variables.nix
+  # Edit variables.nix with your username, email, and preferred versions.
+  ```
+</details>
 
-### 2. Adaptation to Your Hardware
-If you are not using the exact same hardware as this profile, you **must** update the hardware configuration:
-1.  Generate a configuration for your current machine:
-    ```bash
-    nixos-generate-config --show-hardware-config > hosts/manx/hardware-configuration.nix
-    ```
-2.  Open `hosts/manx/hardware-configuration.nix` and ensure it uses your actual partitions (e.g., `ext4`, `fat32`, etc.).
+<details>
+  <summary><b>🔧 STEP 2: HARDWARE ADAPTATION</b></summary>
+  <br/>
 
-### 3. Choose Your Setup Type
+  If you are not using the exact same hardware as this profile, you **must** update the hardware configuration:
+  1.  Generate a configuration for your current machine:
+      ```bash
+      nixos-generate-config --show-hardware-config > hosts/manx/hardware-configuration.nix
+      ```
+  2.  Open `hosts/manx/hardware-configuration.nix` and ensure it uses your actual partitions (e.g., `ext4`, `fat32`, etc.).
+</details>
 
-#### Path A: Standard Installation (Easy)
-If you want a normal, persistent system (like Ubuntu or standard NixOS):
-1.  Open `hosts/manx/configuration.nix`.
-2.  **Comment out or remove** the line: `./modules/system/stateless.nix`.
-3.  Apply the system:
-    ```bash
-    sudo nixos-rebuild switch --flake .#MANX
-    ```
+<details>
+  <summary><b>⚡ STEP 3: CHOOSE DEPLOYMENT MODEL</b></summary>
+  <br/>
 
-#### Path B: Professional Stateless Setup (Advanced)
-This requires the "Total Erasure" model using Btrfs snapshots.
-1.  **Requirement:** Your `hardware-configuration.nix` must use Btrfs and include a subvolume named `root` and a snapshot named `blank`.
-2.  Ensure `stateless.nix` is enabled in your imports.
-3.  Follow the [Disk Preparation Guide](#-disk-preparation-manual-steps) below.
+  #### Path A: Standard Installation (Easy)
+  If you want a normal, persistent system:
+  1.  Open `hosts/manx/configuration.nix`.
+  2.  **Comment out or remove** the line: `./modules/system/stateless.nix`.
+  3.  Apply the system:
+      ```bash
+      sudo nixos-rebuild switch --flake .#MANX
+      ```
 
----
-
-## 🛡️ Statelessness & Persistence Architecture (Advanced)
-
-*Only relevant if using Path B.*
-
-This workstation implements a **"Total Erasure"** security model. Every time the system boots, the root partition is wiped clean and restored from a pristine snapshot.
-
-### 💾 Disk Preparation (Manual Steps)
-If you chose the stateless path, you must manually prepare your Btrfs subvolumes before the first boot:
-```bash
-# 1. Mount your top-level Btrfs partition (ID 5)
-mount -t btrfs /dev/mapper/luks-uuid /mnt
-
-# 2. Create the required subvolumes
-btrfs subvolume create /mnt/root
-btrfs subvolume create /mnt/home
-btrfs subvolume create /mnt/nix
-btrfs subvolume create /mnt/persist
-
-# 3. Create the 'blank' snapshot for the rollback script
-btrfs subvolume snapshot -r /mnt/root /mnt/blank
-```
+  #### Path B: Professional Stateless Setup (Advanced)
+  This requires the "Total Erasure" model using Btrfs snapshots.
+  1.  **Requirement:** Your `hardware-configuration.nix` must use Btrfs and include a subvolume named `root` and a snapshot named `blank`.
+  2.  Ensure `stateless.nix` is enabled in your imports.
+  3.  Follow the [Disk Preparation Guide](#-disk-preparation-manual-steps) below.
+</details>
 
 ---
 
