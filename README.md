@@ -172,10 +172,18 @@ graph TD
   <br/>
   
   <details>
-    <summary><b>✨ VIEW TERMINAL IDLE STATE</b></summary>
+    <summary><b>✨ VIEW TERMINAL IDLE STATES & BRANDING</b></summary>
     <br/>
-    <img src="assets/screenshots/screensaver_effect.png" alt="Terminal Idle State" width="100%" style="border-radius: 6px; border: 1px solid #444;">
-    <p><i>Terminal-based workstation branding and idle state management.</i></p>
+    <div align="center">
+      <img src="assets/screenshots/screensaver_effect.png" alt="Terminal Idle State" width="100%" style="border-radius: 6px; border: 1px solid #444;">
+      <p><i>Standard ASCII-based workstation branding and idle state management.</i></p>
+      <hr style="border: 0.5px solid #222;">
+      <img src="modules/system/plymouth/red_glow.jpg" alt="Boot Branding" width="100%" style="border-radius: 6px; border: 1px solid #444;">
+      <p><i>High-fidelity boot splash and early graphics handoff wallpaper.</i></p>
+      <hr style="border: 0.5px solid #222;">
+      <img src="modules/system/plymouth/boot_wallpaper.jpg" alt="System Lock Branding" width="100%" style="border-radius: 6px; border: 1px solid #444;">
+      <p><i>Deep-integrated lock screen and session persistence branding.</i></p>
+    </div>
   </details>
 </div>
 
