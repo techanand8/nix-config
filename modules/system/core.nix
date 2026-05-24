@@ -106,6 +106,7 @@
     nh # Better UI for rebuilds
     nix-output-monitor # Beautiful progress bars
     nvd # Show exactly what packages changed after rebuild
+    cachix # Binary cache management tool
     cryptsetup # LUKS management tools
 
     # --- SECURE DECRYPT / ENCRYPT UTILS (Secrets Management) ---

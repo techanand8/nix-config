@@ -911,29 +911,47 @@ Rectangle {
                         elide: Text.ElideRight
                     }
 
-                    indicator: Canvas {
+                    indicator: Text {
                         x: sessionSelector.width - width - 16
                         y: sessionSelector.topPadding + (sessionSelector.availableHeight - height) / 2
-                        width: 14
-                        height: 8
-                        contextType: "2d"
-                        onPaint: {
-                            var ctx = getContext("2d")
-                            ctx.reset()
-                            ctx.moveTo(0, 0)
-                            ctx.lineTo(width, 0)
-                            ctx.lineTo(width / 2, height)
-                            ctx.closePath()
-                            ctx.fillStyle = "#39FF14"
-                            ctx.fill()
-                        }
+                        text: "▼"
+                        font: bodyFont
+                        color: sessionSelector.popup.visible ? maroonBright : (sessionSelector.hovered ? neonGreen : textMuted)
+                        rotation: sessionSelector.popup.visible ? 180 : (sessionSelector.hovered ? 15 : 0)
+                        
+                        Behavior on rotation { NumberAnimation { duration: 250; easing.type: Easing.OutQuad } }
+                        Behavior on color { ColorAnimation { duration: 150 } }
                     }
 
-                    background: Rectangle {
-                        radius: 16
-                        color: inputFill
-                        border.width: sessionSelector.visualFocus ? 2 : 1
-                        border.color: sessionSelector.visualFocus ? selectedBorder : inputBorder
+                    background: Item {
+                        RectangularGlow {
+                            id: selectorGlow
+                            anchors.fill: selectorBg
+                            glowRadius: sessionSelector.hovered || sessionSelector.popup.visible ? 8 : 0
+                            spread: 0.1
+                            color: sessionSelector.popup.visible ? "#66FF1133" : "#4439FF14"
+                            cornerRadius: selectorBg.radius
+                            
+                            Behavior on glowRadius { NumberAnimation { duration: 200 } }
+                            Behavior on color { ColorAnimation { duration: 200 } }
+                        }
+
+                        Rectangle {
+                            id: selectorBg
+                            anchors.fill: parent
+                            radius: 16
+                            color: inputFill
+                            border.width: sessionSelector.visualFocus || sessionSelector.popup.visible ? 2 : 1
+                            border.color: sessionSelector.popup.visible ? maroonBright : (sessionSelector.visualFocus || sessionSelector.hovered ? selectedBorder : inputBorder)
+
+                            gradient: Gradient {
+                                orientation: Gradient.Horizontal
+                                GradientStop { position: 0.0; color: inputFill }
+                                GradientStop { position: 1.0; color: sessionSelector.popup.visible ? "#22FF1133" : (sessionSelector.hovered ? "#1139FF14" : "#00000000") }
+                            }
+
+                            Behavior on border.color { ColorAnimation { duration: 150 } }
+                        }
                     }
 
                     popup: QQC2.Popup {
@@ -943,35 +961,99 @@ Rectangle {
                         modal: true
                         closePolicy: QQC2.Popup.CloseOnEscape | QQC2.Popup.CloseOnPressOutside
 
+                        enter: Transition {
+                            NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 250; easing.type: Easing.OutQuad }
+                            NumberAnimation { property: "scale"; from: 0.95; to: 1.0; duration: 250; easing.type: Easing.OutBack }
+                        }
+                        exit: Transition {
+                            NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: 150; easing.type: Easing.InQuad }
+                            NumberAnimation { property: "scale"; from: 1.0; to: 0.95; duration: 150; easing.type: Easing.InQuad }
+                        }
+
                         contentItem: ListView {
                             clip: true
-                            implicitHeight: contentHeight
+                            implicitHeight: Math.min(contentHeight, 250)
                             model: sessionSelector.popup.visible ? sessionSelector.delegateModel : null
                             currentIndex: sessionSelector.highlightedIndex
                             QQC2.ScrollIndicator.vertical: QQC2.ScrollIndicator {}
                         }
 
-                        background: Rectangle {
-                            radius: 18
-                            color: panelAlt
-                            border.width: 1
-                            border.color: selectedBorder
+                        background: Item {
+                            RectangularGlow {
+                                id: popupGlow
+                                anchors.fill: popupBg
+                                glowRadius: 16
+                                spread: 0.15
+                                color: "#CCFF1133"
+                                cornerRadius: popupBg.radius
+                            }
+
+                            Rectangle {
+                                id: popupBg
+                                anchors.fill: parent
+                                radius: 18
+                                color: "#ED0F020E"
+                                border.width: 2
+                                border.color: maroonBright
+
+                                Rectangle {
+                                    anchors.fill: parent
+                                    anchors.margins: 1
+                                    radius: parent.radius - 1
+                                    color: "transparent"
+                                    border.width: 1
+                                    border.color: "#3FFF1133"
+                                }
+                            }
                         }
                     }
 
                     delegate: QQC2.ItemDelegate {
+                        id: delegateItem
                         width: sessionSelector.width - 16
-                        contentItem: Text {
-                            text: (typeof modelData !== "undefined" && modelData && modelData.name) ? modelData.name : (model && model.name ? model.name : "")
-                            font: bodyFont
-                            color: highlighted ? neonGreen : textPrimary
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                            elide: Text.ElideRight
+                        implicitHeight: 48
+
+                        contentItem: RowLayout {
+                            anchors.fill: parent
+                            spacing: 12
+
+                            Rectangle {
+                                id: highlightBar
+                                Layout.preferredWidth: highlighted ? 6 : 0
+                                Layout.preferredHeight: 24
+                                radius: 3
+                                color: maroonBright
+                                Behavior on Layout.preferredWidth { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: (typeof modelData !== "undefined" && modelData && modelData.name) ? modelData.name : (model && model.name ? model.name : "")
+                                font: bodyFont
+                                color: highlighted ? textPrimary : textMuted
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                elide: Text.ElideRight
+
+                                scale: highlighted ? 1.04 : 1.0
+
+                                Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
+                                Behavior on color { ColorAnimation { duration: 120 } }
+                            }
+
+                            Item {
+                                Layout.preferredWidth: highlightBar.Layout.preferredWidth
+                                Layout.preferredHeight: 24
+                            }
                         }
+
                         background: Rectangle {
                             radius: 12
-                            color: highlighted ? hoverFill : "transparent"
+                            color: highlighted ? "#2AEE1133" : "transparent"
+                            border.width: highlighted ? 1 : 0
+                            border.color: "#80FF1133"
+
+                            Behavior on color { ColorAnimation { duration: 120 } }
                         }
                     }
                 }
