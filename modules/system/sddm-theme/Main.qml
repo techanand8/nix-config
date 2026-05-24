@@ -71,7 +71,7 @@ Rectangle {
     property string timeString: Qt.formatTime(new Date(), "hh:mm")
     property string dateString: Qt.formatDate(new Date(), "dddd, dd MMM yyyy")
     property string binarySeconds: "0b000000"
-    property string timingStats: "tpd 1.4ns  |  f = 60Hz  |  VDD = 1.8V"
+    property string timingStats: "tpd 0.8s  |  f = 60Hz  |  VDD = 1.8V"
 
     property color spectrumColor: neonGreen
 
@@ -79,12 +79,41 @@ Rectangle {
         id: spectrumAnimation
         running: true
         loops: Animation.Infinite
-        ColorAnimation { target: root; property: "spectrumColor"; from: "#39FF14"; to: "#99FF11"; duration: 600; easing.type: Easing.InOutQuad }
-        ColorAnimation { target: root; property: "spectrumColor"; from: "#99FF11"; to: "#FF9900"; duration: 600; easing.type: Easing.InOutQuad }
-        ColorAnimation { target: root; property: "spectrumColor"; from: "#FF9900"; to: "#FF1133"; duration: 600; easing.type: Easing.InOutQuad }
-        ColorAnimation { target: root; property: "spectrumColor"; from: "#FF1133"; to: "#FF9900"; duration: 600; easing.type: Easing.InOutQuad }
-        ColorAnimation { target: root; property: "spectrumColor"; from: "#FF9900"; to: "#99FF11"; duration: 600; easing.type: Easing.InOutQuad }
-        ColorAnimation { target: root; property: "spectrumColor"; from: "#99FF11"; to: "#39FF14"; duration: 600; easing.type: Easing.InOutQuad }
+        ColorAnimation { target: root; property: "spectrumColor"; from: "#39FF14"; to: "#99FF11"; duration: 4000; easing.type: Easing.InOutQuad }
+        ColorAnimation { target: root; property: "spectrumColor"; from: "#99FF11"; to: "#FF9900"; duration: 4000; easing.type: Easing.InOutQuad }
+        ColorAnimation { target: root; property: "spectrumColor"; from: "#FF9900"; to: "#FF1133"; duration: 4000; easing.type: Easing.InOutQuad }
+        ColorAnimation { target: root; property: "spectrumColor"; from: "#FF1133"; to: "#FF9900"; duration: 4000; easing.type: Easing.InOutQuad }
+        ColorAnimation { target: root; property: "spectrumColor"; from: "#FF9900"; to: "#99FF11"; duration: 4000; easing.type: Easing.InOutQuad }
+        ColorAnimation { target: root; property: "spectrumColor"; from: "#99FF11"; to: "#39FF14"; duration: 4000; easing.type: Easing.InOutQuad }
+    }
+
+    readonly property bool isCapsActive: (typeof sddm !== "undefined" && sddm !== null && sddm.capsLock !== undefined) ? sddm.capsLock : false
+
+    property real cpuLoad: 0.35
+    property real telemetrySpeedMultiplier: 1.0
+    property real telemetryJitter: 0.0
+    property real telemetryNoiseAccumulator: 0.0
+    property int verilogIndex: 0
+    property var verilogLines1: ["module workstation_auth_logic;", "always @(posedge clk or negedge rst_n)", "assign parity_error = ^data_bus;", "always @(*) begin", "wire [255:0] sha256_hash;"]
+    property var verilogLines2: ["assign active_operator = \"mayank-anand\";", "  if (!rst_n) state <= IDLE; else state <= next;", "assign dec_valid = (key == SIGNATURE);", "  case(opcode) ALU_ADD: out = a + b;", "decrypt_core u0 (.clk(clk), .in(key));"]
+    property bool isGlitchActive: false
+    property bool isSuccessWaveActive: false
+    property real successWaveProgress: 0.0
+    property int hoveredGateIndex: -1
+    property int hoveredTableIndex: -1
+    property real verilogOpacity: 1.0
+
+    property color rainbowColor: maroonBright
+
+    SequentialAnimation {
+        id: rainbowAnimation
+        running: true
+        loops: Animation.Infinite
+        ColorAnimation { target: root; property: "rainbowColor"; to: "#00E5FF"; duration: 2000; easing.type: Easing.InOutQuad } // VLSI Cyan (Clock)
+        ColorAnimation { target: root; property: "rainbowColor"; to: "#FF9900"; duration: 2000; easing.type: Easing.InOutQuad } // VLSI Gold (Power)
+        ColorAnimation { target: root; property: "rainbowColor"; to: "#FF00FF"; duration: 2000; easing.type: Easing.InOutQuad } // Magenta
+        ColorAnimation { target: root; property: "rainbowColor"; to: neonGreen; duration: 2000; easing.type: Easing.InOutQuad } // Neon
+        ColorAnimation { target: root; property: "rainbowColor"; to: maroonBright; duration: 2000; easing.type: Easing.InOutQuad } // Maroon
     }
 
     function syncSelectedUser() {
@@ -116,7 +145,9 @@ Rectangle {
         authenticating = true
         messageColor = neonGreen
         messageText = "Opening MANX VLSI Customized Workstation..."
-        sddm.login(selectedUserName, passwordField.text, sessionSelector.currentIndex)
+        if (typeof sddm !== "undefined" && sddm !== null) {
+            sddm.login(selectedUserName, passwordField.text, sessionSelector.currentIndex)
+        }
     }
 
     TextConstants {
@@ -150,6 +181,37 @@ Rectangle {
         }
     }
 
+    Timer {
+        id: authGlitchTimer
+        interval: 1500
+        repeat: false
+        onTriggered: {
+            root.isGlitchActive = false
+        }
+    }
+
+    SequentialAnimation {
+        id: verilogTransitionAnim
+        running: false
+        NumberAnimation { target: root; property: "verilogOpacity"; to: 0.0; duration: 300; easing.type: Easing.InOutQuad }
+        ScriptAction {
+            script: {
+                root.verilogIndex = (root.verilogIndex + 1) % 5
+            }
+        }
+        NumberAnimation { target: root; property: "verilogOpacity"; to: 1.0; duration: 300; easing.type: Easing.InOutQuad }
+    }
+
+    Timer {
+        id: verilogCycleTimer
+        interval: 12000
+        running: true
+        repeat: true
+        onTriggered: {
+            verilogTransitionAnim.start()
+        }
+    }
+
     Canvas {
         id: bgCanvas
         anchors.fill: parent
@@ -161,6 +223,98 @@ Rectangle {
         property int numParticles: 30
         property real pulse: 0
         property real simulationProgress: 0
+
+        function checkHover(mx, my) {
+            var foundGateIdx = -1
+            var foundTableIdx = -1
+
+            var scale = uiScale
+            var shellWidth = Math.min(width - Math.round(80 * scale), 1420)
+            var shellHeight = Math.min(height - Math.round(40 * scale), 860)
+            var shellX = (width - shellWidth) / 2
+            var shellY = (height - shellHeight) / 2
+
+            var shellSafeR = shellX + shellWidth + 10 * scale
+            var shellSafeB = shellY + shellHeight + 10 * scale
+
+            var gatesX = [
+                width * 0.5,
+                shellX * 0.52,
+                shellX * 0.52,
+                shellX * 0.52,
+                width * 0.5,
+                shellSafeR + (width - shellSafeR) * 0.48,
+                shellSafeR + (width - shellSafeR) * 0.48,
+                shellSafeR + (width - shellSafeR) * 0.48
+            ]
+
+            var gatesY = [
+                shellY * 0.58,
+                shellY + shellHeight * 0.07,
+                shellY + shellHeight * 0.39,
+                shellY + shellHeight * 0.71,
+                shellSafeB + (height - shellSafeB) * 0.35,
+                shellY + shellHeight * 0.07,
+                shellY + shellHeight * 0.39,
+                shellY + shellHeight * 0.71
+            ]
+
+            var gw = 36 * scale
+            var gh = 36 * scale
+
+            for (var gi = 0; gi < 8; gi++) {
+                var gx = gatesX[gi]
+                var gy = gatesY[gi]
+
+                // Gate body bounds check
+                if (Math.abs(mx - gx) < gw / 2 + 10 * scale && Math.abs(my - gy) < gh / 2 + 10 * scale) {
+                    foundGateIdx = gi
+                }
+
+                // HUD/Waveform cards bounds check
+                var isLeft = (gx < width * 0.4)
+                var isRight = (gx > width * 0.6)
+                var gateStubLen = (gi === 0 || gi === 4) ? 80 * scale : 56 * scale
+
+                var totalStates = (gi === 0 || gi === 4) ? 2 : 4
+                var hudW = (totalStates < 3) ? 128 * scale : 118 * scale
+                var hudH = (totalStates < 3) ? 70 * scale : 88 * scale
+                var wfW = hudW
+                var wfH = (totalStates < 3) ? 50 * scale : 58 * scale
+
+                var hx = 0; var hy = 0; var wx = 0; var wy = 0
+                if (isLeft || isRight) {
+                    hx = gx - hudW / 2
+                    hy = gy + gh / 2 + 14 * scale
+                    wx = gx - wfW / 2
+                    wy = hy + hudH + 8 * scale
+                } else {
+                    hx = gx - gateStubLen - hudW - 60 * scale
+                    hy = gy - hudH / 2
+                    wx = gx + gateStubLen + 60 * scale
+                    wy = gy - wfH / 2
+                }
+
+                // Boundary clamping
+                hx = Math.max(10, Math.min(hx, width - hudW - 10)); hy = Math.max(10, Math.min(hy, height - hudH - 10))
+                wx = Math.max(10, Math.min(wx, width - wfW - 10)); wy = Math.max(10, Math.min(wy, height - wfH - 10))
+
+                // Check inside HUD Card bounds
+                if (mx >= hx && mx <= hx + hudW && my >= hy && my <= hy + hudH) {
+                    foundTableIdx = gi
+                }
+                // Check inside Waveform Card bounds
+                if (mx >= wx && mx <= wx + wfW && my >= wy && my <= wy + wfH) {
+                    foundTableIdx = gi
+                }
+            }
+
+            if (root.hoveredGateIndex !== foundGateIdx || root.hoveredTableIndex !== foundTableIdx) {
+                root.hoveredGateIndex = foundGateIdx
+                root.hoveredTableIndex = foundTableIdx
+                bgCanvas.requestPaint()
+            }
+        }
 
         onWidthChanged: initParticles()
         onHeightChanged: initParticles()
@@ -176,8 +330,8 @@ Rectangle {
                 particles.push({
                     x: Math.random() * width,
                     y: Math.random() * height,
-                    vx: (Math.random() - 0.5) * 0.7,
-                    vy: (Math.random() - 0.5) * 0.7,
+                    vx: (Math.random() - 0.5) * 3.0,
+                    vy: (Math.random() - 0.5) * 3.0,
                     r: Math.random() * 2.2 + 0.8,
                     a: Math.random() * 0.35 + 0.12,
                     isRed: Math.random() < 0.20
@@ -194,22 +348,21 @@ Rectangle {
             return r + ", " + g + ", " + b
         }
 
-        function drawGateWaveform(ctx, wx, wy, ww, wh, gateType, rows, gateColor, isActive, sp) {
+        function drawGateWaveform(ctx, wx, wy, ww, wh, gateType, rows, isActive, sp) {
             var isSingle = (gateType === "BUF" || gateType === "NOT")
             var numSigs = isSingle ? 2 : 3
             var sigNames  = isSingle ? ["IN", "Y"] : ["A", "B", "Y"]
-            var sigColors = isSingle ? ["#00E5FF", gateColor] : ["#00E5FF", gateColor, "#FFFFFF"]
-            var numPoints = 50
+            var numPoints = 80
             var rowCount  = rows.length
-            var labelW    = 14 * uiScale
+            var labelW    = 18 * uiScale
             var sigH      = wh / numSigs
 
-            // Card background
+            // High-contrast Glassmorphic Card background
             ctx.save()
-            var rr = 4 * uiScale
-            ctx.fillStyle = "rgba(4, 1, 8, 0.90)"
-            ctx.shadowBlur = isActive ? 8 * uiScale : 3 * uiScale
-            ctx.shadowColor = isActive ? gateColor : "rgba(0,0,0,0.5)"
+            var rr = 6 * uiScale
+            ctx.fillStyle = "rgba(5, 1, 8, 0.96)"
+            ctx.shadowBlur = 6 * uiScale
+            ctx.shadowColor = "rgba(0,0,0,0.8)"
             ctx.beginPath()
             ctx.moveTo(wx + rr, wy)
             ctx.lineTo(wx + ww - rr, wy)
@@ -222,101 +375,93 @@ Rectangle {
             ctx.quadraticCurveTo(wx, wy, wx + rr, wy)
             ctx.closePath()
             ctx.fill()
-            ctx.shadowBlur = 0
-            ctx.strokeStyle = isActive ? gateColor : "rgba(255,255,255,0.12)"
-            ctx.lineWidth = 0.8 * uiScale
+            ctx.strokeStyle = isActive ? "rgba(57, 255, 20, 0.35)" : "rgba(255, 17, 51, 0.25)"
+            ctx.lineWidth = 1 * uiScale
             ctx.stroke()
-            ctx.restore()
-
-            // Divider lines between signal rows
-            ctx.save()
-            ctx.strokeStyle = "rgba(255,255,255,0.06)"
-            ctx.lineWidth = 0.7
-            for (var di = 1; di < numSigs; di++) {
-                var dyy = wy + di * sigH
-                ctx.beginPath()
-                ctx.moveTo(wx + labelW, dyy)
-                ctx.lineTo(wx + ww - 2, dyy)
-                ctx.stroke()
-            }
-            ctx.restore()
-
-            // Grid verticals (4 divisions)
-            ctx.save()
-            ctx.strokeStyle = "rgba(255,255,255,0.04)"
-            ctx.lineWidth = 0.7
-            for (var gvi = 1; gvi < 4; gvi++) {
-                var gvx = wx + labelW + (gvi / 4) * (ww - labelW - 2)
-                ctx.beginPath()
-                ctx.moveTo(gvx, wy)
-                ctx.lineTo(gvx, wy + wh)
-                ctx.stroke()
-            }
             ctx.restore()
 
             // Draw each signal trace
             for (var si = 0; si < numSigs; si++) {
                 var baseY  = wy + si * sigH + sigH * 0.5
-                var amp    = sigH * 0.36
-                var col    = sigColors[si]
+                var amp    = sigH * 0.32
                 var sName  = sigNames[si]
                 var colIdx = (isSingle ? [0, 2] : [0, 1, 2])[si]
 
                 // Signal label
                 ctx.save()
-                ctx.fillStyle = col
-                ctx.font = "bold " + Math.max(6, Math.round(7 * uiScale)) + "px 'JetBrainsMono Nerd Font'"
+                ctx.fillStyle = "rgba(255, 255, 255, 0.5)"
+                ctx.font = "bold " + Math.max(7, Math.round(8 * uiScale)) + "px 'JetBrainsMono Nerd Font'"
                 ctx.textAlign = "left"
                 ctx.textBaseline = "middle"
-                ctx.fillText(sName, wx + 2, baseY)
+                ctx.fillText(sName, wx + 4, baseY)
                 ctx.restore()
 
-                // Waveform trace
+                // Waveform trace with dynamic segment coloring
                 ctx.save()
-                ctx.strokeStyle = col
-                ctx.lineWidth = 1.3
-                ctx.shadowBlur = 4
-                ctx.shadowColor = col
-                ctx.setLineDash([])
-                ctx.beginPath()
+                ctx.lineWidth = 1.8 * uiScale
 
                 var prevVal = -1
+                var startX = wx + labelW
+                var endX = wx + ww - 6 * uiScale
+
                 for (var pi = 0; pi <= numPoints; pi++) {
                     var t = (pi / numPoints + sp) % 1.0
-                    var rowIdx = Math.floor(t * rowCount) % rowCount
+
+                    // tpd delay shift for output signal
+                    var sampleT = t
+                    if (si === numSigs - 1) sampleT = (t - (0.6 / rowCount) + 1.0) % 1.0
+
+                    var rowIdx = Math.floor(sampleT * rowCount) % rowCount
                     var row = rows[rowIdx]
                     var val = parseInt(row[colIdx])
                     if (isNaN(val)) val = 0
+                    if (root.isGlitchActive) {
+                        val = (Math.random() < 0.05) ? (Math.random() < 0.5 ? 1 : 0) : 0
+                    }
 
-                    var px2 = wx + labelW + (pi / numPoints) * (ww - labelW - 3)
-                    var py2 = baseY + (val === 0 ? amp : -amp)
+                    var px = startX + (pi / numPoints) * (endX - startX)
+                    var py = baseY + (val === 0 ? amp : -amp)
+                    var segmentColor = (val === 1) ? "#39FF14" : "#FF1133"
 
                     if (pi === 0) {
-                        ctx.moveTo(px2, py2)
+                        ctx.beginPath()
+                        ctx.moveTo(px, py)
                         prevVal = val
                     } else if (val !== prevVal) {
-                        ctx.lineTo(px2, prevVal === 0 ? baseY + amp : baseY - amp)
-                        ctx.lineTo(px2, py2)
+                        // Vertical transition
+                        ctx.lineTo(px, prevVal === 0 ? baseY + amp : baseY - amp)
+                        ctx.lineTo(px, py)
+
+                        // Close and stroke previous segment with its color
+                        ctx.strokeStyle = (prevVal === 1) ? "#39FF14" : "#FF1133"
+                        ctx.stroke()
+
+                        // Start new segment
+                        ctx.beginPath()
+                        ctx.moveTo(px, py)
                     } else {
-                        ctx.lineTo(px2, py2)
+                        ctx.lineTo(px, py)
                     }
+
+                    if (pi === numPoints) {
+                        ctx.strokeStyle = segmentColor
+                        ctx.stroke()
+                    }
+
                     prevVal = val
                 }
-                ctx.stroke()
-                ctx.shadowBlur = 0
                 ctx.restore()
             }
 
-            // "NOW" marker at right edge
+            // "NOW" line
             ctx.save()
-            ctx.strokeStyle = "rgba(255,255,255,0.18)"
-            ctx.lineWidth = 0.8
-            ctx.setLineDash([2, 3])
+            ctx.strokeStyle = "rgba(255,255,255,0.4)"
+            ctx.lineWidth = 1
+            ctx.setLineDash([2, 2])
             ctx.beginPath()
-            ctx.moveTo(wx + ww - 2, wy)
-            ctx.lineTo(wx + ww - 2, wy + wh)
+            ctx.moveTo(wx + ww - 6 * uiScale, wy + 4)
+            ctx.lineTo(wx + ww - 6 * uiScale, wy + wh - 4)
             ctx.stroke()
-            ctx.setLineDash([])
             ctx.restore()
         }
 
@@ -327,48 +472,67 @@ Rectangle {
 
         function drawWireLabel(ctx, x, y, label, val, alignRight) {
             ctx.save()
-            var isHigh = (val === "1")
-            var valColor = isHigh ? "#39FF14" : "#FF1133"
-
-            ctx.font = "bold " + Math.round(9 * uiScale) + "px 'JetBrainsMono Nerd Font'"
-            ctx.fillStyle = "rgba(255, 255, 255, 0.75)"
-            ctx.textAlign = alignRight ? "right" : "left"
+            var valColor = (val === "1") ? "#39FF14" : "#FF1133"
+            ctx.font = "bold " + Math.round(10 * uiScale) + "px 'JetBrainsMono Nerd Font'"
             ctx.textBaseline = "middle"
 
+            var combinedText = label + " = " + val
+            var textW = ctx.measureText(combinedText).width
+            var labelW = ctx.measureText(label + " = ").width
+
             if (alignRight) {
-                var valW = ctx.measureText(val).width
-                ctx.fillText(label + "=", x - valW - 1 * uiScale, y)
-
-                ctx.font = "bold " + Math.round(10 * uiScale) + "px 'JetBrainsMono Nerd Font'"
+                ctx.textAlign = "right"
+                ctx.fillStyle = "rgba(255, 255, 255, 0.7)"
+                ctx.fillText(label + " =", x - 8 * uiScale - (textW - labelW), y)
                 ctx.fillStyle = valColor
-                ctx.shadowBlur = 6 * uiScale
+                ctx.shadowBlur = 8 * uiScale
                 ctx.shadowColor = valColor
-                ctx.fillText(val, x, y)
+                ctx.fillText(val, x - 8 * uiScale, y)
             } else {
-                ctx.fillText(label + "=", x, y)
-                var labelW = ctx.measureText(label + "=").width
-
-                ctx.font = "bold " + Math.round(10 * uiScale) + "px 'JetBrainsMono Nerd Font'"
+                ctx.textAlign = "left"
+                ctx.fillStyle = "rgba(255, 255, 255, 0.7)"
+                ctx.fillText(label + " =", x + 8 * uiScale, y)
                 ctx.fillStyle = valColor
-                ctx.shadowBlur = 6 * uiScale
+                ctx.shadowBlur = 8 * uiScale
                 ctx.shadowColor = valColor
-                ctx.fillText(val, x + labelW, y)
+                ctx.fillText(val, x + 8 * uiScale + labelW, y)
             }
             ctx.restore()
         }
 
-        function drawWaveguide(ctx, xStart, yStart, xEnd, yEnd, logicVal, gateColor, progress, phase, isInput, dir) {
+        function drawWireLabelCenter(ctx, x, y, label, val) {
+            ctx.save()
+            var valColor = (val === "1") ? "#39FF14" : "#FF1133"
+            ctx.font = "bold " + Math.round(10 * uiScale) + "px 'JetBrainsMono Nerd Font'"
+            ctx.textBaseline = "middle"
+
+            var combinedText = label + " = " + val
+            var textW = ctx.measureText(combinedText).width
+            var labelW = ctx.measureText(label + " = ").width
+            var startX = x - textW / 2
+
+            ctx.fillStyle = "rgba(255, 255, 255, 0.7)"
+            ctx.textAlign = "left"
+            ctx.fillText(label + " =", startX, y)
+            ctx.fillStyle = valColor
+            ctx.shadowBlur = 8 * uiScale
+            ctx.shadowColor = valColor
+            ctx.fillText(val, startX + labelW, y)
+            ctx.restore()
+        }
+
+        function drawWaveguide(ctx, xStart, yStart, xEnd, yEnd, logicVal, progress, phase, isInput) {
             ctx.save()
             var isHigh = (logicVal === "1")
             var baseColor = isHigh ? "#39FF14" : "#FF1133"
-            var dimColor = isHigh ? "rgba(57, 255, 20, 0.4)" : "rgba(255, 17, 51, 0.35)"
+            var dimColor = isHigh ? "rgba(57, 255, 20, 0.3)" : "rgba(255, 17, 51, 0.25)"
 
-            // PCB Microstrip Channel Backing
-            ctx.strokeStyle = "rgba(10, 2, 18, 0.55)"
-            ctx.lineWidth = 4 * uiScale
+            // PCB Channel Backing
             ctx.beginPath()
             ctx.moveTo(xStart, yStart)
             ctx.lineTo(xEnd, yEnd)
+            ctx.strokeStyle = "rgba(10, 2, 18, 0.6)"
+            ctx.lineWidth = 4 * uiScale
             ctx.stroke()
 
             // Waveguide path
@@ -376,51 +540,53 @@ Rectangle {
             ctx.lineWidth = 1.5 * uiScale
             ctx.stroke()
 
-            // Dash signal flow
+            // Dash signal flow (direction: Input -> Gate -> Output)
+            ctx.beginPath()
+            ctx.moveTo(xStart, yStart)
+            ctx.lineTo(xEnd, yEnd)
             ctx.strokeStyle = baseColor
             ctx.setLineDash([6 * uiScale, 8 * uiScale])
-            ctx.lineDashOffset = dir * simulationProgress * 90 * uiScale
+            // If input, flow towards gate. If output, flow away from gate.
+            ctx.lineDashOffset = (isInput ? -1 : -1) * simulationProgress * 500 * uiScale
             ctx.stroke()
+            ctx.setLineDash([])
             ctx.restore()
 
-            // Electron pulse drawing
+            // Electron pulse
             ctx.save()
             var curX = xStart
             var curY = yStart
 
             if (isInput) {
-                if (phase === 1) { // Phase 1: Input Setup (traveling)
+                if (phase === 1) { 
                     curX = xStart + (xEnd - xStart) * progress
                     curY = yStart + (yEnd - yStart) * progress
-                } else { // Phase 2 & 3: Resting at terminal
+                } else { 
                     curX = xEnd
                     curY = yEnd
                 }
-            } else { // Output trace (traveling or resting)
-                if (phase === 3) { // Phase 3: Output Resolution (traveling)
+            } else {
+                if (phase === 3) {
                     curX = xStart + (xEnd - xStart) * progress
                     curY = yStart + (yEnd - yStart) * progress
-                } else { // Phase 1 & 2: Resting at destination (previous state)
+                } else {
                     curX = xEnd
                     curY = yEnd
                 }
             }
 
-            // Draw glowing electron wave vector
             ctx.beginPath()
             ctx.arc(curX, curY, 4.5 * uiScale, 0, Math.PI * 2)
             ctx.fillStyle = baseColor
             ctx.shadowBlur = 12 * uiScale
             ctx.shadowColor = baseColor
             ctx.fill()
-
             ctx.beginPath()
             ctx.arc(curX, curY, 1.8 * uiScale, 0, Math.PI * 2)
             ctx.fillStyle = "#FFFFFF"
             ctx.fill()
             ctx.restore()
         }
-
         onPaint: {
             var ctx = getContext("2d")
             ctx.reset()
@@ -492,35 +658,26 @@ Rectangle {
             ctx.stroke()
             ctx.restore()
 
-            // Dynamic logic gate coordinate engine - avoids central shell overlap
-            var shellWidth = Math.max(200, Math.min(width - 120, 1420))
-            var shellHeight = Math.max(150, Math.min(height - 120, 820))
-            var shellX = Math.max(10, (width - shellWidth) / 2)
-            var shellY = Math.max(10, (height - shellHeight) / 2)
+            // Adaptive positioning engine
+            var shellWidth = Math.min(width - Math.round(80 * uiScale), 1420)
+            var shellHeight = Math.min(height - Math.round(40 * uiScale), 860)
+            var shellX = (width - shellWidth) / 2
+            var shellY = (height - shellHeight) / 2
 
-            var stubLen = 60 * uiScale
-            var gateMargin = stubLen + 100 * uiScale
+            var shellSafeX = shellX - 10 * uiScale
+            var shellSafeR = shellX + shellWidth + 10 * uiScale
+            var shellSafeY = shellY - 10 * uiScale
+            var shellSafeB = shellY + shellHeight + 10 * uiScale
 
-            var leftX = Math.max(gateMargin, shellX * 0.65)
-            var rightX = Math.min(width - gateMargin, width - shellX * 0.65)
-
-            var leftY1 = shellY + shellHeight * 0.14
-            var leftY2 = shellY + shellHeight * 0.46
-            var leftY3 = shellY + shellHeight * 0.78
-
-            var topY = Math.max(55 * uiScale, shellY * 0.52)
-            var bottomY = height - Math.max(55 * uiScale, shellY * 0.52)
-
-            // Multicolored premium VLSI verification channels color-mapped (swapped to match 2nd image)
             var gates = [
-                { type: "BUF", x: width * 0.5, y: topY, name: "BUFFER GATE", color: "#00E5FF", dimColor: "#003A40" },
-                { type: "AND", x: leftX, y: leftY1, name: "AND GATE", color: "#00F5FF", dimColor: "#003E40" },
-                { type: "OR", x: leftX, y: leftY2, name: "OR GATE", color: "#FF007F", dimColor: "#400020" },
-                { type: "XOR", x: leftX, y: leftY3, name: "XOR GATE", color: "#39FF14", dimColor: "#0E4005" },
-                { type: "NOT", x: width * 0.5, y: bottomY, name: "NOT GATE", color: "#FF1133", dimColor: "#40040C" },
-                { type: "NAND", x: rightX, y: leftY1, name: "NAND GATE", color: "#FF6C00", dimColor: "#401B00" },
-                { type: "NOR", x: rightX, y: leftY2, name: "NOR GATE", color: "#B026FF", dimColor: "#2C0940" },
-                { type: "XNOR", x: rightX, y: leftY3, name: "XNOR GATE", color: "#FFD700", dimColor: "#403600" }
+                { type: "BUF", x: width * 0.5, y: shellY * 0.58, name: "BUFFER GATE" },
+                { type: "AND", x: shellX * 0.52, y: shellY + shellHeight * 0.07, name: "AND GATE" },
+                { type: "OR", x: shellX * 0.52, y: shellY + shellHeight * 0.39, name: "OR GATE" },
+                { type: "XOR", x: shellX * 0.52, y: shellY + shellHeight * 0.71, name: "XOR GATE" },
+                { type: "NOT", x: width * 0.5, y: shellSafeB + (height - shellSafeB) * 0.35, name: "NOT GATE" },
+                { type: "NAND", x: shellSafeR + (width - shellSafeR) * 0.48, y: shellY + shellHeight * 0.07, name: "NAND GATE" },
+                { type: "NOR", x: shellSafeR + (width - shellSafeR) * 0.48, y: shellY + shellHeight * 0.39, name: "NOR GATE" },
+                { type: "XNOR", x: shellSafeR + (width - shellSafeR) * 0.48, y: shellY + shellHeight * 0.71, name: "XNOR GATE" }
             ]
 
             var gw = 36 * uiScale
@@ -528,414 +685,143 @@ Rectangle {
 
             for (var gi = 0; gi < gates.length; ++gi) {
                 var gate = gates[gi]
-                var gx = gate.x
-                var gy = gate.y
-                var isLeft = (gx < width * 0.4)
-                var isRight = (gx > width * 0.6)
-                var isTop = (gy < height * 0.25)
-                var isBottom = (gy > height * 0.75)
+                var gx = gate.x; var gy = gate.y
+                var isLeft = (gx < width * 0.4); var isRight = (gx > width * 0.6)
+                var isTop = (gy < height * 0.3); var isBottom = (gy > height * 0.7)
+                var gateStubLen = (gate.type === "BUF" || gate.type === "NOT") ? 80 * uiScale : 56 * uiScale
 
                 var rows = []
-                if (gate.type === "BUF") { rows = [["0", " ", "0"], ["1", " ", "1"]] }
-                else if (gate.type === "NOT") { rows = [["0", " ", "1"], ["1", " ", "0"]] }
-                else if (gate.type === "AND") { rows = [["0", "0", "0"], ["0", "1", "0"], ["1", "0", "0"], ["1", "1", "1"]] }
-                else if (gate.type === "NAND") { rows = [["0", "0", "1"], ["0", "1", "1"], ["1", "0", "1"], ["1", "1", "0"]] }
-                else if (gate.type === "OR") { rows = [["0", "0", "0"], ["0", "1", "1"], ["1", "0", "1"], ["1", "1", "1"]] }
-                else if (gate.type === "NOR") { rows = [["0", "0", "1"], ["0", "1", "0"], ["1", "0", "0"], ["1", "1", "0"]] }
-                else if (gate.type === "XOR") { rows = [["0", "0", "0"], ["0", "1", "1"], ["1", "0", "1"], ["1", "1", "0"]] }
-                else if (gate.type === "XNOR") { rows = [["0", "0", "1"], ["0", "1", "0"], ["1", "0", "0"], ["1", "1", "1"]] }
+                if (gate.type === "BUF") rows = [["0", " ", "0"], ["1", " ", "1"]]
+                else if (gate.type === "NOT") rows = [["0", " ", "1"], ["1", " ", "0"]]
+                else if (gate.type === "AND") rows = [["0", "0", "0"], ["0", "1", "0"], ["1", "0", "0"], ["1", "1", "1"]]
+                else if (gate.type === "NAND") rows = [["0", "0", "1"], ["0", "1", "1"], ["1", "0", "1"], ["1", "1", "0"]]
+                else if (gate.type === "OR") rows = [["0", "0", "0"], ["0", "1", "1"], ["1", "0", "1"], ["1", "1", "1"]]
+                else if (gate.type === "NOR") rows = [["0", "0", "1"], ["0", "1", "0"], ["1", "0", "0"], ["1", "1", "0"]]
+                else if (gate.type === "XOR") rows = [["0", "0", "0"], ["0", "1", "1"], ["1", "0", "1"], ["1", "1", "0"]]
+                else if (gate.type === "XNOR") rows = [["0", "0", "1"], ["0", "1", "0"], ["1", "0", "0"], ["1", "1", "1"]]
 
-                // Dynamic visual tpd propagation delay 3-phase engine
-                var activeRowIndex = Math.floor(((simulationProgress + gi * 0.125) % 1.0) * rows.length)
-                var prevRowIndex = (activeRowIndex - 1 + rows.length) % rows.length
-
+                // --- CLOCK & PHASE SYNC ENGINE ---
+                var totalStates = rows.length
+                var cycleProgress = (simulationProgress + gi * 0.125) % 1.0
+                var activeRowIndex = Math.floor(cycleProgress * totalStates)
                 var activeRow = rows[activeRowIndex]
-                var prevRow = rows[prevRowIndex]
 
-                var valA = activeRow[0]
-                var valB = activeRow[1]
-                var valY = activeRow[2]
-                var prevValY = prevRow[2]
+                var rowFrac = (cycleProgress * totalStates) % 1.0
+                var phase = 1; var inputProgress = 0; var processProgress = 0; var outputProgress = 0
+                if (rowFrac < 0.2) { phase = 1; inputProgress = easeInOut(rowFrac / 0.2) }
+                else if (rowFrac < 0.6) { phase = 2; processProgress = easeInOut((rowFrac - 0.2) / 0.4) }
+                else { phase = 3; outputProgress = easeInOut((rowFrac - 0.6) / 0.4) }
 
-                // Split progress inside the active truth table row into 3 distinct phases
-                var frac = ((simulationProgress + gi * 0.125) * rows.length) % 1.0
-                var phase = 1
-                var inputProgress = 0
-                var processProgress = 0
-                var outputProgress = 0
+                var valA = activeRow[0]; var valB = activeRow[1]; var valY = activeRow[2]
+                var prevActiveIndex = (activeRowIndex - 1 + totalStates) % totalStates
+                var isGateActive = (phase === 3) ? (valY === "1") : (rows[prevActiveIndex][rows[prevActiveIndex].length-1] === "1")
+                var currentOutVal = (phase === 3) ? valY : rows[prevActiveIndex][rows[prevActiveIndex].length-1]
 
-                if (frac < 0.32) {
-                    phase = 1
-                    inputProgress = easeInOut(frac / 0.32)
-                } else if (frac < 0.62) {
-                    phase = 2
-                    processProgress = easeInOut((frac - 0.32) / 0.30)
-                } else {
-                    phase = 3
-                    outputProgress = easeInOut((frac - 0.62) / 0.38)
-                }
-
-                // Resolves which logic values are active inside gate/out during early phases
-                var isGateActive = (phase === 3) ? (valY === "1") : (prevValY === "1")
-                var currentOutVal = (phase === 3) ? valY : prevValY
-
-                // Draw Input/Output waveguide traces dynamically mapped by column
+                // --- WAVEGUIDES & LABELS ---
                 if (isLeft || isRight) {
-                    drawWaveguide(ctx, gx - stubLen, gy - 6 * uiScale, gx - gw/2, gy - 6 * uiScale, valA, gate.color, inputProgress, phase, true, -1)
-                    drawWaveguide(ctx, gx - stubLen, gy + 6 * uiScale, gx - gw/2, gy + 6 * uiScale, valB, gate.color, inputProgress, phase, true, -1)
-                    drawWaveguide(ctx, gx + gw/2, gy, gx + stubLen, gy, currentOutVal, gate.color, outputProgress, phase, false, -1)
-
-                    // Symmetrical glowing logic node pads at the tips of stubs
-                    ctx.save()
-                    var colA = (valA === "1") ? "#39FF14" : "#FF1133"
-                    ctx.fillStyle = colA
-                    ctx.shadowBlur = 5 * uiScale
-                    ctx.shadowColor = colA
-                    ctx.beginPath()
-                    ctx.arc(gx - stubLen, gy - 6 * uiScale, 3.2 * uiScale, 0, Math.PI * 2)
-                    ctx.fill()
-
-                    var colB = (valB === "1") ? "#39FF14" : "#FF1133"
-                    ctx.fillStyle = colB
-                    ctx.shadowBlur = 5 * uiScale
-                    ctx.shadowColor = colB
-                    ctx.beginPath()
-                    ctx.arc(gx - stubLen, gy + 6 * uiScale, 3.2 * uiScale, 0, Math.PI * 2)
-                    ctx.fill()
-
-                    var colY = (currentOutVal === "1") ? "#39FF14" : "#FF1133"
-                    ctx.fillStyle = colY
-                    ctx.shadowBlur = 5 * uiScale
-                    ctx.shadowColor = colY
-                    ctx.beginPath()
-                    ctx.arc(gx + stubLen, gy, 3.2 * uiScale, 0, Math.PI * 2)
-                    ctx.fill()
-                    ctx.restore()
-
-                    drawWireLabel(ctx, gx - stubLen - 8 * uiScale, gy - 6 * uiScale, "A", valA, true)
-                    drawWireLabel(ctx, gx - stubLen - 8 * uiScale, gy + 6 * uiScale, "B", valB, true)
-                    drawWireLabel(ctx, gx + stubLen + 8 * uiScale, gy, "Y", currentOutVal, false)
-
-                } else if (isTop || isBottom) {
-                    drawWaveguide(ctx, gx - stubLen, gy, gx - gw/2, gy, valA, gate.color, inputProgress, phase, true, -1)
-                    drawWaveguide(ctx, gx + gw/2, gy, gx + stubLen, gy, currentOutVal, gate.color, outputProgress, phase, false, -1)
-
-                    ctx.save()
-                    var colIN = (valA === "1") ? "#39FF14" : "#FF1133"
-                    ctx.fillStyle = colIN
-                    ctx.shadowBlur = 5 * uiScale
-                    ctx.shadowColor = colIN
-                    ctx.beginPath()
-                    ctx.arc(gx - stubLen, gy, 3.2 * uiScale, 0, Math.PI * 2)
-                    ctx.fill()
-
-                    var colOUT = (currentOutVal === "1") ? "#39FF14" : "#FF1133"
-                    ctx.fillStyle = colOUT
-                    ctx.shadowBlur = 5 * uiScale
-                    ctx.shadowColor = colOUT
-                    ctx.beginPath()
-                    ctx.arc(gx + stubLen, gy, 3.2 * uiScale, 0, Math.PI * 2)
-                    ctx.fill()
-                    ctx.restore()
-
-                    drawWireLabel(ctx, gx - stubLen - 8 * uiScale, gy, "IN", valA, true)
-                    drawWireLabel(ctx, gx + stubLen + 8 * uiScale, gy, "OUT", currentOutVal, false)
+                    drawWaveguide(ctx, gx - gateStubLen, gy - 6 * uiScale, gx - gw/2, gy - 6 * uiScale, valA, inputProgress, phase, true)
+                    drawWaveguide(ctx, gx - gateStubLen, gy + 6 * uiScale, gx - gw/2, gy + 6 * uiScale, valB, inputProgress, phase, true)
+                    drawWaveguide(ctx, gx + gw/2, gy, gx + gateStubLen, gy, currentOutVal, outputProgress, phase, false)
+                    drawWireLabel(ctx, gx - gateStubLen, gy - 6 * uiScale, "A", valA, true)
+                    drawWireLabel(ctx, gx - gateStubLen, gy + 6 * uiScale, "B", valB, true)
+                    drawWireLabel(ctx, gx + gateStubLen, gy, "Y", currentOutVal, false)
+                } else {
+                    drawWaveguide(ctx, gx - gateStubLen, gy, gx - gw/2, gy, valA, inputProgress, phase, true)
+                    drawWaveguide(ctx, gx + gw/2, gy, gx + gateStubLen, gy, currentOutVal, outputProgress, phase, false)
+                    drawWireLabelCenter(ctx, gx - gateStubLen - 30 * uiScale, gy, "IN", valA)
+                    drawWireLabelCenter(ctx, gx + gateStubLen + 30 * uiScale, gy, "OUT", currentOutVal)
                 }
 
-                // Draw high-fidelity logic gate cell bodies
-                ctx.save()
-                ctx.lineWidth = 1.8 * uiScale
-                ctx.strokeStyle = isGateActive ? "#39FF14" : "#FF1133"
-
-                var gateGrad = ctx.createLinearGradient(gx - gw/2, gy - gh/2, gx + gw/2, gy + gh/2)
-                gateGrad.addColorStop(0.0, "rgba(8, 2, 12, 0.94)")
-                gateGrad.addColorStop(1.0, isGateActive ? "rgba(57, 255, 20, 0.16)" : "rgba(255, 17, 51, 0.1)")
+                // --- GATE BODY ---
+                ctx.save(); ctx.lineWidth = 2 * uiScale;
+                var logicColor = root.isGlitchActive ? "#8B0000" : (passwordField.text.length > 0 ? (isGateActive ? "#00F0FF" : "#FFD700") : (isGateActive ? "#39FF14" : "#FF1133"))
+                ctx.strokeStyle = logicColor
+                var gateGrad = ctx.createLinearGradient(gx-gw/2, gy-gh/2, gx+gw/2, gy+gh/2); gateGrad.addColorStop(0, "rgba(4,1,8,0.98)")
+                var dynamicGradColor = root.isGlitchActive ? "rgba(139,0,0,0.2)" : (passwordField.text.length > 0 ? (isGateActive ? "rgba(0,240,255,0.2)" : "rgba(255,215,0,0.15)") : (isGateActive ? "rgba(57,255,20,0.2)" : "rgba(255,17,51,0.15)"))
+                gateGrad.addColorStop(1, dynamicGradColor)
                 ctx.fillStyle = gateGrad
-
-                var cellGlow = isGateActive ? 10 * uiScale : 3 * uiScale
-                if (phase === 2) {
-                    cellGlow = (13 + 7 * Math.sin(simulationProgress * Math.PI * 24)) * uiScale
+                var glow = (phase === 2) ? (16 + 10 * Math.sin(simulationProgress * 60)) : (isGateActive ? 12 : 4)
+                var isGateHovered = (gi === root.hoveredGateIndex)
+                if (isGateHovered) {
+                    glow = glow * 1.8
                 }
-                ctx.shadowBlur = cellGlow
-                ctx.shadowColor = isGateActive ? "#39FF14" : "#FF1133"
+                ctx.shadowBlur = glow * uiScale; ctx.shadowColor = logicColor
+                if (isGateHovered) {
+                    ctx.save()
+                    ctx.translate(gx, gy)
+                    ctx.scale(1.08, 1.08)
+                    ctx.translate(-gx, -gy)
+                }
                 ctx.beginPath()
-
-                if (gate.type === "BUF") {
-                    ctx.moveTo(gx - gw/2, gy - gh/2)
-                    ctx.lineTo(gx + gw/2, gy)
-                    ctx.lineTo(gx - gw/2, gy + gh/2)
-                    ctx.closePath()
-                    ctx.fill()
-                    ctx.stroke()
-                } else if (gate.type === "NOT") {
-                    ctx.moveTo(gx - gw/2, gy - gh/2)
-                    ctx.lineTo(gx + gw/4, gy)
-                    ctx.lineTo(gx - gw/2, gy + gh/2)
-                    ctx.closePath()
-                    ctx.fill()
-                    ctx.stroke()
-                    ctx.beginPath()
-                    ctx.arc(gx + gw/2 - 2 * uiScale, gy, 2.5 * uiScale, 0, Math.PI * 2)
-                    ctx.fillStyle = isGateActive ? gate.color : "#FF1133"
-                    ctx.fill()
-                    ctx.stroke()
-                } else if (gate.type === "AND" || gate.type === "NAND") {
-                    ctx.moveTo(gx - gw/2, gy - gh/2)
-                    ctx.lineTo(gx, gy - gh/2)
-                    ctx.arc(gx, gy, gh/2, -Math.PI/2, Math.PI/2, false)
-                    ctx.lineTo(gx - gw/2, gy + gh/2)
-                    ctx.closePath()
-                    ctx.fill()
-                    ctx.stroke()
-                    if (gate.type === "NAND") {
-                        ctx.beginPath()
-                        ctx.arc(gx + gw/2 + 2 * uiScale, gy, 2.5 * uiScale, 0, Math.PI * 2)
-                        ctx.fillStyle = isGateActive ? gate.color : "#FF1133"
-                        ctx.fill()
-                        ctx.stroke()
-                    }
-                } else if (gate.type === "OR" || gate.type === "NOR") {
-                    ctx.moveTo(gx - gw/2, gy - gh/2)
-                    ctx.quadraticCurveTo(gx - gw/4, gy, gx - gw/2, gy + gh/2)
-                    ctx.quadraticCurveTo(gx, gy + gh/2, gx + gw/2, gy)
-                    ctx.quadraticCurveTo(gx, gy - gh/2, gx - gw/2, gy - gh/2)
-                    ctx.closePath()
-                    ctx.fill()
-                    ctx.stroke()
-                    if (gate.type === "NOR") {
-                        ctx.beginPath()
-                        ctx.arc(gx + gw/2 + 2 * uiScale, gy, 2.5 * uiScale, 0, Math.PI * 2)
-                        ctx.fillStyle = isGateActive ? gate.color : "#FF1133"
-                        ctx.fill()
-                        ctx.stroke()
-                    }
-                } else if (gate.type === "XOR" || gate.type === "XNOR") {
-                    ctx.moveTo(gx - gw/2 - 3 * uiScale, gy - gh/2)
-                    ctx.quadraticCurveTo(gx - gw/4 - 3 * uiScale, gy, gx - gw/2 - 3 * uiScale, gy + gh/2)
-                    ctx.stroke()
-                    ctx.beginPath()
-                    ctx.moveTo(gx - gw/2, gy - gh/2)
-                    ctx.quadraticCurveTo(gx - gw/4, gy, gx - gw/2, gy + gh/2)
-                    ctx.quadraticCurveTo(gx, gy + gh/2, gx + gw/2, gy)
-                    ctx.quadraticCurveTo(gx, gy - gh/2, gx - gw/2, gy - gh/2)
-                    ctx.closePath()
-                    ctx.fill()
-                    ctx.stroke()
-                    if (gate.type === "XNOR") {
-                        ctx.beginPath()
-                        ctx.arc(gx + gw/2 + 2 * uiScale, gy, 2.5 * uiScale, 0, Math.PI * 2)
-                        ctx.fillStyle = isGateActive ? gate.color : "#FF1133"
-                        ctx.fill()
-                        ctx.stroke()
-                    }
+                if (gate.type === "BUF") { ctx.moveTo(gx-gw/2, gy-gh/2); ctx.lineTo(gx+gw/2, gy); ctx.lineTo(gx-gw/2, gy+gh/2); ctx.closePath() }
+                else if (gate.type === "NOT") { ctx.moveTo(gx-gw/2, gy-gh/2); ctx.lineTo(gx+gw/4, gy); ctx.lineTo(gx-gw/2, gy+gh/2); ctx.closePath(); ctx.stroke(); ctx.fill(); ctx.beginPath(); ctx.arc(gx+gw/2-2*uiScale, gy, 3*uiScale, 0, 7) }
+                else if (gate.type === "AND" || gate.type === "NAND") { ctx.moveTo(gx-gw/2, gy-gh/2); ctx.lineTo(gx, gy-gh/2); ctx.arc(gx, gy, gh/2, -1.57, 1.57, false); ctx.lineTo(gx-gw/2, gy+gh/2); ctx.closePath(); if(gate.type === "NAND"){ctx.stroke(); ctx.fill(); ctx.beginPath(); ctx.arc(gx+gw/2+2*uiScale, gy, 3*uiScale, 0, 7)} }
+                else if (gate.type === "OR" || gate.type === "NOR") { ctx.moveTo(gx-gw/2, gy-gh/2); ctx.quadraticCurveTo(gx-gw/4, gy, gx-gw/2, gy+gh/2); ctx.quadraticCurveTo(gx, gy+gh/2, gx+gw/2, gy); ctx.quadraticCurveTo(gx, gy-gh/2, gx-gw/2, gy-gh/2); ctx.closePath(); if(gate.type === "NOR"){ctx.stroke(); ctx.fill(); ctx.beginPath(); ctx.arc(gx+gw/2+2*uiScale, gy, 3*uiScale, 0, 7)} }
+                else if (gate.type === "XOR" || gate.type === "XNOR") { ctx.moveTo(gx-gw/2-4*uiScale, gy-gh/2); ctx.quadraticCurveTo(gx-gw/4-4*uiScale, gy, gx-gw/2-4*uiScale, gy+gh/2); ctx.stroke(); ctx.beginPath(); ctx.moveTo(gx-gw/2, gy-gh/2); ctx.quadraticCurveTo(gx-gw/4, gy, gx-gw/2, gy+gh/2); ctx.quadraticCurveTo(gx, gy+gh/2, gx+gw/2, gy); ctx.quadraticCurveTo(gx, gy-gh/2, gx-gw/2, gy-gh/2); ctx.closePath(); if(gate.type === "XNOR"){ctx.stroke(); ctx.fill(); ctx.beginPath(); ctx.arc(gx+gw/2+2*uiScale, gy, 3*uiScale, 0, 7)} }
+                ctx.fill(); ctx.stroke()
+                if (isGateHovered) {
+                    ctx.restore()
                 }
                 ctx.restore()
 
-                // Phase 2: Draw amber rotating calculation sweep ring representing propagation delay (tpd)
-                if (phase === 2) {
-                    ctx.save()
-                    ctx.beginPath()
-                    ctx.arc(gx, gy, gw * 0.38, 0, 2 * Math.PI)
-                    ctx.strokeStyle = "rgba(255, 108, 0, 0.25)"
-                    ctx.lineWidth = 1 * uiScale
-                    ctx.stroke()
+                // --- SYMBOL ---
+                ctx.save(); ctx.fillStyle = logicColor; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "bold " + Math.round(11*uiScale) + "px 'JetBrainsMono Nerd Font'"
+                var sym = (gate.type === "AND" || gate.type === "NAND") ? "&" : ((gate.type === "OR" || gate.type === "NOR") ? "≥1" : ((gate.type === "XOR" || gate.type === "XNOR") ? "=1" : "1"))
+                ctx.fillText(sym, gx - (gate.type=="NOT"?3*uiScale:0), gy); ctx.restore()
 
-                    var sweepAng = processProgress * 2 * Math.PI
-                    ctx.beginPath()
-                    ctx.arc(gx, gy, gw * 0.38, sweepAng - 0.5, sweepAng + 0.5)
-                    ctx.strokeStyle = "#FF6C00"
-                    ctx.lineWidth = 2 * uiScale
-                    ctx.stroke()
+                // --- ADAPTIVE HUD & WAVEFORM LAYOUT ---
+                var hudW = (totalStates < 3) ? 128 * uiScale : 118 * uiScale
+                var hudH = (totalStates < 3) ? 70 * uiScale : 88 * uiScale
+                var wfW = hudW; var wfH = (totalStates < 3) ? 50 * uiScale : 58 * uiScale
+                var hx = 0; var hy = 0; var wx = 0; var wy = 0
+ 
+                if (isLeft || isRight) { // Side Gates: Stack vertically directly below the gate body, centered at gx
+                    hx = gx - hudW / 2
+                    hy = gy + gh / 2 + 14 * uiScale
+                    wx = gx - wfW / 2
+                    wy = hy + hudH + 8 * uiScale
+                } else { // Top/Bottom Gates: Side-by-side layout, centered vertically around gy and spaced far horizontally
+                    hx = gx - gateStubLen - hudW - 60 * uiScale
+                    hy = gy - hudH / 2
+                    wx = gx + gateStubLen + 60 * uiScale
+                    wy = gy - wfH / 2
+                }
+
+                // Final screen boundary clamping
+                hx = Math.max(10, Math.min(hx, width - hudW - 10)); hy = Math.max(10, Math.min(hy, height - hudH - 10))
+                wx = Math.max(10, Math.min(wx, width - wfW - 10)); wy = Math.max(10, Math.min(wy, height - wfH - 10))
+
+                // --- DRAW HUD ---
+                var isTableHovered = (gi === root.hoveredTableIndex)
+                if (isTableHovered) {
+                    ctx.save()
+                    var cardCenterX = (hx + wx + hudW) / 2
+                    var cardCenterY = (hy + wy + hudH) / 2
+                    ctx.translate(cardCenterX, cardCenterY)
+                    ctx.scale(1.05, 1.05)
+                    ctx.translate(-cardCenterX, -cardCenterY)
+                }
+                ctx.save(); ctx.fillStyle = "rgba(4,1,8,0.98)"; ctx.shadowBlur = (isTableHovered ? 20 : 10)*uiScale; ctx.shadowColor = isTableHovered ? logicColor : "rgba(0,0,0,0.9)"; var rr=10*uiScale; ctx.beginPath(); ctx.moveTo(hx+rr, hy); ctx.lineTo(hx+hudW-rr, hy); ctx.quadraticCurveTo(hx+hudW, hy, hx+hudW, hy+rr); ctx.lineTo(hx+hudW, hy+hudH-rr); ctx.quadraticCurveTo(hx+hudW, hy+hudH, hx+hudW-rr, hy+hudH); ctx.lineTo(hx+rr, hy+hudH); ctx.quadraticCurveTo(hx, hy+hudH, hx, hy+hudH-rr); ctx.lineTo(hx, hy+rr); ctx.quadraticCurveTo(hx, hy, hx+rr, hy); ctx.closePath(); ctx.fill(); ctx.strokeStyle = logicColor; ctx.lineWidth = (isTableHovered ? 1.6 : 1)*uiScale; ctx.stroke(); ctx.restore()
+                ctx.save(); ctx.fillStyle = logicColor; ctx.font = "bold " + Math.round(9*uiScale) + "px 'JetBrainsMono Nerd Font'"; ctx.fillText(gate.name, hx+12*uiScale, hy+13*uiScale); ctx.restore()
+                ctx.save(); ctx.textAlign = "center"; ctx.fillStyle = "rgba(255,255,255,0.4)"; ctx.font = "bold " + Math.round(9*uiScale) + "px 'JetBrainsMono Nerd Font'"
+                if(totalStates<3){ctx.fillText("IN", hx+36*uiScale, hy+26*uiScale); ctx.fillText("OUT", hx+82*uiScale, hy+26*uiScale)}
+                else{ctx.fillText("A", hx+28*uiScale, hy+26*uiScale); ctx.fillText("B", hx+58*uiScale, hy+26*uiScale); ctx.fillText("Y", hx+88*uiScale, hy+26*uiScale)}
+                ctx.restore(); ctx.strokeStyle = "rgba(255,255,255,0.15)"; ctx.beginPath(); ctx.moveTo(hx+10*uiScale, hy+32*uiScale); ctx.lineTo(hx+hudW-10*uiScale, hy+32*uiScale); ctx.stroke()
+
+                var rowH = 11*uiScale; var ryStart = hy + 40 * uiScale
+                ctx.save(); ctx.fillStyle = isGateActive ? "rgba(57,255,20,0.2)" : "rgba(255,17,51,0.15)"; ctx.fillRect(hx+4*uiScale, ryStart + activeRowIndex*rowH - rowH/2, hudW-8*uiScale, rowH); ctx.fillStyle = logicColor; ctx.fillRect(hx+4*uiScale, ryStart + activeRowIndex*rowH - rowH/2, 3*uiScale, rowH); ctx.restore()
+                for (var ri=0; ri<totalStates; ri++) {
+                    ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = (ri==activeRowIndex) ? logicColor : "rgba(255,255,255,0.35)"; ctx.font = (ri==activeRowIndex?"bold ":"")+Math.round(9*uiScale)+"px 'JetBrainsMono Nerd Font'"
+                    if(totalStates<3){ctx.fillText(rows[ri][0], hx+36*uiScale, ryStart+ri*rowH); ctx.fillText(rows[ri][2], hx+82*uiScale, ryStart+ri*rowH)}
+                    else{ctx.fillText(rows[ri][0], hx+28*uiScale, ryStart+ri*rowH); ctx.fillText(rows[ri][1], hx+58*uiScale, ryStart+ri*rowH); ctx.fillText(rows[ri][2], hx+88*uiScale, ryStart+ri*rowH)}
                     ctx.restore()
                 }
 
-                // Micro terminal connectivity pads (small circular rings at connection pins)
-                ctx.save()
-                ctx.fillStyle = isGateActive ? gate.color : "#FF1133"
-                ctx.beginPath()
-                if (gate.type === "BUF" || gate.type === "NOT") {
-                    ctx.arc(gx - gw/2, gy, 2 * uiScale, 0, Math.PI * 2)
-                    ctx.fill()
-                } else {
-                    ctx.arc(gx - gw/2, gy - 6 * uiScale, 2 * uiScale, 0, Math.PI * 2)
-                    ctx.arc(gx - gw/2, gy + 6 * uiScale, 2 * uiScale, 0, Math.PI * 2)
-                    ctx.fill()
+                drawGateWaveform(ctx, wx, wy, wfW, wfH, gate.type, rows, isGateActive, cycleProgress)
+                if (isTableHovered) {
+                    ctx.restore()
                 }
-                ctx.restore()
-
-                // Render interior logic code labels and parameters inside the gates
-                ctx.save()
-                ctx.fillStyle = isGateActive ? "rgba(" + hexToRgb(gate.color) + ", 0.9)" : "rgba(255, 17, 51, 0.7)"
-                ctx.textAlign = "center"
-                ctx.textBaseline = "middle"
-                var innerSym = ""
-                var descriptor = ""
-                if (gate.type === "BUF") { innerSym = "1"; descriptor = "tpd 1.0ns" }
-                else if (gate.type === "NOT") { innerSym = "1"; descriptor = "tpd 1.2ns" }
-                else if (gate.type === "AND" || gate.type === "NAND") { innerSym = "&"; descriptor = gate.type === "AND" ? "tpd 1.4ns" : "tpd 1.7ns" }
-                else if (gate.type === "OR" || gate.type === "NOR") { innerSym = "≥1"; descriptor = gate.type === "OR" ? "tpd 1.5ns" : "tpd 1.8ns" }
-                else if (gate.type === "XOR" || gate.type === "XNOR") { innerSym = "=1"; descriptor = gate.type === "XOR" ? "tpd 1.8ns" : "tpd 2.1ns" }
-
-                ctx.font = "bold " + Math.round(9 * uiScale) + "px 'JetBrainsMono Nerd Font'"
-                ctx.fillText(innerSym, gx - (gate.type === "NOT" ? 2 * uiScale : 0), gy - 2 * uiScale)
-
-                ctx.fillStyle = "rgba(255, 255, 255, 0.22)"
-                ctx.font = "bold " + Math.round(5.5 * uiScale) + "px 'JetBrainsMono Nerd Font'"
-                ctx.fillText(descriptor, gx - (gate.type === "NOT" ? 2 * uiScale : 0), gy + 6 * uiScale)
-                ctx.restore()
-
-                // Render holographic Glassmorphic Truth Table HUD Diagnostic overlays
-                var hudW = 114 * uiScale
-                var hudHeight = (gate.type === "BUF" || gate.type === "NOT") ? 62 * uiScale : 84 * uiScale
-                var hx = gx - hudW / 2
-                var hy = gy - hudHeight / 2
-
-                if (gate.type === "BUF") {
-                    // Buffer gate (top center): HUD below gate, offset left
-                    hx = gx - hudW - 28 * uiScale
-                    hy = gy + gw + 8 * uiScale
-                } else if (gate.type === "NOT") {
-                    // NOT gate (bottom center): HUD above gate, offset left
-                    hx = gx - hudW - 28 * uiScale
-                    hy = gy - hudHeight - gw - 8 * uiScale
-                } else if (isLeft) {
-                    // Left gates: HUD to the LEFT of the gate body (between screen edge and gate)
-                    hx = gx - gw / 2 - hudW - 14 * uiScale
-                    hy = gy - hudHeight / 2
-                } else if (isRight) {
-                    // Right gates: HUD to the RIGHT of the gate body (between gate and screen edge)
-                    hx = gx + gw / 2 + 14 * uiScale
-                    hy = gy - hudHeight / 2
                 }
-
-                // Hard-clamp HUD card to always stay fully within canvas bounds
-                hx = Math.max(4, Math.min(hx, width - hudW - 4))
-                hy = Math.max(4, Math.min(hy, height - hudHeight - 4))
-
-                ctx.save()
-                // Glassmorphism HUD Substrate with dynamic logical glow borders
-                ctx.fillStyle = "rgba(7, 2, 11, 0.94)"
-                ctx.shadowBlur = isGateActive ? 12 * uiScale : 5 * uiScale
-                ctx.shadowColor = isGateActive ? "rgba(57, 255, 20, 0.35)" : "rgba(255, 17, 51, 0.18)"
-
-                // Draw rounded card
-                var hRad = 8 * uiScale
-                ctx.beginPath()
-                ctx.moveTo(hx + hRad, hy)
-                ctx.lineTo(hx + hudW - hRad, hy)
-                ctx.quadraticCurveTo(hx + hudW, hy, hx + hudW, hy + hRad)
-                ctx.lineTo(hx + hudW, hy + hudHeight - hRad)
-                ctx.quadraticCurveTo(hx + hudW, hy + hudHeight, hx + hudW - hRad, hy + hudHeight)
-                ctx.lineTo(hx + hRad, hy + hudHeight)
-                ctx.quadraticCurveTo(hx, hy + hudHeight, hx, hy + hudHeight - hRad)
-                ctx.lineTo(hx, hy + hRad)
-                ctx.quadraticCurveTo(hx, hy, hx + hRad, hy)
-                ctx.closePath()
-                ctx.fill()
-
-                ctx.strokeStyle = isGateActive ? "rgba(57, 255, 20, 0.45)" : "rgba(255, 17, 51, 0.35)"
-                ctx.lineWidth = 1 * uiScale
-                ctx.stroke()
-                ctx.restore()
-
-                // HUD Diagnostics Contents
-                ctx.save()
-                ctx.textAlign = "left"
-                ctx.textBaseline = "middle"
-                ctx.fillStyle = isGateActive ? "#39FF14" : "#FF1133"
-                ctx.font = "bold " + Math.round(9.5 * uiScale) + "px 'JetBrainsMono Nerd Font'"
-                ctx.fillText(gate.name, hx + 12 * uiScale, hy + 12 * uiScale)
-
-                // Truth table column headers
-                ctx.textAlign = "center"
-                ctx.font = "bold " + Math.round(9.5 * uiScale) + "px 'JetBrainsMono Nerd Font'"
-                ctx.fillStyle = "rgba(255, 255, 255, 0.45)"
-                if (gate.type === "BUF" || gate.type === "NOT") {
-                    ctx.fillText("IN", hx + 36 * uiScale, hy + 23 * uiScale)
-                    ctx.fillText("OUT", hx + 78 * uiScale, hy + 23 * uiScale)
-                } else {
-                    ctx.fillText("A", hx + 24 * uiScale, hy + 23 * uiScale)
-                    ctx.fillText("B", hx + 57 * uiScale, hy + 23 * uiScale)
-                    ctx.fillText("Y", hx + 90 * uiScale, hy + 23 * uiScale)
-                }
-
-                // Divider line
-                ctx.strokeStyle = "rgba(255, 255, 255, 0.12)"
-                ctx.lineWidth = 0.8 * uiScale
-                ctx.beginPath()
-                ctx.moveTo(hx + 12 * uiScale, hy + 28 * uiScale)
-                ctx.lineTo(hx + hudW - 12 * uiScale, hy + 28 * uiScale)
-                ctx.stroke()
-
-                // Symmetrical Logic Analyzer Row highlight & text rendering
-                for (var ri = 0; ri < rows.length; ++ri) {
-                    var isRowActive = (ri === activeRowIndex)
-                    var ry = hy + 38 * uiScale + ri * 10 * uiScale
-
-                    if (isRowActive) {
-                        ctx.save()
-                        // Sleek highlighted row pill mapping accent colors
-                        ctx.fillStyle = isGateActive ? "rgba(57, 255, 20, 0.18)" : "rgba(255, 17, 51, 0.12)"
-                        var pH = 9.5 * uiScale
-                        var pY = ry - 7 * uiScale
-                        ctx.fillRect(hx + 2 * uiScale, pY, hudW - 4 * uiScale, pH)
-
-                        // Active logic analyzer left border pin bar
-                        ctx.fillStyle = isGateActive ? "#39FF14" : "#FF1133"
-                        ctx.fillRect(hx + 2 * uiScale, pY, 2 * uiScale, pH)
-                        ctx.restore()
-
-                        ctx.fillStyle = isGateActive ? "#39FF14" : "#FF1133"
-                        ctx.font = "bold " + Math.round(9.5 * uiScale) + "px 'JetBrainsMono Nerd Font'"
-                    } else {
-                        ctx.fillStyle = "rgba(255, 255, 255, 0.35)"
-                        ctx.font = Math.round(9.5 * uiScale) + "px 'JetBrainsMono Nerd Font'"
-                    }
-
-                    ctx.textAlign = "center"
-                    if (gate.type === "BUF" || gate.type === "NOT") {
-                        ctx.fillText(rows[ri][0], hx + 36 * uiScale, ry)
-                        ctx.fillText(rows[ri][2], hx + 78 * uiScale, ry)
-                    } else {
-                        ctx.fillText(rows[ri][0], hx + 24 * uiScale, ry)
-                        ctx.fillText(rows[ri][1], hx + 57 * uiScale, ry)
-                        ctx.fillText(rows[ri][2], hx + 90 * uiScale, ry)
-                    }
-                }
-
-                // Render dynamic visual phase sub-labels on HUD bottom-right
-                var phaseLabel = ""
-                if (phase === 1) phaseLabel = "INPUT PROPAGATING"
-                else if (phase === 2) phaseLabel = "PROPAGATION DELAY"
-                else phaseLabel = "OUTPUT STABILIZED"
-
-                ctx.font = "bold " + Math.round(6.8 * uiScale) + "px 'JetBrainsMono Nerd Font'"
-                ctx.fillStyle = (phase === 2) ? "#FF6C00" : (isGateActive ? "#39FF14" : "#FF1133")
-                ctx.textAlign = "right"
-                ctx.fillText(phaseLabel, hx + hudW - 12 * uiScale, hy + hudHeight - 8 * uiScale)
-
-                // Draw a timeline progress bar representing phase propagation dynamically mapped
-                var pBarY = hy + hudHeight - 4 * uiScale
-                ctx.fillStyle = "rgba(255, 255, 255, 0.08)"
-                ctx.fillRect(hx + 12 * uiScale, pBarY, hudW - 24 * uiScale, 2 * uiScale)
-
-                ctx.fillStyle = (phase === 2) ? "#FF6C00" : (isGateActive ? "#39FF14" : "#FF1133")
-                var phaseProgress = (phase === 1) ? inputProgress : ((phase === 2) ? processProgress : outputProgress)
-                ctx.fillRect(hx + 12 * uiScale, pBarY, (hudW - 24 * uiScale) * phaseProgress, 2 * uiScale)
-                ctx.restore()
-
-                // --- PER-GATE LIVE WAVEFORM below the truth table HUD ---
-                var wfH = (gate.type === "BUF" || gate.type === "NOT") ? 36 * uiScale : 52 * uiScale
-                var wfY = hy + hudHeight + 4 * uiScale
-
-                // Clamp waveform to screen bounds
-                var wfX = hx
-                if (wfY + wfH > height - 4) wfY = hy - wfH - 4 * uiScale
-                wfX = Math.max(4, Math.min(wfX, width - hudW - 4))
-                wfY = Math.max(4, Math.min(wfY, height - wfH - 4))
-
-                drawGateWaveform(ctx, wfX, wfY, hudW, wfH, gate.type, rows, gate.color, isGateActive, simulationProgress + gi * 0.125)
-            }
 
             // Animate floating energy quantum particles strictly constrained to prevent credentials card overlay
             for (var i = 0; i < particles.length; ++i) {
@@ -985,6 +871,98 @@ Rectangle {
                     }
                 }
             }
+
+            // --- FLOATING DIAGNOSTICS TOOLTIP ---
+            if (root.hoveredGateIndex !== -1) {
+                var hgi = root.hoveredGateIndex
+                var hg = gates[hgi]
+                if (hg) {
+                    var hgx = hg.x; var hgy = hg.y
+                    var ttW = 160 * uiScale
+                    var ttH = 46 * uiScale
+                    var ttx = 0; var tty = 0
+
+                    if (hgx < width * 0.4) {
+                        ttx = hgx + 30 * uiScale
+                        tty = hgy - ttH / 2
+                    } else if (hgx > width * 0.6) {
+                        ttx = hgx - 30 * uiScale - ttW
+                        tty = hgy - ttH / 2
+                    } else {
+                        ttx = hgx - ttW / 2
+                        tty = hgy + 28 * uiScale
+                    }
+
+                    ttx = Math.max(10, Math.min(ttx, width - ttW - 10))
+                    tty = Math.max(10, Math.min(tty, height - ttH - 10))
+
+                    var ttColor = (root.isGlitchActive) ? "#8B0000" : (passwordField.text.length > 0 ? "#00F0FF" : "#39FF14")
+
+                    ctx.save()
+                    ctx.fillStyle = "rgba(4, 1, 8, 0.98)"
+                    ctx.shadowBlur = 12 * uiScale
+                    ctx.shadowColor = ttColor
+                    var tr = 8 * uiScale
+                    ctx.beginPath()
+                    ctx.moveTo(ttx + tr, tty)
+                    ctx.lineTo(ttx + ttW - tr, tty)
+                    ctx.quadraticCurveTo(ttx + ttW, tty, ttx + ttW, tty + tr)
+                    ctx.lineTo(ttx + ttW, tty + ttH - tr)
+                    ctx.quadraticCurveTo(ttx + ttW, tty + ttH, ttx + ttW - tr, tty + ttH)
+                    ctx.lineTo(ttx + tr, tty + ttH)
+                    ctx.quadraticCurveTo(ttx, tty + ttH, ttx, tty + ttH - tr)
+                    ctx.lineTo(ttx, tty + tr)
+                    ctx.quadraticCurveTo(ttx, tty, ttx + tr, tty)
+                    ctx.closePath()
+                    ctx.fill()
+
+                    ctx.strokeStyle = ttColor
+                    ctx.lineWidth = 1.2 * uiScale
+                    ctx.stroke()
+                    ctx.restore()
+
+                    ctx.save()
+                    ctx.fillStyle = "rgba(255, 255, 255, 0.9)"
+                    ctx.font = "bold " + Math.round(9 * uiScale) + "px 'JetBrainsMono Nerd Font'"
+                    ctx.textAlign = "left"
+                    ctx.fillText("[TELEMETRY SCAN]", ttx + 10 * uiScale, tty + 15 * uiScale)
+
+                    ctx.fillStyle = "rgba(255, 255, 255, 0.5)"
+                    ctx.font = Math.round(8 * uiScale) + "px 'JetBrainsMono Nerd Font'"
+                    var specTpd = (hg.type === "BUF") ? "680ps" : ((hg.type === "NOT") ? "710ps" : ((hg.type === "AND") ? "780ps" : ((hg.type === "NAND") ? "740ps" : ((hg.type === "OR") ? "810ps" : ((hg.type === "NOR") ? "790ps" : "890ps")))))
+                    var specFan = (hg.type === "BUF" || hg.type === "NOT") ? "4" : "3"
+                    var specTemp = (32.0 + 8.0 * root.cpuLoad).toFixed(1) + "°C"
+                    ctx.fillText("tpd: " + specTpd + " | Fan: " + specFan + " | Temp: " + specTemp, ttx + 10 * uiScale, tty + 32 * uiScale)
+                    ctx.restore()
+                }
+            }
+
+            // --- SUCCESS WAVE SWEEP ---
+            if (root.isSuccessWaveActive && root.successWaveProgress > 0) {
+                ctx.save()
+                var centerX = width / 2
+                var centerY = height / 2
+                var maxRadius = Math.sqrt(centerX * centerX + centerY * centerY)
+                var currentRadius = maxRadius * root.successWaveProgress
+
+                // Primary glowing wave circle
+                ctx.beginPath()
+                ctx.arc(centerX, centerY, currentRadius, 0, Math.PI * 2)
+                ctx.lineWidth = 15 * uiScale
+                ctx.strokeStyle = "rgba(57, 255, 20, " + (0.8 * (1.0 - root.successWaveProgress)) + ")"
+                ctx.shadowBlur = 30 * uiScale
+                ctx.shadowColor = "#39FF14"
+                ctx.stroke()
+
+                // Secondary particle flash ring
+                ctx.beginPath()
+                ctx.arc(centerX, centerY, currentRadius - 30 * uiScale, 0, Math.PI * 2)
+                ctx.lineWidth = 2 * uiScale
+                ctx.strokeStyle = "rgba(0, 240, 255, " + (0.4 * (1.0 - root.successWaveProgress)) + ")"
+                ctx.stroke()
+
+                ctx.restore()
+            }
         }
 
         Timer {
@@ -992,9 +970,43 @@ Rectangle {
             running: root.visible
             repeat: true
             onTriggered: {
-                bgCanvas.simulationProgress = (bgCanvas.simulationProgress + 0.0035) % 1.0
+                // Update simulated CPU load and system telemetry noise
+                root.telemetryNoiseAccumulator += 0.02
+                // If not currently in a manual overclock surge, update base telemetry from simulated CPU load
+                if (root.telemetrySpeedMultiplier <= 2.8) {
+                    root.cpuLoad = Math.max(0.12, Math.min(0.88, 0.45 + 0.25 * Math.sin(root.telemetryNoiseAccumulator) + 0.15 * Math.sin(root.telemetryNoiseAccumulator * 2.3) + 0.05 * Math.cos(root.telemetryNoiseAccumulator * 4.7)))
+                    root.telemetrySpeedMultiplier = 0.5 + 1.8 * root.cpuLoad
+                }
+                
+                root.telemetryJitter = root.isGlitchActive ? 0.85 : (root.cpuLoad > 0.7 ? 0.06 : 0.01)
+
+                // Typing overclocking: uses the telemetry multiplier (which surges on keystrokes)
+                var speedStep = 0.008 * root.telemetrySpeedMultiplier
+                bgCanvas.simulationProgress = (bgCanvas.simulationProgress + speedStep) % 1.0
+
+                // Success Wave progress step
+                if (root.isSuccessWaveActive) {
+                    root.successWaveProgress = Math.min(1.0, root.successWaveProgress + 0.045)
+                }
+
                 bgCanvas.requestPaint()
+                timingCanvas.requestPaint()
             }
+        }
+    }
+
+    MouseArea {
+        id: bgMouseArea
+        anchors.fill: bgCanvas
+        hoverEnabled: true
+        acceptedButtons: Qt.NoButton
+        onPositionChanged: {
+            bgCanvas.checkHover(mouseX, mouseY)
+        }
+        onExited: {
+            root.hoveredGateIndex = -1
+            root.hoveredTableIndex = -1
+            bgCanvas.requestPaint()
         }
     }
 
@@ -1057,9 +1069,9 @@ Rectangle {
     RowLayout {
         id: shell
         anchors.centerIn: parent
-        width: Math.min(parent.width - 120, 1420)
-        height: Math.min(parent.height - 120, 820)
-        spacing: 28
+        width: Math.min(parent.width - Math.round(80 * uiScale), 1420)
+        height: Math.min(parent.height - Math.round(40 * uiScale), 860)
+        spacing: Math.round(28 * uiScale)
         z: 2
 
         Rectangle {
@@ -1092,55 +1104,85 @@ Rectangle {
                 spacing: Math.round(8 * uiScale)
 
                 Item {
+                    id: logoFrame
                     Layout.alignment: Qt.AlignHCenter
-                    width: Math.round(158 * uiScale)
-                    height: Math.round(158 * uiScale)
+                    width: Math.round(180 * uiScale)
+                    height: Math.round(180 * uiScale)
 
                     Rectangle {
-                        anchors.centerIn: parent
-                        width: parent.width
-                        height: parent.height
-                        radius: 34
-                        color: "#00000000"
-                        border.width: 1
-                        border.color: "#3A39FF14"
+                        id: logoOuterRect
+                        anchors.fill: parent
+                        radius: 36
+                        color: "#06020C" // Deepest black-charcoal for maximum contrast
+                        border.width: 2
+                        border.color: spectrumColor
+                        clip: true
 
-                        SequentialAnimation on opacity {
-                            loops: Animation.Infinite
-                            NumberAnimation { from: 0.30; to: 0.72; duration: 2200; easing.type: Easing.InOutQuad }
-                            NumberAnimation { from: 0.72; to: 0.30; duration: 2200; easing.type: Easing.InOutQuad }
-                        }
-
-                        SequentialAnimation on scale {
-                            loops: Animation.Infinite
-                            NumberAnimation { from: 0.98; to: 1.03; duration: 2200; easing.type: Easing.InOutQuad }
-                            NumberAnimation { from: 1.03; to: 0.98; duration: 2200; easing.type: Easing.InOutQuad }
-                        }
-                    }
-
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: parent.parent.width - 12 * uiScale
-                        height: parent.parent.height - 12 * uiScale
-                        radius: 28
-                        color: "#14000000"
-                        border.width: 1
-                        border.color: selectedBorder
-
-                        SequentialAnimation on scale {
-                            loops: Animation.Infinite
-                            NumberAnimation { from: 1.0; to: 1.03; duration: 2200; easing.type: Easing.InOutQuad }
-                            NumberAnimation { from: 1.03; to: 1.0; duration: 2200; easing.type: Easing.InOutQuad }
-                        }
-
-                        Image {
+                        // Subtle breathing backlight (Not too bright)
+                        Rectangle {
                             anchors.fill: parent
-                            anchors.margins: 18
+                            anchors.margins: 4
+                            radius: parent.radius - 2
+                            color: spectrumColor
+                            opacity: 0.05
+                            z: 0
+
+                            SequentialAnimation on opacity {
+                                loops: Animation.Infinite
+                                NumberAnimation { from: 0.02; to: 0.08; duration: 3000; easing.type: Easing.InOutQuad }
+                                NumberAnimation { from: 0.08; to: 0.02; duration: 3000; easing.type: Easing.InOutQuad }
+                            }
+                        }
+
+                        // Logo Image with sharp enhancement
+                        Image {
+                            id: baseLogo
+                            anchors.fill: parent
+                            anchors.margins: Math.round(22 * uiScale)
                             fillMode: Image.PreserveAspectFit
                             source: "logo.png"
                             smooth: true
                             antialiasing: true
+                            z: 2
+                            
+                            layer.enabled: true
+                            layer.effect: Glow {
+                                id: logoGlowEffect
+                                radius: 12
+                                samples: 16
+                                spread: 0.45
+                                color: spectrumColor
+                                transparentBorder: true
+                                
+                                SequentialAnimation on radius {
+                                    loops: Animation.Infinite
+                                    NumberAnimation { from: 8; to: 16; duration: 4500; easing.type: Easing.InOutQuad }
+                                    NumberAnimation { from: 16; to: 8; duration: 4500; easing.type: Easing.InOutQuad }
+                                }
+                            }
                         }
+
+                        // Internal highlight (Light reflecting off the silicon)
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: parent.radius
+                            color: "transparent"
+                            border.width: 1
+                            border.color: "white"
+                            opacity: 0.08
+                            z: 3
+                        }
+                    }
+
+                    // High-quality outer aura
+                    RectangularGlow {
+                        anchors.fill: logoOuterRect
+                        glowRadius: 28
+                        spread: 0.1
+                        color: spectrumColor
+                        cornerRadius: logoOuterRect.radius
+                        opacity: 0.35
+                        z: -1
                     }
                 }
 
@@ -1254,20 +1296,22 @@ Rectangle {
 
                 Rectangle {
                     Layout.fillWidth: true
+                    Layout.leftMargin: Math.round(12 * uiScale)
+                    Layout.rightMargin: Math.round(12 * uiScale)
                     radius: 20
-                    color: "#12000000"
+                    color: "#16000000"
                     border.width: 1
                     border.color: strokeSoft
-                    implicitHeight: systemStatusColumn.implicitHeight + Math.round(20 * uiScale)
+                    implicitHeight: systemStatusColumn.implicitHeight + Math.round(28 * uiScale)
 
                     ColumnLayout {
                         id: systemStatusColumn
                         anchors.top: parent.top
                         anchors.left: parent.left
                         anchors.right: parent.right
-                        anchors.topMargin: 18
-                        anchors.leftMargin: 18
-                        anchors.rightMargin: 18
+                        anchors.topMargin: Math.round(14 * uiScale)
+                        anchors.leftMargin: Math.round(16 * uiScale)
+                        anchors.rightMargin: Math.round(16 * uiScale)
                         spacing: 12
 
                         Text {
@@ -1279,7 +1323,7 @@ Rectangle {
                         GridLayout {
                             columns: 2
                             columnSpacing: 16
-                            rowSpacing: 10
+                            rowSpacing: 12
                             Layout.fillWidth: true
 
                             Text { text: "Host"; color: textMuted; font: bodyFont }
@@ -1289,12 +1333,12 @@ Rectangle {
                                 color: chipFill
                                 border.width: 1
                                 border.color: chipBorder
-                                implicitHeight: Math.round(26 * uiScale)
+                                implicitHeight: Math.round(28 * uiScale)
                                 Text {
                                     anchors.fill: parent
-                                    anchors.leftMargin: 10
-                                    anchors.rightMargin: 10
-                                    text: sddm.hostname ? sddm.hostname : "MANX"
+                                    anchors.leftMargin: 12
+                                    anchors.rightMargin: 12
+                                    text: (typeof sddm !== "undefined" && sddm !== null && sddm.hostname) ? sddm.hostname : "MANX"
                                     color: textPrimary
                                     font: bodyFont
                                     verticalAlignment: Text.AlignVCenter
@@ -1309,16 +1353,21 @@ Rectangle {
                                 color: chipFill
                                 border.width: 1
                                 border.color: chipBorder
-                                implicitHeight: Math.round(26 * uiScale)
+                                implicitHeight: Math.round(28 * uiScale)
                                 Text {
                                     anchors.fill: parent
-                                    anchors.leftMargin: 10
-                                    anchors.rightMargin: 10
+                                    anchors.leftMargin: 12
+                                    anchors.rightMargin: 12
                                     text: selectedUserDisplayName !== "" ? selectedUserDisplayName : "Awaiting selection"
-                                    color: textPrimary
-                                    font: bodyFont
+                                    color: (selectedUserName !== "undefined" && selectedUserName !== "") ? rainbowColor : textPrimary
+                                    font {
+                                        family: bodyFont.family
+                                        bold: true
+                                        pixelSize: bodyFont.pixelSize
+                                    }
                                     verticalAlignment: Text.AlignVCenter
                                     elide: Text.ElideRight
+                                    Behavior on color { ColorAnimation { duration: 1000 } }
                                 }
                             }
 
@@ -1329,11 +1378,11 @@ Rectangle {
                                 color: chipFill
                                 border.width: 1
                                 border.color: chipBorder
-                                implicitHeight: Math.round(26 * uiScale)
+                                implicitHeight: Math.round(28 * uiScale)
                                 Text {
                                     anchors.fill: parent
-                                    anchors.leftMargin: 10
-                                    anchors.rightMargin: 10
+                                    anchors.leftMargin: 12
+                                    anchors.rightMargin: 12
                                     text: sessionSelector.currentText !== "" ? sessionSelector.currentText : "Unavailable"
                                     color: textPrimary
                                     font: bodyFont
@@ -1349,7 +1398,7 @@ Rectangle {
                                 color: chipFill
                                 border.width: 1
                                 border.color: chipBorder
-                                implicitHeight: Math.round(26 * uiScale)
+                                implicitHeight: Math.round(28 * uiScale)
                                 Text {
                                     anchors.fill: parent
                                     anchors.leftMargin: 8
@@ -1369,7 +1418,189 @@ Rectangle {
                     }
                 }
 
+                ColumnLayout {
+                    id: timingSection
+                    Layout.fillWidth: true
+                    Layout.leftMargin: Math.round(12 * uiScale)
+                    Layout.rightMargin: Math.round(12 * uiScale)
+                    spacing: 4
+                    Layout.topMargin: Math.round(12 * uiScale)
 
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+                        Text {
+                            text: "TIMING DIAGRAM"
+                            font: sectionFont
+                            color: neonGreen
+                        }
+                        Text {
+                            text: "CLK · A · B · Y"
+                            font: bodyFont
+                            color: textMuted
+                            opacity: 0.8
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignRight
+                        }
+                        Rectangle {
+                            width: 6; height: 6; radius: 3; color: neonGreen
+                            SequentialAnimation on opacity {
+                                loops: Animation.Infinite
+                                NumberAnimation { from: 0.2; to: 1.0; duration: 500 }
+                                NumberAnimation { from: 1.0; to: 0.2; duration: 500 }
+                            }
+                        }
+                        Text {
+                            text: "LIVE"
+                            font: bodyFont
+                            color: neonGreen
+                        }
+                    }
+
+                    Canvas {
+                        id: timingCanvas
+                        Layout.fillWidth: true
+                        implicitHeight: Math.round(84 * uiScale)
+                        renderTarget: Canvas.FramebufferObject
+                        renderStrategy: Canvas.Threaded
+
+                        Component.onCompleted: requestPaint()
+
+                        onPaint: {
+                            var ctx = getContext("2d")
+                            ctx.reset()
+                            ctx.clearRect(0, 0, width, height)
+                            var sigNames = ["CLK", "A", "B", "Y"]
+                            var sigColors = [root.neonGreen, "#00E5FF", "#FF1133", "#FF9900"]
+                            var sigH = height / 4
+                            var sp = bgCanvas.simulationProgress
+                            for (var i = 0; i < 4; i++) {
+                                var baseY = i * sigH + sigH / 2
+                                var col = sigColors[i]
+                                ctx.strokeStyle = "rgba(255,255,255,0.06)"
+                                ctx.lineWidth = 1
+                                ctx.beginPath()
+                                ctx.moveTo(0, baseY)
+                                ctx.lineTo(width, baseY)
+                                ctx.stroke()
+                                ctx.fillStyle = col
+                                ctx.font = "bold " + Math.round(8 * uiScale) + "px 'JetBrainsMono Nerd Font'"
+                                ctx.textAlign = "left"
+                                ctx.fillText(sigNames[i], 2, baseY + 3)
+                                ctx.strokeStyle = col
+                                ctx.lineWidth = 2
+                                ctx.beginPath()
+                                var prevVal = -1
+                                var startX = 28
+                                for (var x = startX; x < width; x += 2) {
+                                    var t = ((x-startX) / (width-startX) + sp) % 1.0
+                                    var val = 0
+                                    if (i === 0) val = (Math.floor(t * 16) % 2)
+                                    else if (i === 1) val = (Math.floor(t * 8) % 2)
+                                    else if (i === 2) val = (Math.floor(t * 4) % 2)
+                                    else {
+                                        var vA = (Math.floor(t * 8) % 2)
+                                        var vB = (Math.floor(t * 4) % 2)
+                                        val = vA & vB
+                                    }
+                                    var py = baseY + (val === 0 ? 8 : -8)
+                                    if (x === startX) ctx.moveTo(x, py)
+                                    else if (val !== prevVal) {
+                                        ctx.lineTo(x, baseY + (prevVal === 0 ? 8 : -8))
+                                        ctx.lineTo(x, py)
+                                    } else ctx.lineTo(x, py)
+                                    prevVal = val
+                                }
+                                ctx.stroke()
+                            }
+                        }
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: timingStats
+                        font.family: "JetBrainsMono Nerd Font"
+                        font.pixelSize: Math.max(8, Math.round(9 * uiScale))
+                        color: textMuted
+                        horizontalAlignment: Text.AlignHCenter
+                    }
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.leftMargin: Math.round(4 * uiScale)
+                        Layout.rightMargin: Math.round(4 * uiScale)
+                        radius: 12
+                        color: "#12000000"
+                        border.width: 1
+                        border.color: strokeSoft
+                        implicitHeight: acceleratorLayout.implicitHeight + Math.round(14 * uiScale)
+
+                        ColumnLayout {
+                            id: acceleratorLayout
+                            anchors.fill: parent
+                            anchors.margins: Math.round(8 * uiScale)
+                            spacing: 2
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Text {
+                                    text: "MANX AI ACCELERATOR"
+                                    font.family: "JetBrainsMono Nerd Font"
+                                    font.pixelSize: Math.max(9, Math.round(10.5 * uiScale))
+                                    font.bold: true
+                                    color: "#00F0FF"
+                                }
+                                Item { Layout.fillWidth: true }
+                                Rectangle {
+                                    width: 6; height: 6; radius: 3
+                                    color: root.isGlitchActive ? "#FF1133" : ((passwordField.text.length > 0) ? "#FFD700" : "#39FF14")
+                                    border.width: 1
+                                    border.color: "white"
+                                }
+                            }
+
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 1
+                                color: subtleLine
+                                opacity: 0.2
+                            }
+
+                            GridLayout {
+                                columns: 2
+                                columnSpacing: 8
+                                rowSpacing: 1
+                                Layout.fillWidth: true
+
+                                property font tinyFont: Qt.font({ family: "JetBrainsMono Nerd Font", pixelSize: Math.max(8, Math.round(9.5 * uiScale)), bold: true })
+
+                                Text { text: "Engine"; color: textMuted; font: parent.tinyFont }
+                                Text { text: "TPU-v2a [CO-PROC]"; color: textPrimary; font: parent.tinyFont }
+
+                                Text { text: "Load"; color: textMuted; font: parent.tinyFont }
+                                Text {
+                                    text: (48.4 + 48.0 * root.cpuLoad).toFixed(1) + " TFLOPs"
+                                    color: root.isGlitchActive ? "#FF1133" : ((passwordField.text.length > 0) ? "#00F0FF" : "#39FF14")
+                                    font: parent.tinyFont
+                                }
+
+                                Text { text: "Temp"; color: textMuted; font: parent.tinyFont }
+                                Text {
+                                    text: (34.2 + 12.0 * root.cpuLoad).toFixed(1) + " °C"
+                                    color: root.isGlitchActive ? "#FF1133" : ((root.cpuLoad > 0.72) ? "#FF1133" : "#39FF14")
+                                    font: parent.tinyFont
+                                }
+
+                                Text { text: "State"; color: textMuted; font: parent.tinyFont }
+                                Text {
+                                    text: root.isGlitchActive ? "FAULT (0x8F9C)" : (passwordField.text.length > 0 ? "CRYPT_OP (0x21A0)" : "RUNNING (0x90A1)")
+                                    color: root.isGlitchActive ? "#FF1133" : (passwordField.text.length > 0 ? "#FFD700" : "#39FF14")
+                                    font: parent.tinyFont
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -1399,32 +1630,134 @@ Rectangle {
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 24
-                spacing: 12
+                anchors.margins: Math.round(16 * uiScale)
+                spacing: Math.round(5 * uiScale)
 
-                RowLayout {
+                                RowLayout {
                     Layout.fillWidth: true
+                    Layout.topMargin: Math.round(6 * uiScale)
+                    spacing: 12
 
                     ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 6
+                        Layout.fillWidth: false
+                        Layout.preferredWidth: Math.round(360 * uiScale)
+                        spacing: 8
 
                         Text {
-                            text: "module secure_auth_core;"
-                            font: titleFont
+                            text: root.verilogLines1[root.verilogIndex]
+                            opacity: root.verilogOpacity
+                            font {
+                                family: titleFont.family
+                                bold: true
+                                pixelSize: Math.max(16, Math.round(30 * uiScale))
+                                letterSpacing: 1.2
+                            }
                             color: maroonBright
                         }
 
-                        Text {
-                            text: selectedUserName !== "" ? ("assign active_user = \"" + selectedUserName + "\";") : "assign active_user = 8'h00;"
-                            font: bodyFont
-                            color: neonGreen
+                        RowLayout {
+                            opacity: root.verilogOpacity
+                            spacing: 0
+                            Text {
+                                text: root.verilogIndex === 0 ? "assign active_operator = \"" : root.verilogLines2[root.verilogIndex]
+                                font {
+                                    family: bodyFont.family
+                                    pixelSize: Math.max(12, Math.round(16 * uiScale))
+                                    bold: root.verilogIndex !== 0
+                                }
+                                color: root.verilogIndex === 0 ? neonGreen : rainbowColor
+                            }
+                            Text {
+                                text: (typeof selectedUserName !== "undefined" && selectedUserName !== "") ? selectedUserName : "root"
+                                visible: root.verilogIndex === 0
+                                font {
+                                    family: bodyFont.family
+                                    bold: true
+                                    pixelSize: Math.max(12, Math.round(16 * uiScale))
+                                }
+                                color: rainbowColor
+                                Behavior on color { ColorAnimation { duration: 1000 } }
+                            }
+                            Text {
+                                text: "\";"
+                                visible: root.verilogIndex === 0
+                                font {
+                                    family: bodyFont.family
+                                    pixelSize: Math.max(12, Math.round(16 * uiScale))
+                                }
+                                color: neonGreen
+                            }
+                            Item { Layout.fillWidth: true }
                         }
                     }
 
                     Item {
-                        width: 42
-                        height: 42
+                        id: particleField
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: Math.round(100 * uiScale)
+                        Layout.preferredHeight: Math.round(48 * uiScale)
+                        Layout.alignment: Qt.AlignVCenter
+                        clip: true
+                        
+                        Timer {
+                            interval: 50
+                            running: true
+                            repeat: true
+                            onTriggered: {
+                                for(var i=0; i<particleRepeater.count; i++) {
+                                    var item = particleRepeater.itemAt(i);
+                                    if(item) {
+                                        if (Math.random() > 0.94) {
+                                            item.tx = Math.random() * (particleField.width - item.width);
+                                            item.ty = Math.random() * (particleField.height - item.height);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Repeater {
+                            id: particleRepeater
+                            model: 12
+                            delegate: Rectangle {
+                                id: particle
+                                width: Math.round(2 * uiScale); height: width; radius: width/2
+                                color: index % 3 === 0 ? neonGreen : (index % 3 === 1 ? rainbowColor : "#00E5FF")
+                                opacity: 0.8
+                                z: 10
+                                
+                                property real tx: Math.random() * 80
+                                property real ty: Math.random() * 30
+
+                                Behavior on x { NumberAnimation { duration: 2200 + Math.random() * 1000; easing.type: Easing.InOutQuad } }
+                                Behavior on y { NumberAnimation { duration: 2200 + Math.random() * 1000; easing.type: Easing.InOutQuad } }
+                                
+                                x: tx
+                                y: ty
+
+                                SequentialAnimation on opacity {
+                                    loops: Animation.Infinite
+                                    NumberAnimation { from: 0.2; to: 0.9; duration: 1000 + Math.random() * 1000; easing.type: Easing.InOutSine }
+                                    NumberAnimation { from: 0.9; to: 0.2; duration: 1000 + Math.random() * 1000; easing.type: Easing.InOutSine }
+                                }
+                                
+                                // High-performance subtle glow
+                                Rectangle {
+                                    anchors.centerIn: parent
+                                    width: parent.width * 4
+                                    height: width
+                                    radius: width / 2
+                                    color: parent.color
+                                    opacity: parent.opacity * 0.4
+                                    z: -1
+                                }
+                            }
+                        }
+                    }
+
+                    Item {
+                        width: Math.round(42 * uiScale)
+                        height: Math.round(42 * uiScale)
 
                         Text {
                             anchors.centerIn: parent
@@ -1433,24 +1766,23 @@ Rectangle {
                             font.pixelSize: Math.round(28 * uiScale)
                             font.bold: true
                             color: neonGreen
-                            opacity: 0.82
+                            opacity: 0.9
 
                             SequentialAnimation on rotation {
                                 loops: Animation.Infinite
-                                NumberAnimation { from: 0; to: 180; duration: 2600; easing.type: Easing.Linear }
-                                NumberAnimation { from: 180; to: 360; duration: 2600; easing.type: Easing.Linear }
+                                NumberAnimation { from: 0; to: 360; duration: 4000; easing.type: Easing.Linear }
                             }
                         }
                     }
 
                     Item {
-                        width: 126
-                        height: 126
+                        width: Math.round(130 * uiScale)
+                        height: Math.round(130 * uiScale)
 
                         RectangularGlow {
                             id: avatarOuterGlow
                             anchors.fill: avatarBorderRect
-                            glowRadius: 16
+                            glowRadius: 18
                             spread: 0.2
                             color: spectrumColor
                             cornerRadius: avatarBorderRect.radius
@@ -1465,12 +1797,12 @@ Rectangle {
 
                         Rectangle {
                             id: avatarBorderRect
-                            width: 110
-                            height: 110
+                            width: Math.round(112 * uiScale)
+                            height: Math.round(112 * uiScale)
                             anchors.centerIn: parent
-                            radius: 55
+                            radius: Math.round(56 * uiScale)
                             color: "#12000000"
-                            border.width: 2
+                            border.width: 3
                             border.color: spectrumColor
 
                             Image {
@@ -1538,12 +1870,12 @@ Rectangle {
 
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 180
+                    Layout.preferredHeight: Math.round(225 * uiScale)
                     color: "transparent"
 
                     ListView {
                         id: userList
-                        width: Math.min(parent.width, count * 180)
+                        width: Math.min(parent.width, count * Math.round(210 * uiScale))
                         height: parent.height
                         anchors.horizontalCenter: parent.horizontalCenter
                         orientation: ListView.Horizontal
@@ -1585,8 +1917,8 @@ Rectangle {
                             property string iconSource: icon !== "" ? icon : "logo.png"
                             property bool isActive: ListView.isCurrentItem
 
-                            width: 170
-                            height: 180
+                            width: Math.round(200 * uiScale)
+                            height: Math.round(225 * uiScale)
                             color: "transparent"
                             scale: userMouse.pressed ? 0.96 : (userMouse.containsMouse || userCard.isActive ? 1.05 : 1.0)
 
@@ -1603,15 +1935,18 @@ Rectangle {
                                 }
                             }
 
-                            ColumnLayout {
-                                anchors.fill: parent
-                                spacing: 10
+                            Column {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                anchors.top: parent.top
+                                anchors.topMargin: Math.round(10 * uiScale)
+                                spacing: Math.round(6 * uiScale)
+                                width: parent.width
 
                                 Item {
                                     id: avatarContainer
-                                    Layout.alignment: Qt.AlignHCenter
-                                    width: 116
-                                    height: 116
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    width: Math.round(160 * uiScale)
+                                    height: Math.round(160 * uiScale)
 
                                     RectangularGlow {
                                         id: avatarGlow
@@ -1630,7 +1965,7 @@ Rectangle {
                                     Rectangle {
                                         id: cardAvatarRect
                                         anchors.fill: parent
-                                        radius: 58
+                                        radius: Math.round(80 * uiScale)
                                         color: "#16000000"
                                         border.width: userCard.isActive ? 2 : 1
                                         border.color: userCard.isActive ? spectrumColor : strokeSoft
@@ -1668,12 +2003,12 @@ Rectangle {
 
                                 Text {
                                     id: nameText
-                                    Layout.fillWidth: true
+                                    width: parent.width
                                     text: userCard.displayName.toUpperCase()
                                     color: userCard.isActive ? textPrimary : textMuted
                                     font.family: "JetBrainsMono Nerd Font"
                                     font.bold: true
-                                    font.pixelSize: userCard.isActive ? Math.round(16 * uiScale) : Math.round(13 * uiScale)
+                                    font.pixelSize: userCard.isActive ? Math.round(18 * uiScale) : Math.round(14 * uiScale)
                                     font.letterSpacing: userCard.isActive ? 3 : 1
                                     horizontalAlignment: Text.AlignHCenter
                                     elide: Text.ElideRight
@@ -1695,7 +2030,7 @@ Rectangle {
                                 }
 
                                 Text {
-                                    Layout.fillWidth: true
+                                    width: parent.width
                                     text: userCard.isActive ? "ACTIVE" : ""
                                     color: neonGreen
                                     font.family: "JetBrainsMono Nerd Font"
@@ -1742,7 +2077,7 @@ Rectangle {
                 QQC2.ComboBox {
                     id: sessionSelector
                     Layout.fillWidth: true
-                    implicitHeight: 52
+                    implicitHeight: Math.round(44 * uiScale)
                     model: sessionModel
                     textRole: "name"
                     currentIndex: (typeof sessionModel !== "undefined" && sessionModel && sessionModel.count > 0) ? Math.max(0, sessionModel.lastIndex) : -1
@@ -1965,30 +2300,37 @@ Rectangle {
                     horizontalAlignment: TextInput.AlignLeft
                     selectByMouse: true
                     focus: true
+                    clip: true // Ensure content stays inside
                     KeyNavigation.tab: loginButton
                     KeyNavigation.backtab: sessionSelector
 
-                    Row {
-                        anchors.left: parent.left
+                    Item {
+                        anchors.fill: parent
                         anchors.leftMargin: 16
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: 6
-                        visible: passwordField.text !== ""
+                        anchors.rightMargin: 16
+                        clip: true // Ensure dots stay inside the margins
 
-                        Repeater {
-                            model: passwordField.text.length
-                            delegate: Text {
-                                text: "◈"
-                                font: passwordField.font
-                                color: index % 2 === 0 ? maroonBright : neonGreen
-                                scale: 1.0
+                        Row {
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                            spacing: 6
+                            visible: passwordField.text !== ""
 
-                                Component.onCompleted: bounceAnim.start()
+                            Repeater {
+                                model: passwordField.text.length
+                                delegate: Text {
+                                    text: "◈"
+                                    font: passwordField.font
+                                    color: index % 2 === 0 ? maroonBright : neonGreen
+                                    scale: 1.0
 
-                                SequentialAnimation {
-                                    id: bounceAnim
-                                    NumberAnimation { target: parent; property: "scale"; from: 0.0; to: 1.4; duration: 120; easing.type: Easing.OutBack }
-                                    NumberAnimation { target: parent; property: "scale"; from: 1.4; to: 1.0; duration: 100; easing.type: Easing.OutQuad }
+                                    Component.onCompleted: bounceAnim.start()
+
+                                    SequentialAnimation {
+                                        id: bounceAnim
+                                        NumberAnimation { target: parent; property: "scale"; from: 0.0; to: 1.4; duration: 120; easing.type: Easing.OutBack }
+                                        NumberAnimation { target: parent; property: "scale"; from: 1.4; to: 1.0; duration: 100; easing.type: Easing.OutQuad }
+                                    }
                                 }
                             }
                         }
@@ -2012,6 +2354,23 @@ Rectangle {
                             messageText = "Awaiting secure authentication"
                         }
                         typePulse.restart()
+                        // Trigger Overclock surge
+                        root.telemetrySpeedMultiplier = 4.0
+                        overclockCoolDown.restart()
+                        root.isGlitchActive = true
+                        glitchCoolDown.restart()
+                    }
+
+                    Timer {
+                        id: overclockCoolDown
+                        interval: 400
+                        onTriggered: root.telemetrySpeedMultiplier = 1.0
+                    }
+                    
+                    Timer {
+                        id: glitchCoolDown
+                        interval: 150
+                        onTriggered: root.isGlitchActive = false
                     }
 
                     SequentialAnimation {
@@ -2047,8 +2406,8 @@ Rectangle {
                     placeholderTextColor: textMuted
                     leftPadding: 16
                     rightPadding: 16
-                    topPadding: 16
-                    bottomPadding: 16
+                    topPadding: 12
+                    bottomPadding: 12
                 }
 
                 RowLayout {
@@ -2058,7 +2417,7 @@ Rectangle {
                     QQC2.Button {
                         id: loginButton
                         Layout.fillWidth: true
-                        Layout.preferredHeight: Math.round(56 * uiScale)
+                        Layout.preferredHeight: Math.round(54 * uiScale)
                         font: actionFont
                         enabled: !authenticating
                         KeyNavigation.tab: clearButton
@@ -2090,7 +2449,7 @@ Rectangle {
                         }
 
                         background: Rectangle {
-                            radius: 18
+                            radius: 16
                             color: loginButton.down || loginButton.hovered ? neonGreen : buttonFill
                             border.width: 1
                             border.color: selectedBorder
@@ -2100,8 +2459,8 @@ Rectangle {
 
                     QQC2.Button {
                         id: clearButton
-                        Layout.preferredWidth: Math.round(160 * uiScale)
-                        Layout.preferredHeight: Math.round(56 * uiScale)
+                        Layout.preferredWidth: Math.round(150 * uiScale)
+                        Layout.preferredHeight: Math.round(54 * uiScale)
                         font: actionFont
                         onClicked: passwordField.text = ""
                         KeyNavigation.tab: userList
@@ -2116,7 +2475,7 @@ Rectangle {
                         }
 
                         background: Rectangle {
-                            radius: 18
+                            radius: 16
                             color: clearButton.hovered ? maroonBright : "#18FF1133"
                             border.width: 1
                             border.color: maroonBright
@@ -2125,228 +2484,414 @@ Rectangle {
                     }
                 }
 
-                RowLayout {
-                    Layout.fillWidth: true
-                    visible: typeof keyboard !== "undefined" && keyboard.capsLock
-                    spacing: 8
-                    Layout.topMargin: 4
-                    Layout.bottomMargin: 4
-
-                    Rectangle {
-                        Layout.preferredWidth: 6
-                        Layout.preferredHeight: 6
-                        radius: 3
-                        color: textWarning
-
-                        SequentialAnimation on opacity {
-                            loops: Animation.Infinite
-                            NumberAnimation { from: 0.3; to: 1.0; duration: 600; easing.type: Easing.InOutQuad }
-                            NumberAnimation { from: 1.0; to: 0.3; duration: 600; easing.type: Easing.InOutQuad }
-                        }
-                    }
-
-                    Text {
-                        text: "CAPS LOCK WARNING // REVERSE ENTRY HAZARD DETECTED"
-                        font: capsWarningFont
-                        color: textWarning
-                        Layout.fillWidth: true
-                    }
-                }
-
                 Rectangle {
                     Layout.fillWidth: true
-                    implicitHeight: 52
-                    radius: 16
-                    color: "#12000000"
+                    implicitHeight: 38
+                    radius: 12
+                    color: "#16000000"
                     border.width: 1
-                    border.color: messageColor
+                    border.color: root.isCapsActive ? textWarning : messageColor
 
                     Behavior on border.color { ColorAnimation { duration: 150 } }
 
-                    Text {
-                        id: messageTextItem
+                    RowLayout {
                         anchors.fill: parent
-                        anchors.margins: 8
-                        text: messageText
-                        color: messageColor
-                        font: bodyFont
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        elide: Text.ElideRight
+                        anchors.leftMargin: 16
+                        anchors.rightMargin: 16
+                        spacing: 12
+
+                        // Caps Lock Indicator
+                        Rectangle {
+                            Layout.preferredWidth: 10
+                            Layout.preferredHeight: 10
+                            radius: 5
+                            color: textWarning
+                            visible: root.isCapsActive
+                            
+                            SequentialAnimation on opacity {
+                                loops: Animation.Infinite
+                                NumberAnimation { from: 0.3; to: 1.0; duration: 450 }
+                                NumberAnimation { from: 1.0; to: 0.3; duration: 450 }
+                            }
+
+                            RectangularGlow {
+                                anchors.fill: parent
+                                glowRadius: 4
+                                spread: 0.2
+                                color: textWarning
+                            }
+                        }
+
+                        Text {
+                            id: messageTextItem
+                            Layout.fillWidth: true
+                            text: root.isCapsActive ? "CAPS LOCK DETECTED // AUTHENTICATION RISK" : messageText
+                            color: root.isCapsActive ? textWarning : messageColor
+                            font {
+                                family: bodyFont.family
+                                bold: true
+                                pixelSize: bodyFont.pixelSize
+                            }
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                            elide: Text.ElideRight
+                        }
+
+                        Item {
+                            Layout.preferredWidth: 10
+                            Layout.preferredHeight: 10
+                            visible: root.isCapsActive
+                        }
                     }
                 }
 
-                Item { Layout.fillHeight: true }
+                // Dynamic VLSI Logic Flow Particle Emitter (Gap Animation)
+                Item {
+                    id: logicFlowEmitter
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Layout.minimumHeight: Math.round(60 * uiScale)
+                    clip: true
 
+                    // Background signal bus trace (Lightning / Electrical logic pulse effect)
+                    Rectangle {
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        height: Math.round(1 * uiScale)
+                        color: spectrumColor
+                        opacity: 0.16
+
+                        // Glowing backlight
+                        RectangularGlow {
+                            anchors.fill: parent
+                            glowRadius: Math.round(8 * uiScale)
+                            spread: 0.2
+                            color: parent.color
+                            opacity: 0.7
+                        }
+
+                        // Lightning electrical pulse dot
+                        Rectangle {
+                            id: pulseDot
+                            width: Math.round(35 * uiScale)
+                            height: Math.round(2 * uiScale)
+                            radius: 1
+                            color: "#FFFFFF"
+
+                            layer.enabled: true
+                            layer.effect: Glow {
+                                radius: Math.round(6 * uiScale)
+                                samples: 10
+                                color: "#00E5FF"
+                            }
+
+                            NumberAnimation on x {
+                                from: -100
+                                to: logicFlowEmitter.width + 100
+                                duration: 3200
+                                loops: Animation.Infinite
+                                easing.type: Easing.InOutQuad
+                            }
+                        }
+
+                        // Subtle active voltage flicker on the trace
+                        SequentialAnimation on opacity {
+                            loops: Animation.Infinite
+                            NumberAnimation { from: 0.16; to: 0.35; duration: 90; easing.type: Easing.Linear }
+                            NumberAnimation { from: 0.35; to: 0.10; duration: 60; easing.type: Easing.Linear }
+                            NumberAnimation { from: 0.10; to: 0.26; duration: 110; easing.type: Easing.Linear }
+                            NumberAnimation { from: 0.26; to: 0.16; duration: 2200; easing.type: Easing.InOutQuad }
+                        }
+                    }
+
+                    Repeater {
+                        model: 16 // 16 floating logic particles
+
+                        delegate: Item {
+                            id: particleItem
+                            width: Math.round(16 * uiScale)
+                            height: Math.round(16 * uiScale)
+
+                            property color particleColor: "#39FF14"
+                            property string particleText: "0"
+
+                            // Stylish hollow neon circuit ring
+                            Rectangle {
+                                id: hollowCircle
+                                anchors.centerIn: parent
+                                width: Math.round(7 * uiScale)
+                                height: Math.round(7 * uiScale)
+                                radius: width / 2
+                                color: "transparent"
+                                border.width: 1.5
+                                border.color: parent.particleColor
+                                visible: parent.particleText === "•"
+
+                                layer.enabled: true
+                                layer.effect: DropShadow {
+                                    horizontalOffset: 0
+                                    verticalOffset: 0
+                                    radius: 3
+                                    color: hollowCircle.border.color
+                                    fast: true
+                                }
+
+                                // Breathing scale glow effect (Lightning / Pulse style)
+                                SequentialAnimation on scale {
+                                    loops: Animation.Infinite
+                                    NumberAnimation { from: 0.8; to: 1.35; duration: 1300; easing.type: Easing.InOutQuad }
+                                    NumberAnimation { from: 1.35; to: 0.8; duration: 1300; easing.type: Easing.InOutQuad }
+                                }
+                            }
+
+                            // 0 or 1 digital state text
+                            Text {
+                                id: particleTextLabel
+                                anchors.centerIn: parent
+                                text: parent.particleText === "•" ? "" : parent.particleText
+                                color: parent.particleColor
+                                font {
+                                    family: "JetBrainsMono Nerd Font"
+                                    bold: true
+                                    pixelSize: Math.round(10 * uiScale)
+                                }
+                                visible: parent.particleText !== "•"
+
+                                layer.enabled: true
+                                layer.effect: DropShadow {
+                                    horizontalOffset: 0
+                                    verticalOffset: 0
+                                    radius: 4
+                                    color: particleItem.particleColor
+                                    fast: true
+                                }
+                            }
+
+                            function resetParticle() {
+                                if (logicFlowEmitter.width <= 0) return;
+                                
+                                var startX = Math.random() * (logicFlowEmitter.width - 25)
+                                particleItem.x = startX
+                                particleItem.particleText = Math.random() < 0.4 ? "•" : (Math.random() < 0.5 ? "0" : "1")
+                                particleItem.particleColor = ["#39FF14", "#00E5FF", "#FF9900", "#FF1133", "#FF00FF"][Math.floor(Math.random() * 5)]
+                                particleItem.opacity = Math.random() * 0.65 + 0.2
+                                
+                                // Set float duration on yAnim directly (never fails!)
+                                yAnim.duration = Math.random() * 3000 + 2500
+                                
+                                // Randomize sway range dynamically
+                                xAnim1.from = startX
+                                xAnim1.to = startX + (Math.random() * 20 + 8) * (Math.random() < 0.5 ? -1 : 1)
+                                xAnim1.duration = Math.random() * 1500 + 1000
+                                
+                                xAnim2.to = startX - (Math.random() * 20 + 8) * (Math.random() < 0.5 ? -1 : 1)
+                                xAnim2.duration = Math.random() * 1500 + 1000
+                                
+                                floatAnim.restart()
+                                driftAnim.restart()
+                            }
+
+                            SequentialAnimation {
+                                id: floatAnim
+                                running: false
+
+                                NumberAnimation {
+                                    id: yAnim
+                                    target: particleItem
+                                    property: "y"
+                                    from: logicFlowEmitter.height + 15
+                                    to: -25
+                                    easing.type: Easing.Linear
+                                }
+
+                                ScriptAction {
+                                    script: particleItem.resetParticle()
+                                }
+                            }
+
+                            // Drift animation (left and right sway)
+                            SequentialAnimation {
+                                id: driftAnim
+                                loops: Animation.Infinite
+
+                                NumberAnimation {
+                                    id: xAnim1
+                                    target: particleItem
+                                    property: "x"
+                                    easing.type: Easing.InOutQuad
+                                }
+                                NumberAnimation {
+                                    id: xAnim2
+                                    target: particleItem
+                                    property: "x"
+                                    easing.type: Easing.InOutQuad
+                                }
+                            }
+
+                            // Trigger launch stagger-delay
+                            Timer {
+                                id: initTimer
+                                interval: index * 260
+                                repeat: false
+                                running: false
+                                onTriggered: {
+                                    particleItem.resetParticle()
+                                    // Distribute them evenly vertically at startup
+                                    particleItem.y = Math.random() * logicFlowEmitter.height
+                                }
+                            }
+
+                            Connections {
+                                target: logicFlowEmitter
+                                function onWidthChanged() {
+                                    if (logicFlowEmitter.width > 0 && !floatAnim.running && !initTimer.running) {
+                                        initTimer.start()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Pro VLSI Power Modules (High-Fidelity)
                 RowLayout {
+                    id: powerButtonsRow
                     Layout.alignment: Qt.AlignHCenter
-                    spacing: 16
+                    Layout.fillHeight: false
+                    Layout.preferredHeight: Math.round(44 * uiScale)
+                    Layout.bottomMargin: Math.round(8 * uiScale)
+                    spacing: Math.round(20 * uiScale)
 
-                    QQC2.Button {
-                        id: suspendButton
-                        Layout.preferredWidth: 145
-                        Layout.preferredHeight: 38
-                        visible: sddm.canSuspend
-                        onClicked: sddm.suspend()
+                    Repeater {
+                        model: [
+                            { id: "suspend", icon: "☾", label: "SUSPEND", action: function() { if (typeof sddm !== "undefined" && sddm !== null) sddm.suspend() }, color: textWarning },
+                            { id: "hibernate", icon: "⏾", label: "HIBERNATE", action: function() { if (typeof sddm !== "undefined" && sddm !== null) sddm.hibernate() }, color: maroonBright },
+                            { id: "reboot", icon: "↻", label: "REBOOT", action: function() { if (typeof sddm !== "undefined" && sddm !== null) sddm.reboot() }, color: neonGreen },
+                            { id: "poweroff", icon: "⏻", label: "SHUTDOWN", action: function() { if (typeof sddm !== "undefined" && sddm !== null) sddm.powerOff() }, color: maroonBright }
+                        ]
 
-                        contentItem: Text {
-                            text: "☾  SUSPEND"
-                            font: actionFont
-                            color: suspendButton.hovered ? buttonTextDark : textPrimary
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
+                        delegate: QQC2.Button {
+                            id: powerBtn
+                            visible: true
+                            Layout.preferredHeight: Math.round(44 * uiScale)
+                            Layout.preferredWidth: Math.round(142 * uiScale)
+                            
+                            onClicked: modelData.action()
 
-                        background: Rectangle {
-                            radius: 19
-                            color: suspendButton.hovered ? textWarning : "#12000000"
-                            border.width: suspendButton.hovered ? 2 : 1
-                            border.color: textWarning
-
-                            Rectangle {
-                                anchors.fill: parent
-                                radius: parent.radius
-                                color: "#00000000"
-                                border.width: 1
-                                border.color: suspendGlow
-                                opacity: suspendButton.hovered ? 0.85 : 0.25
-
-                                SequentialAnimation on opacity {
-                                    running: suspendButton.hovered
-                                    loops: Animation.Infinite
-                                    NumberAnimation { from: 0.30; to: 0.90; duration: 700; easing.type: Easing.InOutQuad }
-                                    NumberAnimation { from: 0.90; to: 0.30; duration: 700; easing.type: Easing.InOutQuad }
+                            contentItem: RowLayout {
+                                spacing: 12
+                                anchors.centerIn: parent
+                                
+                                Text {
+                                    text: modelData.icon
+                                    font.pixelSize: Math.round(18 * uiScale)
+                                    color: powerBtn.hovered ? modelData.color : textMuted
+                                    opacity: powerBtn.hovered ? 1.0 : 0.7
+                                    Behavior on color { ColorAnimation { duration: 180 } }
+                                    Behavior on opacity { NumberAnimation { duration: 180 } }
+                                    
+                                    layer.enabled: powerBtn.hovered
+                                    layer.effect: Glow {
+                                        radius: 10
+                                        samples: 16
+                                        color: modelData.color
+                                        spread: 0.3
+                                    }
+                                }
+                                
+                                Text {
+                                    text: modelData.label
+                                    font {
+                                        family: "Orbitron"
+                                        pixelSize: Math.round(10.5 * uiScale)
+                                        bold: true
+                                        letterSpacing: 1.5
+                                    }
+                                    color: powerBtn.hovered ? textPrimary : textMuted
+                                    Behavior on color { ColorAnimation { duration: 180 } }
                                 }
                             }
 
-                            Behavior on color { ColorAnimation { duration: 120 } }
-                            Behavior on border.width { NumberAnimation { duration: 120 } }
-                        }
-                    }
+                            background: Rectangle {
+                                id: powerBtnBg
+                                radius: 12
+                                color: powerBtn.hovered ? "#1CFFFFFF" : "#0D000000"
+                                border.width: powerBtn.hovered ? 2 : 1
+                                border.color: powerBtn.hovered ? modelData.color : strokeSoft
+                                opacity: powerBtn.hovered ? 1.0 : 0.6
+                                
+                                Behavior on border.color { ColorAnimation { duration: 180 } }
+                                Behavior on border.width { NumberAnimation { duration: 180 } }
+                                Behavior on color { ColorAnimation { duration: 180 } }
+                                Behavior on opacity { NumberAnimation { duration: 180 } }
 
-                    QQC2.Button {
-                        id: hibernateButton
-                        Layout.preferredWidth: 145
-                        Layout.preferredHeight: 38
-                        visible: sddm.canHibernate
-                        onClicked: sddm.hibernate()
+                                // --- LOGIC SCANLINE CONTAINER (WITH PERFECT ROUNDED CLIPPING) ---
+                                Item {
+                                    id: maskContainer
+                                    anchors.fill: parent
+                                    visible: powerBtn.hovered
+                                    layer.enabled: true
+                                    layer.effect: OpacityMask {
+                                        maskSource: Rectangle {
+                                            width: powerBtnBg.width
+                                            height: powerBtnBg.height
+                                            radius: powerBtnBg.radius
+                                        }
+                                    }
 
-                        contentItem: Text {
-                            text: "⏾  HIBERNATE"
-                            font: actionFont
-                            color: hibernateButton.hovered ? buttonTextDark : textPrimary
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
+                                    // Glowing Aura (Contained)
+                                    RectangularGlow {
+                                        anchors.fill: parent
+                                        glowRadius: 16
+                                        spread: 0.3
+                                        color: modelData.color
+                                        cornerRadius: powerBtnBg.radius
+                                        opacity: 0.6
+                                        
+                                        SequentialAnimation on opacity {
+                                            loops: Animation.Infinite
+                                            NumberAnimation { from: 0.4; to: 0.8; duration: 1200; easing.type: Easing.InOutQuad }
+                                            NumberAnimation { from: 0.8; to: 0.4; duration: 1200; easing.type: Easing.InOutQuad }
+                                        }
+                                    }
 
-                        background: Rectangle {
-                            radius: 19
-                            color: hibernateButton.hovered ? hibernateBorder : "#12000000"
-                            border.width: hibernateButton.hovered ? 2 : 1
-                            border.color: hibernateBorder
+                                    // High-Speed Logic Scanline (Perfectly Clipped)
+                                    Rectangle {
+                                        id: logicScan
+                                        width: Math.round(4 * uiScale)
+                                        height: parent.height
+                                        color: "white"
+                                        opacity: 0.9
+                                        z: 5
+                                        
+                                        SequentialAnimation on x {
+                                            loops: Animation.Infinite
+                                            NumberAnimation { from: -20; to: powerBtnBg.width + 20; duration: 950; easing.type: Easing.Linear }
+                                            PauseAnimation { duration: 150 }
+                                        }
 
-                            Rectangle {
-                                anchors.fill: parent
-                                radius: parent.radius
-                                color: "#00000000"
-                                border.width: 1
-                                border.color: hibernateGlow
-                                opacity: hibernateButton.hovered ? 0.85 : 0.25
-
-                                SequentialAnimation on opacity {
-                                    running: hibernateButton.hovered
-                                    loops: Animation.Infinite
-                                    NumberAnimation { from: 0.30; to: 0.90; duration: 700; easing.type: Easing.InOutQuad }
-                                    NumberAnimation { from: 0.90; to: 0.30; duration: 700; easing.type: Easing.InOutQuad }
+                                        RectangularGlow {
+                                            anchors.fill: parent
+                                            glowRadius: 10
+                                            spread: 0.4
+                                            color: modelData.color
+                                            cornerRadius: 1
+                                        }
+                                    }
+                                }
+                                
+                                // Internal silicon highlight (Top Edge Rim)
+                                Rectangle {
+                                    anchors.fill: parent
+                                    anchors.margins: 1.5
+                                    radius: parent.radius - 1
+                                    color: "transparent"
+                                    border.width: 1
+                                    border.color: "white"
+                                    opacity: powerBtn.hovered ? 0.15 : 0.05
                                 }
                             }
-
-                            Behavior on color { ColorAnimation { duration: 120 } }
-                            Behavior on border.width { NumberAnimation { duration: 120 } }
-                        }
-                    }
-
-                    QQC2.Button {
-                        id: rebootButton
-                        Layout.preferredWidth: 145
-                        Layout.preferredHeight: 38
-                        visible: sddm.canReboot
-                        onClicked: sddm.reboot()
-
-                        contentItem: Text {
-                            text: "↻  REBOOT"
-                            font: actionFont
-                            color: rebootButton.hovered ? buttonTextDark : textPrimary
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-
-                        background: Rectangle {
-                            radius: 19
-                            color: rebootButton.hovered ? neonGreen : "#12000000"
-                            border.width: rebootButton.hovered ? 2 : 1
-                            border.color: selectedBorder
-
-                            Rectangle {
-                                anchors.fill: parent
-                                radius: parent.radius
-                                color: "#00000000"
-                                border.width: 1
-                                border.color: passwordGlow
-                                opacity: rebootButton.hovered ? 0.85 : 0.25
-
-                                SequentialAnimation on opacity {
-                                    running: rebootButton.hovered
-                                    loops: Animation.Infinite
-                                    NumberAnimation { from: 0.30; to: 0.90; duration: 700; easing.type: Easing.InOutQuad }
-                                    NumberAnimation { from: 0.90; to: 0.30; duration: 700; easing.type: Easing.InOutQuad }
-                                }
-                            }
-
-                            Behavior on color { ColorAnimation { duration: 120 } }
-                            Behavior on border.width { NumberAnimation { duration: 120 } }
-                        }
-                    }
-
-                    QQC2.Button {
-                        id: shutdownButton
-                        Layout.preferredWidth: 145
-                        Layout.preferredHeight: 38
-                        visible: sddm.canPowerOff
-                        onClicked: sddm.powerOff()
-
-                        contentItem: Text {
-                            text: "⏻  SHUTDOWN"
-                            font: actionFont
-                            color: shutdownButton.hovered ? buttonTextDark : textPrimary
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-
-                        background: Rectangle {
-                            radius: 19
-                            color: shutdownButton.hovered ? maroonBright : "#12000000"
-                            border.width: shutdownButton.hovered ? 2 : 1
-                            border.color: maroonBright
-
-                            Rectangle {
-                                anchors.fill: parent
-                                radius: parent.radius
-                                color: "#00000000"
-                                border.width: 1
-                                border.color: shutdownGlow
-                                opacity: shutdownButton.hovered ? 0.85 : 0.25
-
-                                SequentialAnimation on opacity {
-                                    running: shutdownButton.hovered
-                                    loops: Animation.Infinite
-                                    NumberAnimation { from: 0.30; to: 0.90; duration: 700; easing.type: Easing.InOutQuad }
-                                    NumberAnimation { from: 0.90; to: 0.30; duration: 700; easing.type: Easing.InOutQuad }
-                                }
-                            }
-
-                            Behavior on color { ColorAnimation { duration: 120 } }
-                            Behavior on border.width { NumberAnimation { duration: 120 } }
                         }
                     }
                 }
@@ -2355,7 +2900,7 @@ Rectangle {
     }
 
     Connections {
-        target: sddm
+        target: (typeof sddm !== "undefined" && sddm !== null) ? sddm : null
 
         function onLoginFailed() {
             authenticating = false
@@ -2364,14 +2909,22 @@ Rectangle {
             messageColor = maroonBright
             messageText = "Decryption Core Error: Cryptographic Key Signature Invalid"
             shakeAnim.start()
-            passwordField.background.triggerFailGlow()
+            passwordBorderRect.triggerFailGlow()
             resetMessageTimer.start()
+
+            // Trigger simulated parity error glitch
+            root.isGlitchActive = true
+            authGlitchTimer.start()
         }
 
         function onLoginSucceeded() {
             authenticating = false
             messageColor = neonGreen
             messageText = "Access Granted! Loading Manx VLSI Environment..."
+
+            // Trigger green logic reset wave
+            root.isSuccessWaveActive = true
+            root.successWaveProgress = 0.0
         }
 
         function onInformationMessage(message) {

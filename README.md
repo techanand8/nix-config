@@ -22,8 +22,8 @@
   <details>
     <summary><b>🎬 VIEW AUTHENTICATION INTERFACE ANIMATION</b></summary>
     <br/>
-    <video src="https://github.com/user-attachments/assets/550ed2ea-9580-4388-a82f-c8c525f316d5" width="100%" controls autoplay muted loop style="border-radius: 8px; border: 1px solid #444;"></video>
-    <p><i>Demonstration of the modular authentication interface featuring native Verilog syntax highlighting.</i></p>
+    <video src="https://github.com/user-attachments/assets/e4f24047-bb92-4cec-8771-36b7038a9c0e" width="100%" controls autoplay muted loop style="border-radius: 8px; border: 1px solid #444;"></video>
+    <p><i>Demonstration of the MANX VLSI Workstation authentication interface featuring real-time logic gate simulation and dynamic system telemetry.</i></p>
   </details>
 </div>
 

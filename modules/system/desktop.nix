@@ -21,7 +21,7 @@ let
   # A highly customized, high-tech Qt6 SDDM theme (Neon Green & Maroon Glow)
   manx-vlsi-theme = pkgs.stdenv.mkDerivation {
     pname = "manx-vlsi-theme";
-    version = "2.0";
+    version = "2.1";
     src = ./sddm-theme;
 
     installPhase = ''
