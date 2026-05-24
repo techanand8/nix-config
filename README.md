@@ -64,6 +64,53 @@ The system is designed to minimize configuration drift. All daily operations, en
 
 ---
 
+## 🛠️ Engineering Stack & Verification Suite
+
+This workstation provides a specialized, production-grade environment for RTL design, hardware verification, and architectural exploration.
+
+<div align="center">
+
+### 🧪 Primary Design & Verification Toolset
+  
+  [![Simulation](https://img.shields.io/badge/Simulation-Verilator_%7C_Icarus_%7C_NVC-blue?style=for-the-badge&logo=cplusplus&logoColor=white)](#)
+  [![Verification](https://img.shields.io/badge/Verification-Cocotb_%7C_SBY_%7C_Surelog-orange?style=for-the-badge&logo=python&logoColor=white)](#)
+  [![Architecture](https://img.shields.io/badge/ISA-RISC--V_%7C_ARM_%7C_QEMU-green?style=for-the-badge&logo=linux&logoColor=white)](#)
+
+<br/>
+
+<details>
+  <summary><b>🔍 VIEW COMPLETE ENGINEERING TOOLCHAIN (20+ TOOLS)</b></summary>
+  <br/>
+
+| Category | Tool | Description |
+| :--- | :--- | :--- |
+| **Verification (DV)** | `Cocotb` | Coroutine-based cosimulation framework for modern SV/VHDL verification. |
+| | `Surelog` | Comprehensive SystemVerilog compiler and parser with full UVM support. |
+| | `SBY` | Front-end for Yosys-based formal verification (SymbiYosys). |
+| | `Verible` | SystemVerilog developer tools, including linter and formatter. |
+| **Simulation** | `Verilator` | High-performance, cycle-accurate C++ Verilog simulator. |
+| | `Icarus Verilog` | Standard-compliant Verilog simulation and synthesis tool. |
+| | `NVC` | Optimized VHDL compiler and simulator. |
+| | `GHDL` | Open-source analyzer, compiler, and simulator for VHDL. |
+| **Architectural** | `Spike` | The official RISC-V ISA simulator for architectural golden-model verification. |
+| | `QEMU` | Universal system emulator and user-mode binary executor. |
+| | `Proxy Kernel (pk)` | Lightweight execution environment for RISC-V ISA simulators. |
+| **Compilers** | `RISC-V GCC` | 64-bit embedded cross-compiler for RISC-V targets. |
+| | `ARM GCC` | Professional embedded toolchain (`arm-none-eabi`) for Cortex-A/M. |
+| **Physical Design** | `Magic-VLSI` | Industry-standard VLSI layout tool and DRC engine. |
+| | `KLayout` | Advanced GDSII/OASIS viewer and editor with Python scripting. |
+| | `NetlistSVG` | Visualizes digital logic netlists as clean SVG diagrams. |
+| **Schematic** | `XSchem` | High-performance schematic capture for VLSI and mixed-signal design. |
+| | `Ngspice` | General-purpose circuit simulator for analog and mixed-signal verification. |
+| **Analysis** | `GTKWave` | Fully-featured wave viewer for digital simulation results. |
+| | `Surfer` | Modern, high-performance waveform visualizer for large datasets. |
+| | `WaveDrom` | Renders digital timing diagrams from high-level descriptions. |
+
+</details>
+</div>
+
+---
+
 ## 🏗️ Architecture & Reliability
 
 <details>
@@ -82,31 +129,6 @@ The system is designed to minimize configuration drift. All daily operations, en
   *   **Kernel Optimization:** Utilizes the CachyOS Kernel tuned for the `x86_64-v3` microarchitecture to maximize throughput in simulation and training workloads.
   *   **Latency Management:** Leverages the **sched-ext** framework with the `scx_lavd` scheduler to maintain desktop responsiveness under 100% CPU load.
   *   **Compute Acceleration:** Integrated **ROCm** stack for AMD hardware, enabling native HIP and OpenCL support for machine learning frameworks and GPU-accelerated simulators.
-</details>
-
----
-
-## 🛠️ The Engineering Stack
-
-<details>
-  <summary><b>🟦 VLSI & DIGITAL VERIFICATION</b></summary>
-  <br/>
-
-  A production-grade toolchain for RTL design and functional verification:
-  *   **Simulation:** `Verilator` (High-performance C++ cycle-accurate), `Icarus Verilog`, `NVC` (VHDL).
-  *   **Formal Verification:** `SBY` (SymbiYosys) for bounded model checking.
-  *   **Physical Design:** `Magic-VLSI` and `KLayout` for GDSII layout and DRC.
-  *   **Verification Frameworks:** Native `cocotb` integration for modern coroutine-based cosimulation.
-</details>
-
-<details>
-  <summary><b>🧠 DEEP LEARNING & AI RESEARCH</b></summary>
-  <br/>
-
-  Optimized environment for high-intensity computation:
-  *   **Frameworks:** Native execution for `PyTorch` and `TensorFlow` via the ROCm/HIP backend.
-  *   **Data Science:** `NumPy`, `Pandas`, and `Matplotlib` available in the standard computational shell.
-  *   **Binary Compatibility:** Configured with `nix-ld` to seamlessly execute unpatched pre-compiled binaries (e.g., Conda environments or proprietary AI models).
 </details>
 
 ---

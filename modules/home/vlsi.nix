@@ -40,6 +40,20 @@ in
     veryl # Modern hardware design language (SV alternative)
     sby # Front-end driver for Yosys-based formal verification (formerly symbiyosys)
     python3Packages.wavedrom # Digital waveform generator & renderer (Python CLI package)
+    python3Packages.cocotb # Coroutine-based cosimulation framework for DV
+
+    # --- ARCHITECTURE-SPECIFIC & EMBEDDED DESIGN ---
+    # RISC-V Toolchain & Simulation
+    pkgsCross.riscv64-embedded.buildPackages.gcc # RISC-V 64-bit Embedded GCC
+    spike # RISC-V ISA Simulator (Standard for architectural exploration)
+    pkgsCross.riscv64.riscv-pk # RISC-V Proxy Kernel (Required for Spike)
+    
+    # ARM Toolchain & Simulation
+    gcc-arm-embedded # ARM Embedded GCC (arm-none-eabi)
+    qemu # Full system and user-mode emulation for RISC-V/ARM
+
+    # --- ADVANCED PHYSICAL DESIGN & SYNTHESIS ---
+    yosys-ghdl # GHDL plugin for Yosys (VHDL synthesis support)
   ];
 
   # --- AMD VIVADO & XILINX SUITE DESKTOP LAUNCHERS ---

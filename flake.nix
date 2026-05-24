@@ -48,53 +48,70 @@
     { self, nixpkgs, ... }@inputs:
     let
       # Systems we support for the build and formatting
-      supportedSystems = [
-        "x86_64-linux"
-        "aarch64-linux"
-      ];
+      supportedSystems = [ "x86_64-linux" ];
 
       # Helper to generate settings for each system
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
 
-      hostPlatform = "x86_64-linux";
-      vars = import ./hosts/manx/variables.nix;
+      # Centralized System Builder
+      mkSystem = 
+        { hostname, platform, extraModules ? [] }: 
+        nixpkgs.lib.nixosSystem {
+          specialArgs = {
+            inherit self inputs platform;
+            vars = import ./hosts/${hostname}/variables.nix;
+          };
+          modules = [
+            {
+              nixpkgs.hostPlatform = platform;
+              nixpkgs.config.allowUnfree = true;
+              nixpkgs.overlays = [ inputs.nix-cachyos-kernel.overlays.pinned ];
+            }
+            ./hosts/${hostname}/configuration.nix
+            inputs.ambxst.nixosModules.default
+            inputs.home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.backupFileExtension = "bak";
+              home-manager.extraSpecialArgs = { 
+                inherit inputs platform; 
+                vars = import ./hosts/${hostname}/variables.nix;
+              };
+              home-manager.users."${(import ./hosts/${hostname}/variables.nix).username}" = {
+                imports = [
+                  inputs.nixvim.homeModules.nixvim
+                  ./modules/home/home-user.nix
+                ];
+              };
+            }
+          ] ++ extraModules;
+        };
     in
     {
-      nixosConfigurations.MANX = nixpkgs.lib.nixosSystem {
-        specialArgs = {
-          inherit
-            self
-            inputs
-            vars
-            hostPlatform
-            ;
+      nixosConfigurations = {
+        # --- Primary Workstation ---
+        MANX = mkSystem {
+          hostname = "manx";
+          platform = "x86_64-linux";
+          extraModules = [
+            inputs.nixos-hardware.nixosModules.common-cpu-amd
+            inputs.nixos-hardware.nixosModules.common-gpu-amd
+            inputs.nixos-hardware.nixosModules.common-pc-ssd
+          ];
         };
-        modules = [
-          {
-            nixpkgs.hostPlatform = hostPlatform;
-            nixpkgs.config.allowUnfree = true;
-            nixpkgs.overlays = [ inputs.nix-cachyos-kernel.overlays.pinned ];
-          }
-          ./hosts/manx/configuration.nix
-          inputs.nixos-hardware.nixosModules.common-cpu-amd
-          inputs.nixos-hardware.nixosModules.common-gpu-amd
-          inputs.nixos-hardware.nixosModules.common-pc-ssd
-          inputs.ambxst.nixosModules.default
 
-          inputs.home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.backupFileExtension = "bak";
-            home-manager.extraSpecialArgs = { inherit inputs vars hostPlatform; };
-            home-manager.users."${vars.username}" = {
-              imports = [
-                inputs.nixvim.homeModules.nixvim
-                ./modules/home/home-user.nix
-              ];
-            };
-          }
-        ];
+        # --- Portable Engineering Laptop ---
+        # Note: Requires generating hardware-configuration.nix on target machine
+        LAPTOP = mkSystem {
+          hostname = "laptop";
+          platform = "x86_64-linux";
+          extraModules = [
+            # Add laptop-specific hardware modules here (e.g. battery, touch-pad)
+            inputs.nixos-hardware.nixosModules.common-pc-laptop
+            inputs.nixos-hardware.nixosModules.common-pc-laptop-ssd
+          ];
+        };
       };
 
       # Automated Nix Formatter (Multi-architecture)
