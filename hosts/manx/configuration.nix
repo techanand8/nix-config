@@ -25,6 +25,7 @@
     ../../modules/system/apps.nix
     ../../modules/system/stateless.nix
     ../../modules/system/vpn.nix
+    ../../modules/system/ai.nix
   ];
 
   # --- HOST IDENTIFICATION ---
