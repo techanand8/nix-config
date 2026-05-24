@@ -1,5 +1,5 @@
-# 🛰️ MANX OS: Engineering-Grade Workstation
-### A Declarative Ecosystem for VLSI, Deep Learning, and Hardware Design
+# 🛰️ MANX OS: Engineering Workstation
+### Declarative Environment for VLSI, Hardware Design, and Deep Learning
 
 <div align="center">
 
@@ -13,28 +13,58 @@
 
 ---
 
+> **MANX OS** is a specialized, mathematically reproducible NixOS configuration. It bridges the stability of a stateless Linux foundation with the complex dependency requirements of proprietary Electronic Design Automation (EDA) and machine learning toolchains.
+
 <div align="center">
-  <img src="assets/screenshots/sddm.png" alt="MANX OS SDDM Preview" width="100%" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-  <br/>
+  <img src="assets/screenshots/sddm.png" alt="MANX OS Authentication Interface" width="100%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+  <br/><br/>
   
   <details>
-    <summary><b>🎬 VIEW HIGH-FIDELITY SDDM ANIMATION</b></summary>
+    <summary><b>🎬 VIEW AUTHENTICATION INTERFACE ANIMATION</b></summary>
     <br/>
-    <video src="https://github.com/user-attachments/assets/550ed2ea-9580-4388-a82f-c8c525f316d5" width="100%" controls autoplay muted loop style="border-radius: 8px; border: 1px solid #333;"></video>
-    <p><i>Live demonstration of the modular authentication interface with native Verilog syntax highlighting.</i></p>
+    <video src="https://github.com/user-attachments/assets/550ed2ea-9580-4388-a82f-c8c525f316d5" width="100%" controls autoplay muted loop style="border-radius: 8px; border: 1px solid #444;"></video>
+    <p><i>Demonstration of the modular authentication interface featuring native Verilog syntax highlighting.</i></p>
   </details>
 </div>
 
 ---
 
-## 🔬 Core Mission
-This workstation is a specialized NixOS distribution designed for **Microelectronics Engineers** and **Deep Learning Researchers**. It bridges the gap between the cutting-edge Linux ecosystem and the historically rigid world of proprietary EDA (Electronic Design Automation) tools.
+## ⚙️ Operational Workflow
 
-The environment is built on **Stateless Btrfs Architecture**, meaning the system resets to a pristine state on every boot, ensuring absolute stability and preventing "configuration drift" over years of heavy engineering work.
+The system is designed to minimize configuration drift. All daily operations, environment management, and system updates are handled through the unified `manx` orchestration tool.
+
+<details>
+  <summary><b>1. System Configuration & Maintenance</b></summary>
+  <br/>
+  
+  To modify the system, edit the respective Nix files and apply the changes atomically:
+  *   **Edit Configuration:** Run `manx edit` to open the configuration tree in an interactive fuzzy-finder.
+  *   **Apply Changes:** Run `manx rebuild` to compile and switch to the new system generation.
+  *   **Audit History:** Run `manx history` to view the chronological log of all applied system generations.
+  *   **Garbage Collection:** Run `manx clean` to clear old system generations and free up disk space.
+</details>
+
+<details>
+  <summary><b>2. Hardware Design & EDA Toolchain</b></summary>
+  <br/>
+
+  Proprietary tools (like AMD Vivado/Vitis) often require rigid, legacy Linux environments (e.g., Ubuntu 22.04). MANX OS isolates these using containerization while maintaining deep host integration:
+  *   **Launch Environment:** Run `manx vivado` to seamlessly enter the hardware-accelerated Ubuntu container.
+  *   **Native Integration:** GUI applications launched from the container export their windows natively to the Hyprland Wayland compositor.
+  *   **Hardware Access:** JTAG programmers and FPGAs connected to the host are automatically passed through to the container via precise `udev` rules.
+</details>
+
+<details>
+  <summary><b>3. Transient Development Shells</b></summary>
+  <br/>
+
+  To maintain system purity, isolated shells are used for specific project requirements rather than installing packages globally.
+  *   **Quick Shell:** Run `manx shell <package_name>` to instantly access a tool without permanently modifying the system environment.
+</details>
 
 ---
 
-## 🏗️ System Architecture & Reliability
+## 🏗️ Architecture & Reliability
 
 <details>
   <summary><b>🛡️ STATELESS INTEGRITY (IMPERMANENCE)</b></summary>
@@ -42,16 +72,16 @@ The environment is built on **Stateless Btrfs Architecture**, meaning the system
   
   *   **Root Rollback:** The root partition (`/`) is wiped and restored from a blank Btrfs snapshot during the `initrd` phase of every boot.
   *   **Persistent State:** Only critical data (SSH keys, NetworkManager profiles, and the Nix Config) is preserved in `/persist` via bind-mounts.
-  *   **Time-Machine Backups:** The `/home` directory is protected by **Snapper**, providing automated hourly snapshots for accidental data recovery.
+  *   **Time-Machine Backups:** The `/home` directory is protected by **Snapper**, providing automated hourly snapshots for disaster recovery.
 </details>
 
 <details>
   <summary><b>⚡ PERFORMANCE TUNING & GPU ACCELERATION</b></summary>
   <br/>
 
-  *   **CachyOS Kernel:** Optimized for the `x86_64-v3` microarchitecture to maximize throughput in simulation and training workloads.
-  *   **Latency Management:** Leverages the **sched-ext** framework with the `scx_lavd` scheduler for a zero-lag desktop experience even under 100% CPU load.
-  *   **GPU Acceleration:** Integrated **ROCm** stack for AMD hardware, enabling native HIP and OpenCL support for Deep Learning frameworks and GPU-accelerated simulators.
+  *   **Kernel Optimization:** Utilizes the CachyOS Kernel tuned for the `x86_64-v3` microarchitecture to maximize throughput in simulation and training workloads.
+  *   **Latency Management:** Leverages the **sched-ext** framework with the `scx_lavd` scheduler to maintain desktop responsiveness under 100% CPU load.
+  *   **Compute Acceleration:** Integrated **ROCm** stack for AMD hardware, enabling native HIP and OpenCL support for machine learning frameworks and GPU-accelerated simulators.
 </details>
 
 ---
@@ -66,7 +96,7 @@ The environment is built on **Stateless Btrfs Architecture**, meaning the system
   *   **Simulation:** `Verilator` (High-performance C++ cycle-accurate), `Icarus Verilog`, `NVC` (VHDL).
   *   **Formal Verification:** `SBY` (SymbiYosys) for bounded model checking.
   *   **Physical Design:** `Magic-VLSI` and `KLayout` for GDSII layout and DRC.
-  *   **Python-Based DV:** Native `cocotb` integration for modern coroutine-based cosimulation.
+  *   **Verification Frameworks:** Native `cocotb` integration for modern coroutine-based cosimulation.
 </details>
 
 <details>
@@ -74,24 +104,14 @@ The environment is built on **Stateless Btrfs Architecture**, meaning the system
   <br/>
 
   Optimized environment for high-intensity computation:
-  *   **Frameworks:** Full support for `PyTorch` and `TensorFlow` via the ROCm/HIP backend.
-  *   **Data Science:** Production-ready `NumPy`, `Pandas`, and `Matplotlib` pre-configured in the system shell.
-  *   **Workflow:** Custom `nix-ld` configuration allows running unpatched pre-compiled binaries (like Conda environments or proprietary AI models) seamlessly.
-</details>
-
-<details>
-  <summary><b>🚀 AMD VIVADO & VITIS (THE PRAGMATIC BRIDGE)</b></summary>
-  <br/>
-
-  This workstation solves the complex "Nix vs EDA" problem by utilizing a **Distrobox** container system.
-  *   The **AMD Xilinx** suite runs inside an optimized Ubuntu container for 100% binary compatibility.
-  *   **Native Integration:** Desktop launchers (Vivado GUI, Vitis IDE, DocNav) are mapped from the container to the host, making them feel like native NixOS applications.
-  *   **Hardware Access:** Kernel-level `udev` rules enable rootless JTAG and hardware-in-the-loop debugging directly from the container.
+  *   **Frameworks:** Native execution for `PyTorch` and `TensorFlow` via the ROCm/HIP backend.
+  *   **Data Science:** `NumPy`, `Pandas`, and `Matplotlib` available in the standard computational shell.
+  *   **Binary Compatibility:** Configured with `nix-ld` to seamlessly execute unpatched pre-compiled binaries (e.g., Conda environments or proprietary AI models).
 </details>
 
 ---
 
-## 🗺️ Project Structure
+## 🗺️ System Topology
 
 <div align="center">
 
@@ -124,82 +144,58 @@ graph TD
 
 ---
 
-## 🎮 System Orchestration (`manx` CLI)
-
-The workstation includes a custom-built management utility, `manx`, designed for high-efficiency system maintenance and professional development workflows.
-
-<details>
-  <summary><b>🛠️ VIEW CLI COMMAND REFERENCE</b></summary>
-  <br/>
-
-| Category | Command | Function |
-| :--- | :--- | :--- |
-| **System** | `manx rebuild` | Atomic sync, code formatting, and detailed package diff reporting. |
-| | `manx update` | Full input synchronization and system-wide refresh. |
-| | `manx rollback` | Instant restoration of the previous successful system state. |
-| | `manx history` | View the chronological audit log of all system generations. |
-| **Maintenance** | `manx clean` | Deep 3-layer optimization: generation pruning, GC, and hard-linking. |
-| | `manx check` | Comprehensive integrity audit of the flake configuration. |
-| **Development** | `manx vivado` | Enters the high-compatibility Xilinx environment. |
-| | `manx edit` | Interactive fuzzy-find (fzf) or direct file editing in Neovim. |
-| | `manx shell <pkg>` | Initialize transient, isolated development environments. |
-| **Aesthetics** | `manx screensaver` | Orchestrate custom ASCII/Image branding for the workstation. |
-
-</details>
-
----
-
-## 🖼️ Visual Showcase
+## 🖼️ Interface & Operations
 
 <div align="center">
   <table style="border-collapse: collapse; border: none;">
     <tr>
       <td width="50%" align="center">
-        <img src="assets/screenshots/manx_menu.png" alt="Manx CLI Menu" width="100%" style="border-radius: 8px;">
-        <br/><i>The <b>manx</b> system orchestrator.</i>
+        <img src="assets/screenshots/manx_menu.png" alt="Manx CLI Dashboard" width="100%" style="border-radius: 6px;">
+        <br/><i>System orchestration via the <b>manx</b> CLI.</i>
       </td>
       <td width="50%" align="center">
-        <img src="assets/screenshots/manx_screensaver_menu.png" alt="Screensaver Menu" width="100%" style="border-radius: 8px;">
-        <br/><i>Branding & Screensaver control.</i>
+        <img src="assets/screenshots/manx_screensaver_menu.png" alt="Idle State Configuration" width="100%" style="border-radius: 6px;">
+        <br/><i>Idle state and terminal aesthetics configuration.</i>
       </td>
     </tr>
     <tr>
       <td width="50%" align="center">
-        <img src="assets/screenshots/manx_edit.png" alt="Interactive Editing" width="100%" style="border-radius: 8px;">
-        <br/><i>Fuzzy-find config navigation.</i>
+        <img src="assets/screenshots/manx_edit.png" alt="Configuration Navigation" width="100%" style="border-radius: 6px;">
+        <br/><i>Fuzzy-finding through the configuration tree.</i>
       </td>
       <td width="50%" align="center">
-        <img src="assets/screenshots/manx_edit_search.png" alt="Fuzzy Search" width="100%" style="border-radius: 8px;">
-        <br/><i>Instant preview & search.</i>
+        <img src="assets/screenshots/manx_edit_search.png" alt="Instant Preview" width="100%" style="border-radius: 6px;">
+        <br/><i>Real-time file preview during navigation.</i>
       </td>
     </tr>
   </table>
   <br/>
   
   <details>
-    <summary><b>✨ VIEW SILICON SCREENSAVER PREVIEW</b></summary>
+    <summary><b>✨ VIEW TERMINAL IDLE STATE</b></summary>
     <br/>
-    <img src="assets/screenshots/screensaver_effect.png" alt="Silicon Screensaver Effect" width="100%" style="border-radius: 8px; border: 1px solid #333;">
-    <p><i>Immersive terminal text effects for workstation branding.</i></p>
+    <img src="assets/screenshots/screensaver_effect.png" alt="Terminal Idle State" width="100%" style="border-radius: 6px; border: 1px solid #444;">
+    <p><i>Terminal-based workstation branding and idle state management.</i></p>
   </details>
 </div>
 
 ---
 
-## 🚀 Installation & Deployment
+## 🚀 Deployment Instructions
 
 <details>
-  <summary><b>📦 STEP 1: INITIALIZE CONFIGURATION</b></summary>
+  <summary><b>📦 STEP 1: INITIALIZE REPOSITORY</b></summary>
   <br/>
 
-  On any NixOS system (or the installer), run:
+  Execute the following on a NixOS live installer or existing system:
   ```bash
   git clone https://github.com/techanand8/nix-config.git ~/nix-config
   cd ~/nix-config
 
-  # Create your local variables file
+  # Copy the variables template
   cp hosts/manx/variables.nix.example hosts/manx/variables.nix
-  # Edit variables.nix with your username, email, and preferred versions.
+  
+  # Edit variables.nix with your local credentials and preferences.
   ```
 </details>
 
@@ -207,37 +203,40 @@ The workstation includes a custom-built management utility, `manx`, designed for
   <summary><b>🔧 STEP 2: HARDWARE ADAPTATION</b></summary>
   <br/>
 
-  If you are not using the exact same hardware as this profile, you **must** update the hardware configuration:
-  1.  Generate a configuration for your current machine:
+  Generate the specific hardware profile for your target machine:
+  1.  Generate the configuration:
       ```bash
       nixos-generate-config --show-hardware-config > hosts/manx/hardware-configuration.nix
       ```
-  2.  Open `hosts/manx/hardware-configuration.nix` and ensure it uses your actual partitions (e.g., `ext4`, `fat32`, etc.).
+  2.  Verify `hosts/manx/hardware-configuration.nix` matches your actual disk layout and partition types (e.g., `ext4`, `fat32`, `btrfs`).
 </details>
 
 <details>
-  <summary><b>⚡ STEP 3: CHOOSE DEPLOYMENT MODEL</b></summary>
+  <summary><b>⚡ STEP 3: EXECUTE DEPLOYMENT</b></summary>
   <br/>
 
-  #### Path A: Standard Installation (Easy)
-  If you want a normal, persistent system:
+  #### Option A: Standard Persistent Installation (Recommended)
+  Standard setup retaining system state across reboots.
   1.  Open `hosts/manx/configuration.nix`.
-  2.  **Comment out or remove** the line: `./modules/system/stateless.nix`.
-  3.  Apply the system:
+  2.  **Remove or comment out** the import for `./modules/system/stateless.nix`.
+  3.  Apply the configuration:
       ```bash
       sudo nixos-rebuild switch --flake .#MANX
       ```
 
-  #### Path B: Professional Stateless Setup (Advanced)
-  This requires the "Total Erasure" model using Btrfs snapshots.
-  1.  **Requirement:** Your `hardware-configuration.nix` must use Btrfs and include a subvolume named `root` and a snapshot named `blank`.
-  2.  Ensure `stateless.nix` is enabled in your imports.
-  3.  Follow the [Disk Preparation Guide](#-disk-preparation-manual-steps) below.
+  #### Option B: Stateless Installation (Advanced)
+  Implements the "Total Erasure" model requiring specific Btrfs subvolumes.
+  1.  **Prerequisite:** Your partition scheme must utilize Btrfs with a subvolume named `root` and a read-only snapshot named `blank`.
+  2.  Ensure `./modules/system/stateless.nix` remains enabled in `configuration.nix`.
+  3.  Proceed with deployment:
+      ```bash
+      sudo nixos-rebuild switch --flake .#MANX
+      ```
 </details>
 
 ---
 
 <div align="center">
   <sub>Designed for precision engineering by <b>Mayank Anand</b></sub><br/>
-  <sub>Fully Declarative • Repositories are mathematically reproducible</sub>
+  <sub>Fully Declarative Architecture • Mathematically Reproducible</sub>
 </div>
