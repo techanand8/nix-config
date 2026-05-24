@@ -47,7 +47,7 @@ in
     pkgsCross.riscv64-embedded.buildPackages.gcc # RISC-V 64-bit Embedded GCC
     spike # RISC-V ISA Simulator (Standard for architectural exploration)
     pkgsCross.riscv64.riscv-pk # RISC-V Proxy Kernel (Required for Spike)
-    
+
     # ARM Toolchain & Simulation
     gcc-arm-embedded # ARM Embedded GCC (arm-none-eabi)
     qemu # Full system and user-mode emulation for RISC-V/ARM

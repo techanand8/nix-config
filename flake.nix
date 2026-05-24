@@ -54,8 +54,12 @@
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
 
       # Centralized System Builder
-      mkSystem = 
-        { hostname, platform, extraModules ? [] }: 
+      mkSystem =
+        {
+          hostname,
+          platform,
+          extraModules ? [ ],
+        }:
         nixpkgs.lib.nixosSystem {
           specialArgs = {
             inherit self inputs platform;
@@ -74,8 +78,8 @@
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "bak";
-              home-manager.extraSpecialArgs = { 
-                inherit inputs platform; 
+              home-manager.extraSpecialArgs = {
+                inherit inputs platform;
                 vars = import ./hosts/${hostname}/variables.nix;
               };
               home-manager.users."${(import ./hosts/${hostname}/variables.nix).username}" = {
@@ -85,7 +89,8 @@
                 ];
               };
             }
-          ] ++ extraModules;
+          ]
+          ++ extraModules;
         };
     in
     {

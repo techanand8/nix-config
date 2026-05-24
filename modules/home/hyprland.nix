@@ -141,47 +141,10 @@
           hl.exec_cmd("sleep 1 && dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
           hl.exec_cmd("systemctl --user start hyprpolkitagent")
           hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
-          hl.exec_cmd("hypridle")
           hl.exec_cmd("bash $HOME/.local/bin/sync_ghostty.sh")
           hl.exec_cmd("hyprctl keyword windowrule 'dimaround, hyprpolkitagent'")
           hl.exec_cmd("sleep 5 && distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/xic/xic &")
       end)
-    '';
-
-    # 3. Hypridle Config (Automatic Lock & Screensaver Orchestration)
-    "hypr/hypridle.conf".text = ''
-      general {
-          lock_cmd = pkill -f 'alacritty --class manx-screensaver' || true; ambxst lock
-          before_sleep_cmd = loginctl lock-session
-          after_sleep_cmd = ambxst screen on
-      }
-
-      # 1. Dim Brightness (150s)
-      listener {
-          timeout = 150
-          on-timeout = ambxst brightness 10 -s
-          on-resume = ambxst brightness -r
-      }
-
-      # 2. Launch Silicon Screensaver (240s)
-      listener {
-          timeout = 240
-          on-timeout = $HOME/.local/bin/manx-screensaver
-          on-resume = pkill -f 'alacritty --class manx-screensaver' || true
-      }
-
-      # 3. Secure Lock Session (300s)
-      listener {
-          timeout = 300
-          on-timeout = loginctl lock-session
-      }
-
-      # 4. Screen Power Off (330s)
-      listener {
-          timeout = 330
-          on-timeout = ambxst screen off
-          on-resume = ambxst screen on
-      }
     '';
 
     "hypr/hyprland/general.lua".text = ''
@@ -301,6 +264,39 @@
     pkgs.terminaltexteffects
     pkgs.chafa
   ];
+
+  services.hypridle = {
+    enable = true;
+    settings = {
+      general = {
+        lock_cmd = "pkill -f 'alacritty --class manx-screensaver' || true; ambxst lock";
+        before_sleep_cmd = "loginctl lock-session";
+        after_sleep_cmd = "ambxst screen on";
+      };
+
+      listener = [
+        {
+          timeout = 150;
+          on-timeout = "ambxst brightness 10 -s";
+          on-resume = "ambxst brightness -r";
+        }
+        {
+          timeout = 240;
+          on-timeout = "${config.home.homeDirectory}/.local/bin/manx-screensaver";
+          on-resume = "pkill -f 'alacritty --class manx-screensaver' || true";
+        }
+        {
+          timeout = 300;
+          on-timeout = "loginctl lock-session";
+        }
+        {
+          timeout = 330;
+          on-timeout = "ambxst screen off";
+          on-resume = "ambxst screen on";
+        }
+      ];
+    };
+  };
 
   # Custom Silicon Security Screensaver (Elite Omarchy style)
   home.file.".local/bin/manx-screensaver" = {
