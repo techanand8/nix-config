@@ -28,5 +28,7 @@
     # --- AI ---
     antigravity-fhs
     kiro-fhs
+    cursor-cli
+    code-cursor-fhs
   ];
 }
