@@ -66,9 +66,12 @@
       "https://cache.garnix.io"
       "https://attic.xuyh0120.win/lantian"
     ]
-    ++ (lib.optionals (vars ? cachixName && vars.cachixName != "") [
-      "https://${vars.cachixName}.cachix.org"
-    ]);
+    ++ (lib.optionals
+      (vars ? cachixName && vars.cachixName != "" && vars.cachixName != "your-cachix-subdomain")
+      [
+        "https://${vars.cachixName}.cachix.org"
+      ]
+    );
 
     trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
@@ -77,9 +80,17 @@
       "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
       "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
     ]
-    ++ (lib.optionals (vars ? cachixPublicKey && vars.cachixPublicKey != "") [
-      "${vars.cachixPublicKey}"
-    ]);
+    ++ (lib.optionals
+      (
+        vars ? cachixPublicKey
+        && vars.cachixPublicKey != ""
+        && vars.cachixName != "your-cachix-subdomain"
+        && vars.cachixPublicKey != "your-cachix-subdomain.cachix.org-1:your-public-key"
+      )
+      [
+        "${vars.cachixPublicKey}"
+      ]
+    );
   };
 
   # --- DECLARATIVE CONSISTENCY ---

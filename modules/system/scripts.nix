@@ -185,7 +185,7 @@ let
         fi
 
         # 9. Push to binary cache (Cachix - Modern Cloud Backup)
-        if [ ! -z "${vars.cachixName}" ]; then
+        if [ ! -z "${vars.cachixName}" ] && [ "${vars.cachixName}" != "your-cachix-subdomain" ]; then
             log "Pushing system build to Cachix (${vars.cachixName})..."
             if cachix push ${vars.cachixName} "$NEW_GEN" &> /dev/null; then
                 success "Cachix synchronization successful!"
