@@ -16,27 +16,7 @@
             "before_sleep_cmd": "loginctl lock-session",
             "after_sleep_cmd": "ambxst screen on"
           },
-          "listeners": [
-            {
-              "onResume": "ambxst brightness -r",
-              "onTimeout": "ambxst brightness 10 -s",
-              "timeout": 150
-            },
-            {
-              "onResume": "pkill -f 'alacritty --class manx-screensaver' || true",
-              "onTimeout": "$HOME/.local/bin/manx-screensaver",
-              "timeout": 240
-            },
-            {
-              "onTimeout": "loginctl lock-session",
-              "timeout": 300
-            },
-            {
-              "onResume": "ambxst screen on",
-              "onTimeout": "ambxst screen off",
-              "timeout": 330
-            }
-          ]
+          "listeners": []
         },
         "ocr": {
           "eng": true,
