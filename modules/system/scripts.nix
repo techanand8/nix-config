@@ -179,10 +179,15 @@ let
         # 8. Synchronize with remote repository (Optional)
         if git remote | grep -q "origin"; then
             log "Synchronizing configuration with GitHub..."
-            if git push origin main; then
+            # Capture stdout and stderr to handle feedback accurately
+            PUSH_OUTPUT=$(git push origin main 2>&1) || true
+            if [ -z "$PUSH_OUTPUT" ] || echo "$PUSH_OUTPUT" | grep -q "Everything up-to-date"; then
+                info "GitHub is already up-to-date (no new changes to push)."
+            elif echo "$PUSH_OUTPUT" | grep -q -E "To |Update|master ->|main ->"; then
                 success "GitHub synchronization complete. All changes are backed up!"
             else
-                info "GitHub sync skipped (check internet or remote settings)."
+                info "GitHub synchronization completed or skipped."
+                echo "$PUSH_OUTPUT" | sed 's/^/  /' # Indent output for cleaner display
             fi
         fi
 

@@ -14,7 +14,13 @@
   # Configure System-level SOPS Vault
   sops = {
     # Default path to the encrypted YAML vault
-    defaultSopsFile = ../../secrets/secrets.yaml;
+    # Falls back to the example file if the private vault is not staged/tracked (e.g. in pure CI checks)
+    defaultSopsFile =
+      let
+        secretsFile = ../../secrets/secrets.yaml;
+        exampleFile = ../../secrets/secrets.yaml.example;
+      in
+      if builtins.pathExists secretsFile then secretsFile else exampleFile;
     defaultSopsFormat = "yaml";
 
     # Key file locations to resolve and decrypt secrets
