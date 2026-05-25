@@ -13,6 +13,7 @@
     ../common/default.nix
     ../../modules/system/amd.nix
     ../../modules/system/postgresql.nix
+    ../../modules/system/backups.nix
   ];
 
   # --- HOST-SPECIFIC HARDWARE KERNEL OPTIMIZATIONS ---

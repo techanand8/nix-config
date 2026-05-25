@@ -7,11 +7,11 @@
     # Use the ROCm-enabled package for AMD GPU acceleration
     package = pkgs.ollama-rocm;
 
-    # --- AMD LAPTOP STABILITY FIX ---
-    # Many mobile AMD GPUs (like 680M/780M) need this override to prevent
-    # the display driver from crashing/blinking when running ROCm.
+    # --- AMD STABILITY FIX (BARCELO / GFX90C) ---
+    # Your GPU (Barcelo [1002:15e7]) is based on GFX90C (Vega).
+    # The 9.0.0 override is the most stable fallback for this architecture.
     environmentVariables = {
-      HSA_OVERRIDE_GFX_VERSION = "10.3.0"; # Standard stable override for most modern AMD APUs
+      HSA_OVERRIDE_GFX_VERSION = "9.0.0";
     };
 
     # Automatically pull high-intelligence models on startup

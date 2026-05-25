@@ -294,6 +294,9 @@
       #!/usr/bin/env bash
       # Omarchy-standard Screensaver Orchestrator
 
+      # Ensure solid PATH for hypridle environment
+      export PATH="$PATH:/run/current-system/sw/bin:$HOME/.nix-profile/bin"
+
       # 0. PRE-FLIGHT CHECKS
       if ! command -v tte &>/dev/null; then exit 1; fi
 
@@ -349,6 +352,9 @@
                      #!/usr/bin/env bash
                      # Screensaver Core Loop (Enhanced Omarchy Style)
 
+                     # Ensure solid PATH
+                     export PATH="$PATH:/run/current-system/sw/bin:$HOME/.nix-profile/bin"
+
                      screensaver_in_focus() {
                          active_window=$(hyprctl activewindow -j | jq -r '.class' 2>/dev/null)
                          if [[ "$active_window" == "manx-screensaver" ]]; then
@@ -371,7 +377,7 @@
 
                      # Hide cursor for immersion
                      hyprctl keyword cursor:invisible true >/dev/null 2>&1
-                     sleep 0.2
+                     sleep 0.5
 
                      # Branding Paths
                      LOGO_PATH="$HOME/.config/omarchy/branding/logo.png"

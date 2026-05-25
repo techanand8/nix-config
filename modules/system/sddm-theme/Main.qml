@@ -973,11 +973,6 @@ Rectangle {
             running: root.visible
             repeat: true
             onTriggered: {
-                // Sync virtual keyboard state if changed by system
-                if (Qt.inputMethod.visible !== root.virtualKeyboardActive) {
-                    root.virtualKeyboardActive = Qt.inputMethod.visible
-                }
-
                 // Update simulated CPU load and system telemetry noise
                 root.telemetryNoiseAccumulator += 0.02
                 // If not currently in a manual overclock surge, update base telemetry from simulated CPU load
@@ -1076,11 +1071,17 @@ Rectangle {
 
     RowLayout {
         id: shell
-        anchors.centerIn: parent
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.verticalCenterOffset: root.virtualKeyboardActive ? -Math.round(parent.height * 0.22) : 0
         width: Math.min(parent.width - Math.round(80 * uiScale), 1420)
         height: Math.min(parent.height - Math.round(40 * uiScale), 860)
         spacing: Math.round(28 * uiScale)
         z: 2
+
+        Behavior on anchors.verticalCenterOffset {
+            NumberAnimation { duration: 300; easing.type: Easing.OutQuad }
+        }
 
         Rectangle {
             Layout.fillHeight: true
@@ -2301,7 +2302,6 @@ Rectangle {
                     Layout.fillWidth: true
                     property bool showPassword: false
                     echoMode: showPassword ? TextInput.Normal : TextInput.Password
-                    passwordCharacter: "\u0000"
                     placeholderText: "ENTER AUTHENTICATION KEY"
                     font: actionFont
                     color: showPassword ? maroonBright : "transparent"
@@ -2312,6 +2312,16 @@ Rectangle {
                     clip: true // Ensure content stays inside
                     KeyNavigation.tab: loginButton
                     KeyNavigation.backtab: sessionSelector
+                    
+                    // --- VIRTUAL KEYBOARD INPUT FIX ---
+                    inputMethodHints: Qt.ImhSensitiveData | Qt.ImhNoAutoUppercase | Qt.ImhNoPredictiveText
+                    passwordCharacter: "●"
+                    
+                    onActiveFocusChanged: {
+                        if (activeFocus && root.virtualKeyboardActive && typeof Qt !== "undefined" && typeof Qt.inputMethod !== "undefined") {
+                            Qt.inputMethod.show()
+                        }
+                    }
 
                     Keys.onPressed: function(event) {
                         if (event.key === Qt.Key_CapsLock) {
@@ -2586,9 +2596,14 @@ Rectangle {
                             onClicked: {
                                 root.virtualKeyboardActive = !root.virtualKeyboardActive
                                 if (root.virtualKeyboardActive) {
-                                    Qt.inputMethod.show()
+                                    passwordField.forceActiveFocus()
+                                    if (typeof Qt !== "undefined" && typeof Qt.inputMethod !== "undefined") {
+                                        Qt.inputMethod.show()
+                                    }
                                 } else {
-                                    Qt.inputMethod.hide()
+                                    if (typeof Qt !== "undefined" && typeof Qt.inputMethod !== "undefined") {
+                                        Qt.inputMethod.hide()
+                                    }
                                 }
                                 root.isGlitchActive = true
                                 glitchCoolDown.restart()
@@ -2888,13 +2903,16 @@ Rectangle {
                                 border.color: parent.particleColor
                                 visible: parent.particleText === "•"
 
-                                layer.enabled: true
-                                layer.effect: DropShadow {
-                                    horizontalOffset: 0
-                                    verticalOffset: 0
-                                    radius: 3
-                                    color: hollowCircle.border.color
-                                    fast: true
+                                // High-performance simulated glow (no layer required)
+                                Rectangle {
+                                    anchors.centerIn: parent
+                                    width: parent.width + 4
+                                    height: parent.height + 4
+                                    radius: width / 2
+                                    color: "transparent"
+                                    border.width: 1.5
+                                    border.color: parent.border.color
+                                    opacity: 0.3
                                 }
 
                                 // Breathing scale glow effect (Lightning / Pulse style)
@@ -2906,25 +2924,38 @@ Rectangle {
                             }
 
                             // 0 or 1 digital state text
-                            Text {
-                                id: particleTextLabel
+                            Item {
                                 anchors.centerIn: parent
-                                text: parent.particleText === "•" ? "" : parent.particleText
-                                color: parent.particleColor
-                                font {
-                                    family: "JetBrainsMono Nerd Font"
-                                    bold: true
-                                    pixelSize: Math.round(10 * uiScale)
-                                }
                                 visible: parent.particleText !== "•"
+                                width: Math.round(12 * uiScale)
+                                height: Math.round(12 * uiScale)
 
-                                layer.enabled: true
-                                layer.effect: DropShadow {
-                                    horizontalOffset: 0
-                                    verticalOffset: 0
-                                    radius: 4
-                                    color: particleItem.particleColor
-                                    fast: true
+                                // Layer 1: Deep Outer Glow
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: parent.parent.particleText
+                                    color: parent.parent.particleColor
+                                    font { family: "JetBrainsMono Nerd Font"; bold: true; pixelSize: Math.round(14 * uiScale) }
+                                    opacity: 0.15
+                                }
+
+                                // Layer 2: Soft Inner Glow
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: parent.parent.particleText
+                                    color: parent.parent.particleColor
+                                    font { family: "JetBrainsMono Nerd Font"; bold: true; pixelSize: Math.round(12 * uiScale) }
+                                    opacity: 0.4
+                                }
+
+                                // Layer 3: Sharp Core
+                                Text {
+                                    id: particleTextLabel
+                                    anchors.centerIn: parent
+                                    text: parent.parent.particleText
+                                    color: "#FFFFFF" // White core for that realistic neon look
+                                    font { family: "JetBrainsMono Nerd Font"; bold: true; pixelSize: Math.round(10 * uiScale) }
+                                    opacity: 0.9
                                 }
                             }
 
@@ -3195,10 +3226,16 @@ Rectangle {
     }
 
     // --- VIRTUAL KEYBOARD PANEL (Slide-up Animation) ---
+    // We use a direct component for better input method integration.
+    // To prevent the startup crash, it remains disabled/hidden for 2 seconds.
     InputPanel {
         id: inputPanel
         z: 99
         width: parent.width
+        visible: vkbInitTimer.triggeredOnce
+        enabled: visible
+        focus: false
+
         y: root.virtualKeyboardActive ? (parent.height - height) : parent.height
 
         Behavior on y {
@@ -3208,4 +3245,13 @@ Rectangle {
             }
         }
     }
+
+    Timer {
+        id: vkbInitTimer
+        property bool triggeredOnce: false
+        interval: 2000
+        running: true
+        repeat: false
+        onTriggered: triggeredOnce = true
     }
+}
