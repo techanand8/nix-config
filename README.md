@@ -36,17 +36,15 @@ The display manager (SDDM) is configured as a VLSI CAD workstation terminal inte
 
 <table>
   <tr>
-    <td width="50%" align="center" style="background-color: #0d0104; border: 1px solid #ff1133; border-radius: 6px; padding: 10px;">
-      <img src="assets/screenshots/sddm-capslock.png" alt="MANX SDDM — Caps Lock hardware warning" width="100%" />
-      <br/>
-      <sub style="color: #ff1133;"><b>Hardware-Aware Input</b> — Caps Lock state displays dynamically as a Verilog signal wire warning:</sub>
-      <br/>
-      <code><span style="color: #00F5FF;">wire</span> caps_lock = <span style="color: #39ff14;">1'b1</span>; <span style="color: #888;">// DECRYPTION_FAULT_RISK</span></code>
-    </td>
     <td width="50%" align="center" style="background-color: #0d0104; border: 1px solid #39ff14; border-radius: 6px; padding: 10px;">
-      <img src="assets/screenshots/sddm-auth.png" alt="MANX SDDM — Active authentication sequence" width="100%" />
+      <img src="https://github.com/user-attachments/assets/588820c7-05c0-4416-8600-0e960309b439" alt="MANX SDDM — VLSI Logic Synchronization" width="100%" />
       <br/>
-      <sub style="color: #39ff14;"><b>Session Handoff Sequence</b> — Active authorization and terminal timing telemetry load dynamically as you login.</sub>
+      <sub style="color: #39ff14;"><b>Logic Signal Synchronization</b> — Oscillating waveforms and interactive gates (AND, NAND, XOR) synced with signal flow.</sub>
+    </td>
+    <td width="50%" align="center" style="background-color: #0d0104; border: 1px solid #ff1133; border-radius: 6px; padding: 10px;">
+      <img src="https://github.com/user-attachments/assets/8636e053-911e-4505-82b5-3164998064cb" alt="MANX SDDM — Active Authentication" width="100%" />
+      <br/>
+      <sub style="color: #ff1133;"><b>Active Cryptographic State</b> — Interface dynamically shifts from 'Idle Green' to 'Active Blue/Gold' during authentication.</sub>
     </td>
   </tr>
 </table>
@@ -55,9 +53,9 @@ The display manager (SDDM) is configured as a VLSI CAD workstation terminal inte
 
 <div align="center" style="border: 1px solid #4d0012; border-radius: 6px; padding: 12px; background-color: #060002;">
 
-<video src="https://github.com/user-attachments/assets/e10cb4ce-a8f8-454e-965a-573eb7a385e7" width="100%" style="border-radius: 4px; box-shadow: 0 0 15px rgba(255, 17, 51, 0.2);" controls autoplay muted loop />
+<video src="https://github.com/user-attachments/assets/aa285987-9626-49d8-abf5-803986e02768" width="100%" style="border-radius: 4px; box-shadow: 0 0 15px rgba(255, 17, 51, 0.2);" controls autoplay muted loop />
 
-<sub><b>Full Interface Walkthrough</b> — Demonstrates the customized logic framing, responsive timing wave panels, and desktop handoff sequence.</sub>
+<sub><b>Full Silicon Simulation Walkthrough</b> — Demonstrates the zero-lag neon particle engine, sliding virtual keyboard, and synchronized timing diagrams.</sub>
 
 </div>
 
