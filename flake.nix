@@ -60,10 +60,17 @@
           platform,
           extraModules ? [ ],
         }:
+        let
+          vars = import ./hosts/${hostname}/variables.nix;
+        in
         nixpkgs.lib.nixosSystem {
           specialArgs = {
-            inherit self inputs platform;
-            vars = import ./hosts/${hostname}/variables.nix;
+            inherit
+              self
+              inputs
+              platform
+              vars
+              ;
           };
           modules = [
             {
@@ -84,10 +91,9 @@
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "bak";
               home-manager.extraSpecialArgs = {
-                inherit inputs platform;
-                vars = import ./hosts/${hostname}/variables.nix;
+                inherit inputs platform vars;
               };
-              home-manager.users."${(import ./hosts/${hostname}/variables.nix).username}" = {
+              home-manager.users."${vars.username}" = {
                 imports = [
                   inputs.nixvim.homeModules.nixvim
                   ./modules/home/home-user.nix
@@ -138,6 +144,27 @@
             exec ${pkgs.nixfmt}/bin/nixfmt "$@"
           fi
         ''
+      );
+
+      # Development Environments
+      devShells = forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        {
+          default = pkgs.mkShell {
+            packages = with pkgs; [
+              nixfmt
+              nil
+              statix
+              deadnix
+            ];
+            shellHook = ''
+              echo " ❄️MANX Engineering Environment Active"
+            '';
+          };
+        }
       );
     };
 }

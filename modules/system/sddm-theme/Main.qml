@@ -87,7 +87,8 @@ Rectangle {
         ColorAnimation { target: root; property: "spectrumColor"; from: "#99FF11"; to: "#39FF14"; duration: 4000; easing.type: Easing.InOutQuad }
     }
 
-    readonly property bool isCapsActive: (typeof sddm !== "undefined" && sddm !== null && sddm.capsLock !== undefined) ? sddm.capsLock : false
+    property bool isCapsActiveHeuristic: false
+    readonly property bool isCapsActive: isCapsActiveHeuristic
 
     property real cpuLoad: 0.35
     property real telemetrySpeedMultiplier: 1.0
@@ -2291,18 +2292,36 @@ Rectangle {
                 QQC2.TextField {
                     id: passwordField
                     Layout.fillWidth: true
-                    echoMode: TextInput.Password
+                    property bool showPassword: false
+                    echoMode: showPassword ? TextInput.Normal : TextInput.Password
                     passwordCharacter: "\u0000"
                     placeholderText: "ENTER AUTHENTICATION KEY"
                     font: actionFont
-                    color: "transparent"
-                    selectedTextColor: "transparent"
+                    color: showPassword ? maroonBright : "transparent"
+                    selectedTextColor: showPassword ? maroonBright : "transparent"
                     horizontalAlignment: TextInput.AlignLeft
                     selectByMouse: true
                     focus: true
                     clip: true // Ensure content stays inside
                     KeyNavigation.tab: loginButton
                     KeyNavigation.backtab: sessionSelector
+
+                    Keys.onPressed: function(event) {
+                        if (event.key === Qt.Key_CapsLock) {
+                            root.isCapsActiveHeuristic = !root.isCapsActiveHeuristic;
+                        } else if (event.text.length === 1) {
+                            var char = event.text;
+                            var isUpper = (char >= 'A' && char <= 'Z');
+                            var isLower = (char >= 'a' && char <= 'z');
+                            var shiftPressed = (event.modifiers & Qt.ShiftModifier) !== 0;
+
+                            if ((isUpper && !shiftPressed) || (isLower && shiftPressed)) {
+                                root.isCapsActiveHeuristic = true;
+                            } else if ((isLower && !shiftPressed) || (isUpper && shiftPressed)) {
+                                root.isCapsActiveHeuristic = false;
+                            }
+                        }
+                    }
 
                     Item {
                         anchors.fill: parent
@@ -2314,7 +2333,7 @@ Rectangle {
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
                             spacing: 6
-                            visible: passwordField.text !== ""
+                            visible: passwordField.text !== "" && !passwordField.showPassword
 
                             Repeater {
                                 model: passwordField.text.length
@@ -2332,6 +2351,183 @@ Rectangle {
                                         NumberAnimation { target: parent; property: "scale"; from: 1.4; to: 1.0; duration: 100; easing.type: Easing.OutQuad }
                                     }
                                 }
+                            }
+                        }
+                    }
+
+                    Item {
+                        id: eyeButton
+                        anchors.right: parent.right
+                        anchors.rightMargin: 16
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 28
+                        height: 28
+                        visible: passwordField.text !== ""
+                        opacity: (mouseArea.hovered || passwordField.showPassword) ? 1.0 : 0.4
+
+                        Behavior on opacity { NumberAnimation { duration: 150 } }
+
+                        property real eyeOpenness: passwordField.showPassword ? 1.0 : 0.0
+                        property real scanRotation: 0.0
+
+                        Behavior on eyeOpenness { NumberAnimation { duration: 250; easing.type: Easing.InOutQuad } }
+
+                        RotationAnimation on scanRotation {
+                            from: 0
+                            to: 360
+                            duration: 4000
+                            loops: Animation.Infinite
+                            running: passwordField.showPassword
+                        }
+
+                        Canvas {
+                            id: eyeCanvas
+                            anchors.fill: parent
+
+                            onPaint: {
+                                var ctx = getContext("2d")
+                                ctx.reset()
+                                ctx.clearRect(0, 0, width, height)
+
+                                var w = width
+                                var h = height
+                                var cx = w / 2
+                                var cy = h / 2
+                                var scale = uiScale
+
+                                var activeColor = neonGreen
+                                var inactiveColor = maroonBright
+                                var warningColor = maroonBright
+
+                                var currentColor = passwordField.showPassword ? activeColor : inactiveColor
+
+                                // 1. Concentric digital scan arcs (active state only)
+                                if (passwordField.showPassword) {
+                                    ctx.save()
+                                    ctx.strokeStyle = "rgba(57, 255, 20, 0.2)"
+                                    ctx.lineWidth = 1 * scale
+                                    ctx.beginPath()
+                                    ctx.arc(cx, cy, 12 * scale, eyeButton.scanRotation * Math.PI / 180, (eyeButton.scanRotation + 100) * Math.PI / 180)
+                                    ctx.stroke()
+                                    ctx.beginPath()
+                                    ctx.arc(cx, cy, 12 * scale, (eyeButton.scanRotation + 180) * Math.PI / 180, (eyeButton.scanRotation + 280) * Math.PI / 180)
+                                    ctx.stroke()
+                                    ctx.restore()
+                                }
+
+                                // 2. Cybernetic Iris / Pupil (fades as eye closes)
+                                if (eyeButton.eyeOpenness > 0.05) {
+                                    ctx.save()
+                                    var pupilColor = passwordField.showPassword ? activeColor : inactiveColor
+                                    ctx.fillStyle = pupilColor
+                                    ctx.globalAlpha = eyeButton.eyeOpenness
+                                    ctx.shadowBlur = passwordField.showPassword ? (10 * scale) : 0
+                                    ctx.shadowColor = pupilColor
+
+                                    ctx.beginPath()
+                                    ctx.arc(cx, cy, 3.5 * scale, 0, 2 * Math.PI)
+                                    ctx.fill()
+
+                                    ctx.strokeStyle = currentColor
+                                    ctx.lineWidth = 0.8 * scale
+                                    ctx.beginPath()
+                                    ctx.arc(cx, cy, 6 * scale, 0, 2 * Math.PI)
+                                    ctx.stroke()
+                                    ctx.restore()
+                                }
+
+                                // 3. Eyelids (Upper/Lower morphing human arcs)
+                                ctx.save()
+                                ctx.strokeStyle = currentColor
+                                ctx.lineWidth = 1.8 * scale
+                                ctx.lineCap = "round"
+
+                                if (passwordField.showPassword) {
+                                    ctx.shadowBlur = 8 * scale
+                                    ctx.shadowColor = activeColor
+                                } else {
+                                    ctx.shadowBlur = 8 * scale
+                                    ctx.shadowColor = maroonBright
+                                }
+
+                                var upperYOffset = 6.5 * scale * eyeButton.eyeOpenness
+                                var lowerYOffset = 6.5 * scale * eyeButton.eyeOpenness
+
+                                ctx.beginPath()
+                                if (eyeButton.eyeOpenness > 0.01) {
+                                    ctx.moveTo(3 * scale, cy)
+                                    ctx.quadraticCurveTo(cx, cy - upperYOffset, w - 3 * scale, cy)
+                                    ctx.quadraticCurveTo(cx, cy + lowerYOffset, 3 * scale, cy)
+                                } else {
+                                    // Closed lid (slight curve down)
+                                    ctx.moveTo(3 * scale, cy - 1 * scale)
+                                    ctx.quadraticCurveTo(cx, cy + 2 * scale, w - 3 * scale, cy - 1 * scale)
+                                }
+                                ctx.stroke()
+                                ctx.restore()
+
+                                // 4. Eyelashes (emerge smoothly as the eye closes)
+                                var lashFactor = 1.0 - eyeButton.eyeOpenness
+                                if (lashFactor > 0.05) {
+                                    ctx.save()
+                                    ctx.strokeStyle = currentColor
+                                    ctx.lineWidth = 1.5 * scale
+                                    ctx.lineCap = "round"
+                                    ctx.globalAlpha = lashFactor
+
+                                    var maxLashLen = 4.5 * scale
+                                    var lashLen = maxLashLen * lashFactor
+
+                                    // Left eyelash (angles down-left)
+                                    ctx.beginPath()
+                                    var lx = cx - 5 * scale
+                                    var ly = cy + 1 * scale
+                                    ctx.moveTo(lx, ly)
+                                    ctx.lineTo(lx - 2 * scale * lashFactor, ly + lashLen)
+                                    ctx.stroke()
+
+                                    // Middle eyelash (goes straight down)
+                                    ctx.beginPath()
+                                    var mx = cx
+                                    var my = cy + 2 * scale
+                                    ctx.moveTo(mx, my)
+                                    ctx.lineTo(mx, my + lashLen * 1.1)
+                                    ctx.stroke()
+
+                                    // Right eyelash (angles down-right)
+                                    ctx.beginPath()
+                                    var rx = cx + 5 * scale
+                                    var ry = cy + 1 * scale
+                                    ctx.moveTo(rx, ry)
+                                    ctx.lineTo(rx + 2 * scale * lashFactor, ry + lashLen)
+                                    ctx.stroke()
+
+                                    ctx.restore()
+                                }
+                            }
+
+                            Connections {
+                                target: eyeButton
+                                function onEyeOpennessChanged() { eyeCanvas.requestPaint() }
+                                function onScanRotationChanged() { eyeCanvas.requestPaint() }
+                            }
+
+                            Connections {
+                                target: passwordField
+                                function onShowPasswordChanged() { eyeCanvas.requestPaint() }
+                            }
+                        }
+
+                        MouseArea {
+                            id: mouseArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+
+                            onClicked: {
+                                passwordField.showPassword = !passwordField.showPassword
+                                root.isGlitchActive = true
+                                glitchCoolDown.restart()
                             }
                         }
                     }
@@ -2405,7 +2601,7 @@ Rectangle {
 
                     placeholderTextColor: textMuted
                     leftPadding: 16
-                    rightPadding: 16
+                    rightPadding: passwordField.text !== "" ? 54 : 16
                     topPadding: 12
                     bottomPadding: 12
                 }
@@ -2525,7 +2721,7 @@ Rectangle {
                         Text {
                             id: messageTextItem
                             Layout.fillWidth: true
-                            text: root.isCapsActive ? "CAPS LOCK DETECTED // AUTHENTICATION RISK" : messageText
+                            text: root.isCapsActive ? "WARNING // wire caps_lock = 1'b1; // DECRYPTION_FAULT_RISK" : messageText
                             color: root.isCapsActive ? textWarning : messageColor
                             font {
                                 family: bodyFont.family

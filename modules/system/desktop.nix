@@ -34,7 +34,7 @@ in
   # --- GRAPHICS & DISPLAY SERVERS ---
   services.xserver.enable = true;
 
-  # --- KDE PLASMA 6 SYSTEM LAYERS ---
+  # --- DISPLAY MANAGER SYSTEM LAYERS ---
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true;

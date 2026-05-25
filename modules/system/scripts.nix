@@ -104,10 +104,16 @@ let
     case $1 in
       rebuild)
         log "Executing system synchronization..."
-        
+
+        # --- SECURITY SHIELD: Automated Cleanup Trap ---
+        # This ensures that even if you Ctrl+C the script, your secrets are UNSTAGED immediately.
+        cleanup_secrets() {
+            git reset hosts/manx/variables.nix hosts/laptop/variables.nix secrets/secrets.yaml &> /dev/null || true
+        }
+        trap cleanup_secrets EXIT SIGINT SIGTERM
+
         # 0. Create pre-rebuild Btrfs snapshots for safety
-        if command -v snapper &> /dev/null; then
-            log "Creating pre-rebuild snapshots (Time Machine)..."
+        if command -v snapper &> /dev/null; then            log "Creating pre-rebuild snapshots (Time Machine)..."
             # Root is excluded because it is stateless and wiped on every boot
             sudo snapper -c home create --description "Pre-rebuild home snapshot" || true
         fi
@@ -116,7 +122,9 @@ let
         nix fmt
         
         # 2. Stage changes so Nix Flakes can see the configuration
-        # We stage everything here to ensure the build succeeds.
+        # We forcefully stage private files so Nix can see them for the build.
+        # They will be UNSTAGED before the commit step for absolute privacy.
+        git add -f hosts/manx/variables.nix hosts/laptop/variables.nix secrets/secrets.yaml &> /dev/null || true
         git add . &> /dev/null || true
         
         # 3. Validate configuration integrity before applying
@@ -248,10 +256,23 @@ let
 
       check)
         log "Auditing configuration health..."
+
+        # --- SECURITY SHIELD: Automated Cleanup Trap ---
+        # This ensures that even if you Ctrl+C the script, your secrets are UNSTAGED immediately.
+        cleanup_secrets() {
+            git reset hosts/manx/variables.nix hosts/laptop/variables.nix secrets/secrets.yaml &> /dev/null || true
+        }
+        trap cleanup_secrets EXIT SIGINT SIGTERM
+
+        # Stage changes so Nix Flakes can see the configuration
+        git add -f hosts/manx/variables.nix hosts/laptop/variables.nix secrets/secrets.yaml &> /dev/null || true
+
         CHECK_ERR=$(mktemp)
         if ! nix flake check . 2>"$CHECK_ERR"; then
             grep -v -E "incompatible systems|all-systems" "$CHECK_ERR" >&2 || true
             rm -f "$CHECK_ERR"
+            # Unstage on failure for safety
+            cleanup_secrets
             error "Configuration audit failed."
         else
             grep -v -E "incompatible systems|all-systems" "$CHECK_ERR" >&2 || true
@@ -267,11 +288,11 @@ let
         ;;
 
       aider)
-        log "Launching Engineering Agent (DeepSeek-Coder-V2)..."
+        log "Launching Engineering Agent (DeepSeek-Coder:6.7b Stable)..."
         # Ensure model is available
-        ollama pull deepseek-coder-v2 &> /dev/null || true
+        ollama pull deepseek-coder:6.7b &> /dev/null || true
         export OLLAMA_API_BASE="http://127.0.0.1:11434"
-        aider --model ollama/deepseek-coder-v2 "$@"
+        aider --model ollama/deepseek-coder:6.7b "$@"
         ;;
 
       claw)
@@ -279,11 +300,11 @@ let
         # Ensure model is available
         ollama pull llama3.1 &> /dev/null || true
         info "OpenClaw is active at: http://localhost:8082"
-        # Open in browser if possible
-        if command -v xdg-open &> /dev/null; then
-            xdg-open "http://localhost:8082" &> /dev/null || true
-        fi
-        openclaw --port 8082 --ollama-url "http://127.0.0.1:11434" --default-model "llama3.1"
+        # Set environment for local Ollama compatibility
+        export OPENAI_API_BASE="http://127.0.0.1:11434/v1"
+        export OPENAI_API_KEY="ollama"
+        # Launch using the correct subcommand and port
+        openclaw gateway run --port 8082
         ;;
 
       history)

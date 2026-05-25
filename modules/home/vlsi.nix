@@ -65,7 +65,7 @@ in
       genericName = "FPGA & EDA Design Suite";
       comment = "AMD Xilinx Vivado Design Suite (Standalone)";
       exec = "distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath}";
-      icon = ./assets/icons/xilinx/vivado.png;
+      icon = "/home/${vars.username}/.local/share/icons/xilinx/vivado.png";
       terminal = false;
       categories = [
         "Development"
@@ -79,7 +79,7 @@ in
       genericName = "FPGA & EDA Design Suite";
       comment = "AMD Xilinx Vivado Design Suite in Ghostty Terminal";
       exec = "ghostty -e distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath}";
-      icon = ./assets/icons/xilinx/vivado.png;
+      icon = "/home/${vars.username}/.local/share/icons/xilinx/vivado.png";
       terminal = false;
       categories = [
         "Development"
@@ -93,7 +93,7 @@ in
       genericName = "FPGA & EDA Design Suite";
       comment = "AMD Xilinx Vivado Design Suite in Kitty Terminal";
       exec = "kitty -e distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath}";
-      icon = ./assets/icons/xilinx/vivado.png;
+      icon = "/home/${vars.username}/.local/share/icons/xilinx/vivado.png";
       terminal = false;
       categories = [
         "Development"
@@ -107,7 +107,7 @@ in
       genericName = "EDA Tcl Console";
       comment = "AMD Vivado Interactive Tcl Shell in Ghostty";
       exec = "ghostty -e distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath} -mode tcl";
-      icon = ./assets/icons/xilinx/vivado.png;
+      icon = "/home/${vars.username}/.local/share/icons/xilinx/vivado.png";
       terminal = false;
       categories = [
         "Development"
@@ -121,7 +121,7 @@ in
       genericName = "EDA Tcl Console";
       comment = "AMD Vivado Interactive Tcl Shell in Kitty";
       exec = "kitty -e distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath} -mode tcl";
-      icon = ./assets/icons/xilinx/vivado.png;
+      icon = "/home/${vars.username}/.local/share/icons/xilinx/vivado.png";
       terminal = false;
       categories = [
         "Development"
@@ -135,7 +135,7 @@ in
       genericName = "EDA Tcl Console";
       comment = "AMD Vivado Interactive Tcl Shell in xterm";
       exec = "xterm -e distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vivadoPath} -mode tcl";
-      icon = ./assets/icons/xilinx/vivado.png;
+      icon = "/home/${vars.username}/.local/share/icons/xilinx/vivado.png";
       terminal = false;
       categories = [
         "Development"
@@ -149,7 +149,7 @@ in
       genericName = "Heterogeneous System IDE";
       comment = "AMD Xilinx Vitis Unified Software Platform";
       exec = "distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vitisPath}";
-      icon = ./assets/icons/xilinx/vitis.png;
+      icon = "/home/${vars.username}/.local/share/icons/xilinx/vitis.png";
       terminal = false;
       categories = [
         "Development"
@@ -163,7 +163,7 @@ in
       genericName = "Vitis CLI Developer Prompt";
       comment = "AMD Xilinx Vitis CLI in current terminal";
       exec = "ghostty -e distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${vitisPath} -mode cli";
-      icon = ./assets/icons/xilinx/vitis.png;
+      icon = "/home/${vars.username}/.local/share/icons/xilinx/vitis.png";
       terminal = false;
       categories = [
         "Development"
@@ -177,7 +177,7 @@ in
       genericName = "Documentation Navigator";
       comment = "Xilinx Technical Documentation Search Utility";
       exec = "distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${docnavPath}";
-      icon = ./assets/icons/xilinx/docnav.png;
+      icon = "/home/${vars.username}/.local/share/icons/xilinx/docnav.png";
       terminal = false;
       categories = [
         "Development"
@@ -192,7 +192,7 @@ in
       genericName = "Update & Download Manager";
       comment = "Checks for Xilinx Vivado/Vitis downloads and releases";
       exec = "distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 ${xicPath}";
-      icon = ./assets/icons/xilinx/xic.png;
+      icon = "/home/${vars.username}/.local/share/icons/xilinx/xic.png";
       terminal = false;
       categories = [
         "Development"

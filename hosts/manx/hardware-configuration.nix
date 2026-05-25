@@ -59,6 +59,7 @@
   fileSystems."/home" = {
     device = "/dev/mapper/luks-${vars.luksSystemUUID}";
     fsType = "btrfs";
+    neededForBoot = true;
     options = [
       "subvol=home"
       "compress=zstd:3"

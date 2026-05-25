@@ -25,4 +25,11 @@
 
   # Driver URLs (Anonymized)
   xppenDriverUrl = "https://github.com/your-username/your-repo/raw/main/XPPenLinux.deb";
+
+  # Binary Cache Settings (Cachix - Modern Cloud Backup)
+  cachixName = "your-cachix-subdomain";
+  cachixPublicKey = "your-cachix-subdomain.cachix.org-1:your-public-key";
+
+  # Feature Flags
+  enableImpermanence = true;
 }

@@ -11,6 +11,8 @@ result
 result-*
 .direnv/
 node_modules/
+old_code.txt
+old_code_full.txt
 
 # --- EDITOR JUNK ---
 *.swp
@@ -20,3 +22,5 @@ undo/
 .DS_Store
 
 # End of .gitignore
+.aider*
+aider

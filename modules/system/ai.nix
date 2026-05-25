@@ -7,12 +7,13 @@
     # Use the ROCm-enabled package for AMD GPU acceleration
     package = pkgs.ollama-rocm;
     # Automatically pull high-intelligence models on startup
-    # Smartest configuration for professional engineering:
-    # 1. deepseek-coder-v2 - Top-tier 16B model for Verilog/Coding (Smartest Free)
-    # 2. llama3.1          - The 8B gold standard for emails and general tasks
-    # 3. qwen2.5-coder:7b  - Newest high-efficiency logic and reasoning model
+    # Curated for stability & professional engineering:
+    # 1. deepseek-coder:6.7b  - High-speed engineering model (VRAM Optimized)
+    # 2. llama3.1             - The 8B gold standard for emails
+    # 3. qwen2.5-coder:7b     - Fast logic and reasoning model
+    # 4. mistral              - Lightweight speedster
     loadModels = [
-      "deepseek-coder-v2"
+      "deepseek-coder:6.7b"
       "llama3.1"
       "qwen2.5-coder:7b"
       "mistral"
