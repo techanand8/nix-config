@@ -114,7 +114,7 @@ The system operations workflow is completely centralized inside a high-fidelity 
   󱄅  M A N X   W O R K S T A T I O N  │    NIXOS SYSTEM
   ──────────────────────────────────────────────────────────────────────
     Host: MANX                 󰓅  Uptime: 2d 4h 12m
-    Kernel: 6.12.1-cachyos       Status: Online
+    Kernel: latest-cachyos       Status: Online
   ──────────────────────────────────────────────────────────────────────
 
   Usage: manx <command>
