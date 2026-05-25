@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check:
+    name: Flake Checks & Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: determinate-systems/nix-installer-action@v12
+
+      - name: Run Magic Nix Cache
+        uses: determinate-systems/magic-nix-cache-action@v7
+
+      - name: Check formatting
+        run: nix fmt -- --check
+
+      - name: Run flake checks
+        run: nix flake check -v --show-trace

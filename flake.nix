@@ -142,9 +142,20 @@
           pkgs = nixpkgs.legacyPackages.${system};
         in
         pkgs.writeShellScriptBin "nixfmt" ''
-          if [ "$#" -eq 0 ]; then
-            # Auto-find all nix files and format them if no files are specified
-            find . -name "*.nix" -not -path "./result/*" -print0 | xargs -0 ${pkgs.nixfmt}/bin/nixfmt
+          # Parse arguments to separate flags from target files
+          args=()
+          files=()
+          for arg in "$@"; do
+            if [[ "$arg" == -* ]]; then
+              args+=("$arg")
+            else
+              files+=("$arg")
+            fi
+          done
+
+          if [ ''${#files[@]} -eq 0 ]; then
+            # Auto-find all nix files and format/check them
+            find . -name "*.nix" -not -path "./result/*" -not -path "./.git/*" -print0 | xargs -0 ${pkgs.nixfmt}/bin/nixfmt "''${args[@]}"
           else
             exec ${pkgs.nixfmt}/bin/nixfmt "$@"
           fi

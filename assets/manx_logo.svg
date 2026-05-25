@@ -1,0 +1,305 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 250" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradients -->
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0002" />
+      <stop offset="50%" stop-color="#1c0005" />
+      <stop offset="100%" stop-color="#050001" />
+    </linearGradient>
+    <linearGradient id="neon-glow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ff1133" />
+      <stop offset="50%" stop-color="#ff3366" />
+      <stop offset="100%" stop-color="#39ff14" />
+    </linearGradient>
+    <linearGradient id="die-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2c000a" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#140005" stop-opacity="0.9" />
+    </linearGradient>
+    
+    <!-- Neon Filters for Glow Effects -->
+    <filter id="glow-maroon" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter id="glow-green" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3.5" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <style>
+    /* --- KEYFRAME ANIMATIONS (CSS-in-SVG for full sandbox compatibility) --- */
+    @keyframes pulse-opacity {
+      0%, 100% { opacity: 0.25; }
+      50% { opacity: 0.6; }
+    }
+    @keyframes data-flow-right {
+      to { stroke-dashoffset: -40; }
+    }
+    @keyframes data-flow-left {
+      to { stroke-dashoffset: 40; }
+    }
+    @keyframes node-glow {
+      0%, 100% { r: 3.5px; fill: #39ff14; filter: url(#glow-green); }
+      50% { r: 5px; fill: #ff1133; filter: url(#glow-maroon); }
+    }
+    @keyframes title-shimmer {
+      0%, 100% { opacity: 0.95; text-shadow: 0 0 10px #ff1133; }
+      50% { opacity: 1; text-shadow: 0 0 20px #39ff14; }
+    }
+    
+    /* Advanced Chip Animations */
+    @keyframes scanline-sweep {
+      0% { transform: translateY(0px); opacity: 0; }
+      5% { opacity: 0.8; }
+      95% { opacity: 0.8; }
+      100% { transform: translateY(180px); opacity: 0; }
+    }
+    @keyframes compute-gate-1 {
+      0%, 100% { r: 2.5px; fill: #ff1133; opacity: 0.4; }
+      25% { r: 4px; fill: #39ff14; opacity: 0.9; filter: url(#glow-green); }
+      50% { r: 3px; fill: #00F5FF; opacity: 0.8; filter: url(#glow-cyan); }
+    }
+    @keyframes compute-gate-2 {
+      0%, 100% { r: 3px; fill: #00F5FF; opacity: 0.7; filter: url(#glow-cyan); }
+      35% { r: 2.5px; fill: #ff1133; opacity: 0.4; }
+      70% { r: 4px; fill: #39ff14; opacity: 0.9; filter: url(#glow-green); }
+    }
+    @keyframes compute-gate-3 {
+      0%, 100% { r: 4px; fill: #39ff14; opacity: 0.9; filter: url(#glow-green); }
+      45% { r: 3px; fill: #00F5FF; opacity: 0.8; filter: url(#glow-cyan); }
+      80% { r: 2.5px; fill: #ff1133; opacity: 0.3; }
+    }
+
+    /* --- CLASS APPLICATIONS --- */
+    .bg-grid {
+      stroke: #38020c;
+      stroke-width: 0.5px;
+      opacity: 0.2;
+    }
+    .silicon-die {
+      stroke: #ff1133;
+      stroke-width: 1.5px;
+      fill: url(#die-grad);
+      filter: url(#glow-maroon);
+    }
+    .trace-inactive {
+      stroke: #4d0012;
+      stroke-width: 1px;
+      fill: none;
+    }
+    .trace-active-green {
+      stroke: #39ff14;
+      stroke-width: 1.5px;
+      stroke-dasharray: 8, 12;
+      fill: none;
+      animation: data-flow-right 2s linear infinite;
+    }
+    .trace-active-maroon {
+      stroke: #ff1133;
+      stroke-width: 1.5px;
+      stroke-dasharray: 6, 10;
+      fill: none;
+      animation: data-flow-left 2.5s linear infinite;
+    }
+    .gate-symbol {
+      fill: #140005;
+      stroke: #ff1133;
+      stroke-width: 1.5px;
+    }
+    .gate-symbol-active {
+      fill: #1a0008;
+      stroke: #39ff14;
+      stroke-width: 1.5px;
+      filter: url(#glow-green);
+    }
+    .node {
+      animation: node-glow 3s ease-in-out infinite;
+    }
+    .node-delay {
+      animation: node-glow 3s ease-in-out infinite;
+      animation-delay: 1.5s;
+    }
+    .decor-text {
+      font-family: 'Fira Code', monospace, Courier;
+      font-size: 8px;
+      fill: #ff1133;
+      opacity: 0.6;
+    }
+    .decor-text-green {
+      font-family: 'Fira Code', monospace, Courier;
+      font-size: 8px;
+      fill: #39ff14;
+      opacity: 0.8;
+    }
+    .decor-text-green-bold {
+      font-family: 'Fira Code', monospace, Courier;
+      font-size: 10px;
+      fill: #39ff14;
+      font-weight: bold;
+      letter-spacing: 2px;
+      filter: url(#glow-green);
+    }
+    .main-title {
+      font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+      font-weight: 900;
+      font-size: 42px;
+      letter-spacing: 12px;
+      fill: #ffffff;
+      animation: title-shimmer 4s ease-in-out infinite;
+    }
+    .subtitle {
+      font-family: 'Fira Code', monospace;
+      font-weight: 500;
+      font-size: 11px;
+      letter-spacing: 5px;
+      fill: #39ff14;
+      filter: url(#glow-green);
+      opacity: 0.9;
+    }
+  </style>
+
+  <!-- Background Base -->
+  <rect width="800" height="250" fill="url(#bg-grad)" rx="10" />
+
+  <!-- Silicon Grid Lines -->
+  <g>
+    <path d="M 0,25 L 800,25 M 0,50 L 800,50 M 0,75 L 800,75 M 0,100 L 800,100 M 0,125 L 800,125 M 0,150 L 800,150 M 0,175 L 800,175 M 0,200 L 800,200 M 0,225 L 800,225" class="bg-grid" />
+    <path d="M 50,0 L 50,250 M 100,0 L 100,250 M 150,0 L 150,250 M 200,0 L 200,250 M 250,0 L 250,250 M 300,0 L 300,250 M 350,0 L 350,250 M 400,0 L 400,250 M 450,0 L 450,250 M 500,0 L 500,250 M 550,0 L 550,250 M 600,0 L 600,250 M 650,0 L 650,250 M 700,0 L 700,250 M 750,0 L 750,250" class="bg-grid" />
+  </g>
+
+  <!-- Left Side: VLSI Circuit Logic Layout -->
+  <g transform="translate(10, 0)">
+    <!-- Circuit Paths (Traces) -->
+    <!-- Input Traces -->
+    <path d="M 20,60 L 70,60 L 90,80 L 120,80" class="trace-inactive" />
+    <path d="M 20,60 L 70,60 L 90,80 L 120,80" class="trace-active-green" />
+    
+    <path d="M 20,100 L 80,100" class="trace-inactive" />
+    <path d="M 20,100 L 80,100" class="trace-active-maroon" />
+
+    <path d="M 20,140 L 60,140 L 80,120 L 120,120" class="trace-inactive" />
+    <path d="M 20,140 L 60,140 L 80,120 L 120,120" class="trace-active-green" />
+    
+    <path d="M 20,190 L 90,190 L 110,170 L 140,170" class="trace-inactive" />
+    <path d="M 20,190 L 90,190 L 110,170 L 140,170" class="trace-active-maroon" />
+
+    <!-- Intermediate Logic Gates -->
+    <!-- NAND Gate 1 (Top) -->
+    <g transform="translate(120, 70)">
+      <path d="M 0,5 L 15,5 A 10,10 0 0,1 25,15 A 10,10 0 0,1 15,25 L 0,25 Z" class="gate-symbol-active" />
+      <circle cx="28" cy="15" r="2.5" fill="#140005" stroke="#39ff14" stroke-width="1" />
+    </g>
+    
+    <!-- NOR Gate 2 (Bottom) -->
+    <g transform="translate(120, 110)">
+      <path d="M 0,5 Q 8,5 12,5 A 10,10 0 0,1 22,15 A 10,10 0 0,1 12,25 Q 8,25 0,25 Q 6,15 0,5 Z" class="gate-symbol" />
+      <circle cx="25" cy="15" r="2.5" fill="#140005" stroke="#ff1133" stroke-width="1" />
+    </g>
+
+    <!-- Interconnect traces from gates -->
+    <path d="M 152,85 L 180,85 L 195,105 L 220,105" class="trace-inactive" />
+    <path d="M 152,85 L 180,85 L 195,105 L 220,105" class="trace-active-green" />
+
+    <path d="M 148,125 L 180,125 L 195,145 L 220,145" class="trace-inactive" />
+    <path d="M 148,125 L 180,125 L 195,145 L 220,145" class="trace-active-maroon" />
+
+    <!-- AND Gate 3 (Output Stage) -->
+    <g transform="translate(220, 95)">
+      <path d="M 0,5 L 15,5 A 20,20 0 0,1 25,25 A 20,20 0 0,1 15,45 L 0,45 Z" class="gate-symbol-active" />
+    </g>
+
+    <!-- Final Output Trace (SHORTENED to 265 to prevent overlap with "SILICON") -->
+    <path d="M 245,120 L 265,120" class="trace-inactive" />
+    <path d="M 245,120 L 265,120" class="trace-active-green" />
+
+    <!-- Silicon Nodes / Vias -->
+    <circle cx="80" cy="100" r="4" class="node" />
+    <circle cx="60" cy="140" r="4" class="node-delay" />
+    <circle cx="180" cy="85" r="3.5" class="node-delay" />
+    <circle cx="195" cy="145" r="3.5" class="node" />
+    <circle cx="265" cy="120" r="4" class="node" /> <!-- Shifted node to 265 -->
+  </g>
+
+  <!-- Right Side: VLSI Silicon Block / Register Matrix with Sweep Diagnostic Scanline -->
+  <g transform="translate(560, 30)">
+    <!-- Memory Matrix Outline -->
+    <rect x="0" y="0" width="220" height="180" rx="6" class="silicon-die" />
+    
+    <!-- Matrix Grid Nodes with dynamic computing animations -->
+    <!-- Column 1 -->
+    <line x1="30" y1="20" x2="30" y2="160" stroke="#38020c" stroke-width="1" />
+    <circle cx="30" cy="40" r="3" style="animation: compute-gate-1 4s ease-in-out infinite;" />
+    <circle cx="30" cy="80" r="3" style="animation: compute-gate-2 3.5s ease-in-out infinite;" />
+    <circle cx="30" cy="120" r="3.5" style="animation: compute-gate-3 4.5s ease-in-out infinite;" />
+    
+    <!-- Column 2 -->
+    <line x1="75" y1="20" x2="75" y2="160" stroke="#38020c" stroke-width="1" />
+    <circle cx="75" cy="40" r="3" style="animation: compute-gate-3 3.8s ease-in-out infinite;" />
+    <circle cx="75" cy="80" r="3.5" style="animation: compute-gate-1 4.2s ease-in-out infinite;" />
+    <circle cx="75" cy="120" r="3" style="animation: compute-gate-2 3.9s ease-in-out infinite;" />
+
+    <!-- Column 3 -->
+    <line x1="120" y1="20" x2="120" y2="160" stroke="#38020c" stroke-width="1" />
+    <circle cx="120" cy="40" r="3.5" style="animation: compute-gate-2 4.1s ease-in-out infinite;" />
+    <circle cx="120" cy="80" r="3" style="animation: compute-gate-3 3.7s ease-in-out infinite;" />
+    <circle cx="120" cy="120" r="3" style="animation: compute-gate-1 4.3s ease-in-out infinite;" />
+
+    <!-- Column 4 -->
+    <line x1="165" y1="20" x2="165" y2="160" stroke="#38020c" stroke-width="1" />
+    <circle cx="165" cy="40" r="3" style="animation: compute-gate-1 3.6s ease-in-out infinite;" />
+    <circle cx="165" cy="80" r="3" style="animation: compute-gate-2 4.4s ease-in-out infinite;" />
+    <circle cx="165" cy="120" r="3.5" style="animation: compute-gate-3 4s ease-in-out infinite;" />
+
+    <!-- Sweeping Diagnostic Scanline (Highly Animated Cybernetic Line) -->
+    <rect x="2" y="0" width="216" height="1.5" fill="#00F5FF" style="animation: scanline-sweep 4s linear infinite; filter: url(#glow-cyan);" />
+
+    <!-- Die Markings -->
+    <text x="10" y="172" class="decor-text-green">BLOCK: SRAM_0X4F</text>
+    <text x="140" y="172" class="decor-text">MANX-CORE</text>
+  </g>
+
+  <!-- Central Workstation Branding Block -->
+  <g transform="translate(325, 45)">
+    <!-- Tech Frame -->
+    <path d="M -15,0 L 165,0" stroke="#ff1133" stroke-width="1" opacity="0.5" />
+    <path d="M -15,140 L 165,140" stroke="#ff1133" stroke-width="1" opacity="0.5" />
+    <path d="M -15,-5 L -15,145" stroke="#39ff14" stroke-width="0.5" opacity="0.3" stroke-dasharray="2, 4" />
+    <path d="M 165,-5 L 165,145" stroke="#39ff14" stroke-width="0.5" opacity="0.3" stroke-dasharray="2, 4" />
+
+    <!-- Main Title: MANX OS -->
+    <text x="75" y="55" text-anchor="middle" class="main-title">MANX OS</text>
+    
+    <!-- Subtitle: SILICON ENGINEERING CONSOLE -->
+    <text x="75" y="85" text-anchor="middle" class="subtitle">SILICON WORKSTATION</text>
+    
+    <!-- Telemetry Badges -->
+    <g transform="translate(0, 105)">
+      <!-- Clock Speed -->
+      <rect x="-5" y="0" width="70" height="18" rx="3" fill="#240008" stroke="#ff1133" stroke-width="0.75" />
+      <text x="30" y="12" text-anchor="middle" class="decor-text" style="font-weight: bold;">4.2 GHz</text>
+
+      <!-- Status Code -->
+      <rect x="80" y="0" width="75" height="18" rx="3" fill="#0c1e05" stroke="#39ff14" stroke-width="0.75" />
+      <text x="117" y="12" text-anchor="middle" class="decor-text-green" style="font-weight: bold;">SYS_ACTIVE</text>
+    </g>
+  </g>
+
+  <!-- Bottom Technical Details (Footer Redesigned & Centered) -->
+  <g transform="translate(400, 235)">
+    <text x="0" y="0" class="decor-text-green-bold" text-anchor="middle">STATUS: ACTIVE</text>
+  </g>
+</svg>

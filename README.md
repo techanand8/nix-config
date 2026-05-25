@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=venom&height=160&gradient=0:0d0d0d,50:1a0000,100:003300&color=fff&text=MANX%20OS&fontSize=52&fontAlignY=38&desc=VLSI%20Workstation%20%7C%20Design%20Verification%20%7C%20NixOS&descSize=16&descAlignY=62&stroke=ff1133" alt="MANX OS" />
+<img src="assets/manx_logo.svg" alt="MANX OS Silicon Engineering Workstation" width="100%" />
 
 <br/>
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&duration=3200&pause=900&color=39FF14&center=true&vCenter=true&width=720&lines=Declarative+silicon-grade+engineering+environment;Mathematically+reproducible+%E2%80%A2+Stateless-ready+%E2%80%A2+EDA-native" alt="Typing tagline" />
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=20&duration=3000&pause=1000&color=39FF14&center=true&vCenter=true&width=760&lines=Declarative+silicon-grade+engineering+environment;Mathematically+reproducible+%E2%80%A2+Stateless-ready+%E2%80%A2+EDA-native;System+synchronized+via+the+secure+manx+rebuild+utility" alt="Typing tagline" />
 
 <br/>
 
@@ -12,215 +12,205 @@
 [![Kernel](https://img.shields.io/badge/Kernel-CachyOS_x86__64--v3-ff1133?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/CachyOS)
 [![Storage](https://img.shields.io/badge/Storage-Btrfs_LUKS-39ff14?style=for-the-badge&logo=git&logoColor=black)](https://btrfs.readthedocs.io)
 [![WM](https://img.shields.io/badge/Desktop-Hyprland_Wayland-ffb59e?style=for-the-badge&logo=hyprland&logoColor=white)](https://hyprland.org)
-[![Editor](https://img.shields.io/badge/IDE-Nixvim-7c3aed?style=for-the-badge&logo=neovim&logoColor=white)](https://github.com/nix-community/nixvim)
+[![IDE](https://img.shields.io/badge/IDE-Nixvim-7c3aed?style=for-the-badge&logo=neovim&logoColor=white)](https://github.com/nix-community/nixvim)
 
 </div>
 
 ---
 
-## Authentication Interface
+## Technical Overview
 
-The SDDM theme is built as a **VLSI workstation console** — not a generic login screen. Logic gates, live timing diagrams, system telemetry, and HDL-style copy turn authentication into part of the engineering workflow.
+**MANX OS** is a highly optimized, reproducible, and declaratively managed operating system environment customized specifically for digital design, verification, and hardware description engineering. Rather than treating electronic design automation (EDA) tools as isolated, ad-hoc binaries, MANX OS models the entire hardware development suite as a first-class, version-controlled module in a Nix Flake structure.
+
+### Key Architectural Pillars
+* **Silicon-Grade Reproducibility**: Complete system closures are pinned and version-controlled via `flake.lock`. You can deploy the exact same workspace across a primary workstation and a portable engineering laptop with identical behavior.
+* **Isolated EDA Execution**: Proprietary heavy toolchains (such as AMD Vivado and Vitis) run in an isolated high-performance container (Distrobox) utilizing native host Wayland window pass-through and direct JTAG `udev` hardware mapping.
+* **Optional Statelessness (Impermanence)**: Models the root directory (`/`) as a temporary ramdisk wiped on every boot, mapping persistent configurations, private certificates, ssh keys, and the `/home` directories directly to a `/persist` Btrfs subvolume.
+* **Consolidated Control Plane**: A custom management utility, `manx`, exposes a unified, color-coded interactive command suite for rebuilds, system package diffing, garbage collection, and binary cache pushing.
+
+---
+
+## Authentication Interface (VLSI Workstation Console)
+
+The display manager (SDDM) is configured as a VLSI CAD workstation terminal interface, integrating logic gate schematics, timing telemetry, and Verilog-style system warnings.
 
 <table>
   <tr>
-    <td width="50%" align="center">
+    <td width="50%" align="center" style="background-color: #0d0104; border: 1px solid #ff1133; border-radius: 6px; padding: 10px;">
       <img src="assets/screenshots/sddm-capslock.png" alt="MANX SDDM — Caps Lock hardware warning" width="100%" />
       <br/>
-      <sub><b>Hardware-aware input</b> — Caps Lock surfaces as a Verilog-style fault line:<br/><code>wire caps_lock = 1'b1; // DECRYPTION_FAULT_RISK</code></sub>
+      <sub style="color: #ff1133;"><b>Hardware-Aware Input</b> — Caps Lock state displays dynamically as a Verilog signal wire warning:</sub>
+      <br/>
+      <code><span style="color: #00F5FF;">wire</span> caps_lock = <span style="color: #39ff14;">1'b1</span>; <span style="color: #888;">// DECRYPTION_FAULT_RISK</span></code>
     </td>
-    <td width="50%" align="center">
+    <td width="50%" align="center" style="background-color: #0d0104; border: 1px solid #39ff14; border-radius: 6px; padding: 10px;">
       <img src="assets/screenshots/sddm-auth.png" alt="MANX SDDM — Active authentication sequence" width="100%" />
       <br/>
-      <sub><b>Session handoff</b> — Live auth progress while the workstation initializes your environment.</sub>
+      <sub style="color: #39ff14;"><b>Session Handoff Sequence</b> — Active authorization and terminal timing telemetry load dynamically as you login.</sub>
     </td>
   </tr>
 </table>
 
-<div align="center">
+<br/>
 
-<video src="https://github.com/user-attachments/assets/e10cb4ce-a8f8-454e-965a-573eb7a385e7" width="100%" controls autoplay muted loop />
+<div align="center" style="border: 1px solid #4d0012; border-radius: 6px; padding: 12px; background-color: #060002;">
 
-<sub>Full interface walkthrough — logic framing, telemetry panels, and session flow.</sub>
+<video src="https://github.com/user-attachments/assets/e10cb4ce-a8f8-454e-965a-573eb7a385e7" width="100%" style="border-radius: 4px; box-shadow: 0 0 15px rgba(255, 17, 51, 0.2);" controls autoplay muted loop />
 
-</div>
-
----
-
-## What This Is
-
-**MANX OS** is a production NixOS configuration for hardware engineers. It delivers:
-
-- **Reproducible builds** — Flake-locked inputs, modular hosts, SOPS-encrypted secrets.
-- **EDA without polluting the host** — Vivado/Vitis in Distrobox with JTAG `udev` pass-through and native Hyprland windows.
-- **Optional impermanence** — Btrfs root rollback on boot; state lives on `/persist` and Snapper-protected `/home`.
-- **One command operations** — `manx` handles rebuild, rollback, Vivado, dev shells, and Cachix sync.
-
-Built for RTL design, verification, formal methods, and architectural exploration — not a desktop rice config with tools bolted on.
-
----
-
-## Daily Operations
-
-Everything runs through **`manx`**. No scattered scripts, no manual `nixos-rebuild` flags to remember.
-
-| Command | Purpose |
-| :--- | :--- |
-| `manx rebuild` | Validate flake, switch generation, diff packages, push to Cachix |
-| `manx edit` | Fuzzy-find and open any module in the tree |
-| `manx rollback` | Revert to the previous working generation |
-| `manx history` | Inspect generation timeline |
-| `manx clean` | Garbage-collect old store paths |
-| `manx vivado` | Enter the AMD toolchain container |
-| `manx shell <pkg>` | Ephemeral environment without global installs |
-
-<details>
-<summary><b>Configuration workflow</b></summary>
-
-1. Edit modules under `hosts/` or `modules/`.
-2. Run `manx rebuild` — flake check runs before apply.
-3. Review the `nvd` diff for package changes.
-4. Git commit is recorded automatically (secrets stay unstaged).
-
-</details>
-
----
-
-## Engineering Stack
-
-<div align="center">
-
-[![Simulation](https://img.shields.io/badge/Simulation-Verilator_|_Icarus_|_NVC-1f6feb?style=flat-square)](#)
-[![Verification](https://img.shields.io/badge/DV-Cocotb_|_SBY_|_Surelog-f97316?style=flat-square)](#)
-[![ISA](https://img.shields.io/badge/Arch-Spike_|_QEMU_|_RISC--V-22c55e?style=flat-square)](#)
+<sub><b>Full Interface Walkthrough</b> — Demonstrates the customized logic framing, responsive timing wave panels, and desktop handoff sequence.</sub>
 
 </div>
 
-<details>
-<summary><b>Complete toolchain (20+ tools)</b></summary>
+---
 
-| Category | Tools |
-| :--- | :--- |
-| **Verification** | Cocotb, Surelog, SymbiYosys (SBY), Verible, SVLint |
-| **Simulation** | Verilator, Icarus, NVC, GHDL |
-| **Architecture** | Spike, QEMU, RISC-V pk |
-| **Cross-compile** | RISC-V GCC, ARM embedded GCC |
-| **Physical design** | Magic-VLSI, KLayout, NetlistSVG |
-| **Schematic / analog** | XSchem, Ngspice |
-| **Waveforms** | GTKWave, Surfer, WaveDrom |
+## Integrated Silicon Design Flow & Toolchain
 
-Proprietary AMD tools run inside **`manx-vivado`** (Ubuntu container) with desktop entries and icon sync from the installed toolchain.
+The digital engineering suite is divided into logical processing pipelines, providing coverage from high-level hardware description language (HDL) design to analog mixed-signal simulation and physical GDSII layout.
 
-</details>
+<div align="center" style="margin-top: 15px; margin-bottom: 15px;">
+
+<img src="assets/vlsi_stack.svg" alt="MANX OS Silicon Design Flow" width="100%" />
+
+</div>
+
+### Detailed Component Registry
+
+| Pipeline Stage | Integrated Software Packages | Operational Objective |
+| :--- | :--- | :--- |
+| **01 / RTL & Lint** | `Google Verible`, `svlint`, `svls`, `veryl` | RTL static analysis, formatting standards, language servers, and modern design alternatives. |
+| **02 / Simulation** | `Verilator` (C++), `Icarus Verilog`, `GHDL`, `NVC`, `Surfer`, `GTKWave` | Cycle-accurate simulation, parallel testing, digital wave trace analysis, and pulse rendering. |
+| **03 / Verification** | `Cocotb` (Python), `Surelog` (SV UVM), `SymbiYosys` (SBY) | Co-simulation testbenches, formal verification assertions, and full UVM compilation. |
+| **04 / Synthesis** | `Yosys` Open Synthesis, `yosys-ghdl` plugin | RTL elaboration, optimization, and mapping to target technology netlists. |
+| **05 / IC Layout** | `Magic-VLSI`, `KLayout`, `XSchem`, `Ngspice` | Custom CMOS cell layouts, GDSII mask viewers, mixed-signal schematics, and SPICE simulations. |
+| **06 / FPGA Target** | `AMD Vivado Suite`, `AMD Vitis Platform`, `JTAG udev` | Heterogeneous FPGA target synthesis, placing, routing, hardware programming, and debugging. |
+| **07 / Expandable** | `OpenLane ASIC`, `Sky130 PDKs`, `Microsemi Tools` | Seamless extensibility support for custom ASIC toolchains, standard PDKs, and future hardware modules. |
 
 ---
 
-## Architecture
+## Workstation Management Console (`manx`)
 
-```mermaid
-graph LR
-    Flake["flake.nix"]
-    Common["hosts/common/"]
-    Manx["hosts/manx/"]
-    Laptop["hosts/laptop/"]
-    Sys["modules/system/"]
-    Home["modules/home/"]
-    Sops["SOPS secrets"]
+The system operations workflow is completely centralized inside a high-fidelity control plane utility: `manx`. This script abstracts away low-level rebuild, garbage collection, and secret management commands into simple, standardized verbs.
 
-    Flake --> Common
-    Common --> Manx & Laptop
-    Common --> Sys
-    Flake --> Home
-    Sys --> Sops
+```
+  󱄅  M A N X   W O R K S T A T I O N  │    NIXOS SYSTEM
+  ──────────────────────────────────────────────────────────────────────
+    Host: MANX                 󰓅  Uptime: 2d 4h 12m
+    Kernel: 6.12.1-cachyos       Status: Online
+  ──────────────────────────────────────────────────────────────────────
+
+  Usage: manx <command>
+
+  󰓅  CONFIGURATION MANAGEMENT
+    rebuild   ❯ Synchronize adjustments and show package changes
+    update    ❯ Update system inputs and perform full build
+    rollback  ❯ Revert to previous successful generation
+    history   ❯ List detailed system generations
+
+  󰌢  MAINTENANCE & SECURITY
+    clean     ❯ Execute deep system maintenance protocols
+    check     ❯ Validate configuration health and integrity
 ```
 
-| Layer | Role |
-| :--- | :--- |
-| `flake.nix` | Inputs, `mkSystem`, Home Manager, dev shell |
-| `hosts/common/` | Shared boot, modules, locale — DRY across machines |
-| `hosts/<host>/variables.nix` | Private settings (git-ignored); `.example` fallback for `flake check` |
-| `modules/system/` | Kernel, Hyprland, impermanence, VPN, AI, Vivado udev |
-| `modules/home/` | Nixvim, VLSI packages, shell, Hyprland Lua |
+### Reference Table
 
-<details>
-<summary><b>Impermanence (optional)</b></summary>
+| Verb | Under-the-hood Command Sequence | Engineering Safety Feature |
+| :--- | :--- | :--- |
+| `manx rebuild` | `nix fmt` ➔ Stages changes ➔ Runs Flake audit ➔ Evaluates NH switch ➔ `nvd` changes | **Security Shield**: Forcefully stages `variables.nix` / `secrets.yaml` so Nix can read them, but triggers a global reset trap to keep private keys unstaged immediately. |
+| `manx check` | Stages files ➔ `nix flake check` ➔ Automated Reset | Validates that the Nix configuration compiles and option definitions are valid without executing a build. |
+| `manx clean` | `nh clean all --keep 3` ➔ Garbage collects system/user store ➔ Hard-links duplicates | Reclaims storage blocks on your NVMe SSD. |
+| `manx vivado` | Distrobox engine initialization ➔ Icon mapping ➔ GUI entry | Enters the secure high-compatibility hardware design sandbox. |
+| `manx edit` | fuzzy-finds `*.nix` and `*.yaml` ➔ launches Neovim | Accelerates config development via rapid module navigation. |
 
-Set `enableImpermanence = true` in `variables.nix`. On boot, the root subvolume resets from a `blank` Btrfs snapshot; `/persist` bind-mounts preserve NetworkManager, SSH, SOPS state, `/tools`, and your home directory.
+---
 
-</details>
+## Operating System Architecture
 
-<details>
-<summary><b>Performance profile</b></summary>
+The repository layout follows a DRY (Don't Repeat Yourself) host-module hierarchy, separating generic hardware/software rules from host-specific disk configurations and network properties.
 
-- **CachyOS kernel** — `x86_64-v3` tuned for simulation throughput
-- **sched-ext** — `scx_lavd` keeps the desktop responsive under full CPU load
-- **ROCm** — AMD GPU compute for ML and accelerated workloads
-- **Cachix** — Workstation pushes builds; laptop pulls pre-built closures
-
-</details>
+```
+├── flake.nix                  # Unified entrypoint; pins external dependencies
+├── hosts/
+│   ├── common/                # Shared module imports (boot, networks, locales)
+│   ├── manx/                  # Primary Workstation configuration
+│   │   ├── variables.nix      # Hardware properties, system UUIDs (Git-ignored)
+│   │   └── variables.nix.example
+│   └── laptop/                # Engineering Laptop configuration
+├── modules/
+│   ├── home/                  # Home Manager files (shell, Neovim, user-packages)
+│   └── system/                # System packages (virtualization, Plymouth, scripts)
+└── secrets/
+    ├── secrets.yaml           # SOPS age-encrypted system passwords (Git-ignored)
+    └── secrets.yaml.example
+```
 
 ---
 
 ## Interface Gallery
 
 <div align="center">
-<table>
+<table style="border-collapse: collapse; border: none; width: 100%;">
   <tr>
-    <td width="50%"><img src="assets/screenshots/manx_menu.png" alt="manx CLI" width="100%" /><br/><sub><b>manx</b> — system control plane</sub></td>
-    <td width="50%"><img src="assets/screenshots/manx_edit.png" alt="manx edit" width="100%" /><br/><sub><b>manx edit</b> — config navigation</sub></td>
+    <td width="50%" style="padding: 6px; border: none;"><img src="assets/screenshots/manx_menu.png" alt="manx CLI" width="100%" style="border-radius: 4px;"/><br/><sub><b>manx</b> — Primary control shell</sub></td>
+    <td width="50%" style="padding: 6px; border: none;"><img src="assets/screenshots/manx_edit.png" alt="manx edit" width="100%" style="border-radius: 4px;"/><br/><sub><b>manx edit</b> — Configuration navigation</sub></td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/manx_edit_search.png" alt="manx search" width="100%" /><br/><sub>Live preview while browsing modules</sub></td>
-    <td width="50%"><img src="assets/screenshots/manx_screensaver_menu.png" alt="screensaver" width="100%" /><br/><sub>Terminal branding orchestration</sub></td>
+    <td width="50%" style="padding: 6px; border: none;"><img src="assets/screenshots/manx_edit_search.png" alt="manx search" width="100%" style="border-radius: 4px;"/><br/><sub>Live fuzzy preview while browsing modules</sub></td>
+    <td width="50%" style="padding: 6px; border: none;"><img src="assets/screenshots/manx_screensaver_menu.png" alt="screensaver" width="100%" style="border-radius: 4px;"/><br/><sub>Branding screensaver orchestration panel</sub></td>
   </tr>
 </table>
 </div>
 
 ---
 
-## Deployment
+## Deployment & Setup Guide
 
+### 1. Repository Setup
+Clone the repository and copy the environment variables template for your specific host target:
 ```bash
 git clone https://github.com/techanand8/nix-config.git ~/nix-config
 cd ~/nix-config
+
+# For the MANX Workstation:
 cp hosts/manx/variables.nix.example hosts/manx/variables.nix
-# Edit variables.nix — hostname, disks, LUKS UUIDs, feature flags
+
+# For the Laptop:
+cp hosts/laptop/variables.nix.example hosts/laptop/variables.nix
 ```
 
-**Hardware config:**
-
+### 2. Configure Hardware Parameters
+Generate the physical hardware configuration for your target drive layouts, mount paths, and CPU/GPU properties:
 ```bash
 nixos-generate-config --show-hardware-config > hosts/manx/hardware-configuration.nix
 ```
+Open `hosts/manx/variables.nix` in your text editor and adjust the settings:
+- Update the `username` and default `timezone` / `locale`.
+- Set the `enableImpermanence` flag to `true` (if running Btrfs stateless rollback) or `false`.
+- Input the exact disk UUIDs and LUKS target paths.
 
-**Apply:**
-
+### 3. Initialize and Apply Configuration
+Deploy the system configurations:
 ```bash
+# Using the custom utility:
 manx rebuild
-# or: sudo nixos-rebuild switch --flake .#MANX
+
+# Or using the standard Nix command:
+sudo nixos-rebuild switch --flake .#MANX
 ```
-
-| Mode | Setting |
-| :--- | :--- |
-| **Standard (persistent root)** | `enableImpermanence = false` in `variables.nix` |
-| **Stateless root** | `enableImpermanence = true` — requires Btrfs `root` + `blank` subvolumes |
-
-**Laptop:** Copy `hosts/laptop/variables.nix.example`, generate `hardware-configuration.nix`, deploy with `.#LAPTOP`.
 
 ---
 
-## Cachix (multi-machine builds)
+## Binary Caching Setup (Cachix)
 
-1. Create a cache at [cachix.org](https://cachix.org).
-2. On the workstation: `cachix authtoken <token>`.
-3. In each host's `variables.nix`:
+To prevent duplicate builds between the heavy primary workstation and the battery-saving laptop, setup a binary cache substituter:
 
-```nix
-cachixName = "your-cache";
-cachixPublicKey = "your-cache.cachix.org-1:...";
-```
-
-`manx rebuild` pushes the new generation automatically. Other machines pull binaries on the next rebuild — no rebuild farm on a laptop.
+1. **Establish Remote Cache**: Register a cache at [cachix.org](https://cachix.org).
+2. **Authorize System**: Run `cachix authtoken <your-auth-token>` on the primary workstation.
+3. **Configure Flake Variables**: Add your cache variables into `hosts/<host>/variables.nix`:
+   ```nix
+   cachixName = "your-cache-subdomain";
+   cachixPublicKey = "your-cache-subdomain.cachix.org-1:your-public-key-here=";
+   ```
+On every successful `manx rebuild` run, the workstation will compile and automatically push new closures to the cache. The laptop will then fetch these pre-compiled closures, saving CPU and battery power!
 
 ---
 
@@ -228,6 +218,6 @@ cachixPublicKey = "your-cache.cachix.org-1:...";
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=39FF14,ff1133,0d0d0d&height=80&section=footer&text=Mayank%20Anand&fontSize=24&fontColor=fff" alt="Footer" />
 
-<sub>Declarative by design · Reproducible by construction · Engineered for silicon work</sub>
+<sub>Declarative by Design · Reproducible by Construction · Engineered for Silicon Engineering</sub>
 
 </div>

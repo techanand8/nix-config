@@ -108,7 +108,7 @@ let
         # --- SECURITY SHIELD: Automated Cleanup Trap ---
         # This ensures that even if you Ctrl+C the script, your secrets are UNSTAGED immediately.
         cleanup_secrets() {
-            git reset hosts/manx/variables.nix hosts/laptop/variables.nix secrets/secrets.yaml &> /dev/null || true
+            git reset -- hosts/manx/variables.nix hosts/laptop/variables.nix secrets/secrets.yaml &> /dev/null || true
         }
         trap cleanup_secrets EXIT SIGINT SIGTERM
 
@@ -124,7 +124,7 @@ let
         # 2. Stage changes so Nix Flakes can see the configuration
         # We forcefully stage private files so Nix can see them for the build.
         # They will be UNSTAGED before the commit step for absolute privacy.
-        git add -f hosts/manx/variables.nix hosts/laptop/variables.nix secrets/secrets.yaml &> /dev/null || true
+        git add -f -- hosts/manx/variables.nix hosts/laptop/variables.nix secrets/secrets.yaml &> /dev/null || true
         git add . &> /dev/null || true
         
         # 3. Validate configuration integrity before applying
@@ -134,7 +134,7 @@ let
             grep -v -E "incompatible systems|all-systems" "$CHECK_ERR" >&2 || true
             rm -f "$CHECK_ERR"
             # Unstage on failure for safety
-            git reset hosts/manx/variables.nix hosts/laptop/variables.nix secrets/secrets.yaml &> /dev/null || true
+            cleanup_secrets
             error "Configuration audit failed. Please resolve errors before rebuilding."
         else
             grep -v -E "incompatible systems|all-systems" "$CHECK_ERR" >&2 || true
@@ -146,11 +146,14 @@ let
         
         # 5. Apply system configuration via NH
         log "Applying system updates..."
-        nh os switch . --hostname $HOSTNAME -- --accept-flake-config || {
+        if ! nh os switch . --hostname $HOSTNAME -- --accept-flake-config; then
             # Unstage on failure for safety
-            git reset hosts/manx/variables.nix hosts/laptop/variables.nix secrets/secrets.yaml &> /dev/null || true
+            cleanup_secrets
             error "System rebuild failed."
-        }
+        fi
+        
+        # MANDATORY SECURITY: Unstage secrets immediately after a successful build
+        cleanup_secrets
         
         # 6. SDDM Maintenance: Clear persistent cache to force theme update
         if [ -d "/persist/var/lib/sddm" ]; then
@@ -163,9 +166,8 @@ let
         echo -e "\n''${C_HIGHLIGHT}  Package Changes:''${NC}"
         nvd diff "$OLD_GEN" "$NEW_GEN"
         
-        # 7. Record system state with a diff summary
-        # MANDATORY SECURITY: Remove secrets from the index BEFORE committing
-        git reset hosts/manx/variables.nix hosts/laptop/variables.nix secrets/secrets.yaml &> /dev/null || true
+        # Double-check secrets are removed from index before checking commit status
+        cleanup_secrets
         
         if git status --porcelain | grep -q '^[ MADRCU]'; then
             log "Recording system state to Git history..."
@@ -260,12 +262,12 @@ let
         # --- SECURITY SHIELD: Automated Cleanup Trap ---
         # This ensures that even if you Ctrl+C the script, your secrets are UNSTAGED immediately.
         cleanup_secrets() {
-            git reset hosts/manx/variables.nix hosts/laptop/variables.nix secrets/secrets.yaml &> /dev/null || true
+            git reset -- hosts/manx/variables.nix hosts/laptop/variables.nix secrets/secrets.yaml &> /dev/null || true
         }
         trap cleanup_secrets EXIT SIGINT SIGTERM
 
         # Stage changes so Nix Flakes can see the configuration
-        git add -f hosts/manx/variables.nix hosts/laptop/variables.nix secrets/secrets.yaml &> /dev/null || true
+        git add -f -- hosts/manx/variables.nix hosts/laptop/variables.nix secrets/secrets.yaml &> /dev/null || true
 
         CHECK_ERR=$(mktemp)
         if ! nix flake check . 2>"$CHECK_ERR"; then

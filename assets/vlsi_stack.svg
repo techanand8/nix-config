@@ -1,0 +1,300 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 280" width="100%" height="100%">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0002" />
+      <stop offset="50%" stop-color="#140004" />
+      <stop offset="100%" stop-color="#040001" />
+    </linearGradient>
+    
+    <!-- Glow Filters -->
+    <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter id="glow-green" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter id="glow-maroon" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3.5" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <style>
+    @keyframes bus-flow {
+      to { stroke-dashoffset: -30; }
+    }
+    @keyframes node-pulse {
+      0%, 100% { r: 3px; fill: #39ff14; filter: url(#glow-green); }
+      50% { r: 4.5px; fill: #00F5FF; filter: url(#glow-cyan); }
+    }
+    @keyframes card-shimmer {
+      0%, 100% { stroke: #ff1133; filter: url(#glow-maroon); opacity: 0.85; }
+      33% { stroke: #39ff14; filter: url(#glow-green); opacity: 1; }
+      66% { stroke: #00F5FF; filter: url(#glow-cyan); opacity: 0.95; }
+    }
+    @keyframes grid-breathe {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 0.45; }
+    }
+
+    /* Core Styles */
+    .grid {
+      stroke: #2e010a;
+      stroke-width: 0.5px;
+      animation: grid-breathe 6s ease-in-out infinite;
+    }
+    .pipeline-bus {
+      stroke: #4d0012;
+      stroke-width: 1.5px;
+      fill: none;
+    }
+    .pipeline-bus-active {
+      stroke: #39ff14;
+      stroke-width: 2px;
+      stroke-dasharray: 6, 9;
+      fill: none;
+      animation: bus-flow 1.5s linear infinite;
+    }
+    .pipeline-bus-cyan {
+      stroke: #00F5FF;
+      stroke-width: 2px;
+      stroke-dasharray: 8, 10;
+      fill: none;
+      animation: bus-flow 1.8s linear infinite;
+    }
+    .stage-card {
+      fill: #0d0104;
+      stroke: #ff1133;
+      stroke-width: 1px;
+      rx: 5px;
+    }
+    .stage-card-active {
+      fill: #140108;
+      stroke: #ff1133;
+      stroke-width: 1px;
+      rx: 5px;
+      animation: card-shimmer 6s ease-in-out infinite;
+    }
+    .stage-title {
+      font-family: 'Outfit', 'Inter', sans-serif;
+      font-weight: 800;
+      font-size: 10px;
+      fill: #ffffff;
+      letter-spacing: 1px;
+    }
+    .stage-subtitle {
+      font-family: 'Fira Code', monospace;
+      font-size: 8px;
+      fill: #00F5FF;
+      opacity: 0.85;
+      letter-spacing: 0.5px;
+    }
+    .tool-text {
+      font-family: 'Fira Code', monospace;
+      font-size: 9px;
+      fill: #ffffff;
+      opacity: 0.95;
+    }
+    .tool-text-highlight {
+      font-family: 'Fira Code', monospace;
+      font-size: 9px;
+      fill: #39ff14;
+      font-weight: bold;
+      filter: url(#glow-green);
+    }
+    .pipeline-node-1 {
+      animation: node-pulse 3s ease-in-out infinite;
+      animation-delay: 0s;
+    }
+    .pipeline-node-2 {
+      animation: node-pulse 3s ease-in-out infinite;
+      animation-delay: 0.5s;
+    }
+    .pipeline-node-3 {
+      animation: node-pulse 3s ease-in-out infinite;
+      animation-delay: 1s;
+    }
+    .pipeline-node-4 {
+      animation: node-pulse 3s ease-in-out infinite;
+      animation-delay: 1.5s;
+    }
+    .pipeline-node-5 {
+      animation: node-pulse 3s ease-in-out infinite;
+      animation-delay: 2s;
+    }
+    .telemetry {
+      font-family: 'Fira Code', monospace;
+      font-size: 7.5px;
+      fill: #ff1133;
+      opacity: 0.6;
+    }
+    .decor-text-green {
+      font-family: 'Fira Code', monospace, Courier;
+      font-size: 8px;
+      fill: #39ff14;
+      opacity: 0.8;
+    }
+  </style>
+
+  <!-- Background Base -->
+  <rect width="1080" height="280" fill="url(#bg-gradient)" rx="10" />
+
+  <!-- Silicon Grid Background -->
+  <g>
+    <path d="M 0,35 L 1080,35 M 0,70 L 1080,70 M 0,105 L 1080,105 M 0,140 L 1080,140 M 0,175 L 1080,175 M 0,210 L 1080,210 M 0,245 L 1080,245" class="grid" />
+    <path d="M 100,0 L 100,280 M 200,0 L 200,280 M 300,0 L 300,280 M 400,0 L 400,280 M 500,0 L 500,280 M 600,0 L 600,280 M 700,0 L 700,280 M 800,0 L 800,280 M 900,0 L 900,280 M 1000,0 L 1000,280" class="grid" />
+  </g>
+
+  <!-- Connecting Buses / Wires (Data Streams at y=130) -->
+  <g>
+    <!-- Background Inactive Bus -->
+    <line x1="0" y1="130" x2="1080" y2="130" class="pipeline-bus" />
+    
+    <!-- Active Flow Bus up to Stage 7 boundary -->
+    <path d="M 0,130 L 920,130" class="pipeline-bus-active" />
+    <path d="M 0,130 L 920,130" class="pipeline-bus-cyan" style="animation-delay: 0.75s;" />
+  </g>
+
+  <!-- STAGE 1: FRONTEND RTL DESIGN -->
+  <g transform="translate(20, 35)">
+    <rect width="125" height="195" class="stage-card" />
+    <text x="10" y="20" class="stage-title">01 / DESIGN</text>
+    <text x="10" y="32" class="stage-subtitle">RTL &amp; LINTING</text>
+    
+    <text x="10" y="55" class="tool-text-highlight">• Google Verible</text>
+    <text x="10" y="70" class="tool-text">• svlint / svls</text>
+    <text x="10" y="85" class="tool-text">• veryl language</text>
+    <text x="10" y="100" class="tool-text">• SV templates</text>
+    
+    <text x="75" y="183" class="telemetry">STG_01: OK</text>
+  </g>
+
+  <!-- STAGE 2: SIMULATION ENGINE -->
+  <g transform="translate(170, 35)">
+    <rect width="125" height="195" class="stage-card-active" />
+    <text x="10" y="20" class="stage-title">02 / SIMULATION</text>
+    <text x="10" y="32" class="stage-subtitle">RTL SIMULATORS</text>
+    
+    <text x="10" y="55" class="tool-text-highlight">• Verilator (C++)</text>
+    <text x="10" y="70" class="tool-text">• Icarus Verilog</text>
+    <text x="10" y="85" class="tool-text">• NVC &amp; GHDL</text>
+    <text x="10" y="100" class="tool-text-highlight">• Surfer wave</text>
+    <text x="10" y="115" class="tool-text">• GTKWave view</text>
+    
+    <text x="75" y="183" class="telemetry">SIM: ACTIVE</text>
+  </g>
+
+  <!-- STAGE 3: DESIGN VERIFICATION (DV) -->
+  <g transform="translate(320, 35)">
+    <rect width="125" height="195" class="stage-card" />
+    <text x="10" y="20" class="stage-title">03 / VERIFY</text>
+    <text x="10" y="32" class="stage-subtitle">UVM &amp; FORMAL</text>
+    
+    <text x="10" y="55" class="tool-text-highlight">• Cocotb (Python)</text>
+    <text x="10" y="70" class="tool-text">• Surelog (SV UVM)</text>
+    <text x="10" y="85" class="tool-text">• SymbiYosys (SBY)</text>
+    <text x="10" y="100" class="tool-text">• Yosys Formal</text>
+    <text x="10" y="115" class="tool-text">• SV Assertions</text>
+    
+    <text x="75" y="183" class="telemetry">DV_COV: 99.4%</text>
+  </g>
+
+  <!-- STAGE 4: RTL SYNTHESIS -->
+  <g transform="translate(470, 35)">
+    <rect width="125" height="195" class="stage-card-active" />
+    <text x="10" y="20" class="stage-title">04 / SYNTHESIS</text>
+    <text x="10" y="32" class="stage-subtitle">NETLIST ELAB</text>
+    
+    <text x="10" y="55" class="tool-text-highlight">• Yosys Open Syn</text>
+    <text x="10" y="70" class="tool-text">• yosys-ghdl syn</text>
+    <text x="10" y="85" class="tool-text">• OpenCL bindings</text>
+    <text x="10" y="100" class="tool-text">• netlistsvg draw</text>
+    
+    <text x="75" y="183" class="telemetry">SYNTH: LOAD</text>
+  </g>
+
+  <!-- STAGE 5: IC LAYOUT & DRC -->
+  <g transform="translate(620, 35)">
+    <rect width="125" height="195" class="stage-card" />
+    <text x="10" y="20" class="stage-title">05 / IC LAYOUT</text>
+    <text x="10" y="32" class="stage-subtitle">GDSII &amp; LVS DRC</text>
+    
+    <text x="10" y="55" class="tool-text-highlight">• Magic-VLSI draw</text>
+    <text x="10" y="70" class="tool-text">• KLayout viewer</text>
+    <text x="10" y="85" class="tool-text">• XSchem design</text>
+    <text x="10" y="100" class="tool-text">• Ngspice analog</text>
+    
+    <text x="75" y="183" class="telemetry">GDS: NOMINAL</text>
+  </g>
+
+  <!-- STAGE 6: AMD FPGA TARGET -->
+  <g transform="translate(770, 35)">
+    <rect width="125" height="195" class="stage-card-active" />
+    <text x="10" y="20" class="stage-title">06 / FPGA TARGET</text>
+    <text x="10" y="32" class="stage-subtitle">AMD FPGA ENGINE</text>
+    
+    <text x="10" y="55" class="tool-text-highlight">• AMD Vivado</text>
+    <text x="10" y="70" class="tool-text">• AMD Vitis Platform</text>
+    <text x="10" y="85" class="tool-text">• JTAG Hardware</text>
+    <text x="10" y="100" class="tool-text">• Udev mapping</text>
+    
+    <text x="75" y="183" class="telemetry">JTAG: NOMINAL</text>
+  </g>
+
+  <!-- STAGE 7: EXPANDABLE FUTURE EXTENSIONS -->
+  <g transform="translate(920, 35)" style="opacity: 0.75;">
+    <rect width="125" height="195" class="stage-card" style="stroke-dasharray: 4,5; stroke: #00F5FF; fill: #080002; filter: url(#glow-cyan);" />
+    <text x="10" y="20" class="stage-title" style="fill: #00F5FF;">07 / EXPANDABLE</text>
+    <text x="10" y="32" class="stage-subtitle" style="fill: #ff1133;">CUSTOM MODULES</text>
+    
+    <text x="10" y="55" class="tool-text" style="fill: #00F5FF; font-weight: bold;">• OpenLane ASIC</text>
+    <text x="10" y="70" class="tool-text" style="color: #ffffff;">• Sky130 PDKs</text>
+    <text x="10" y="85" class="tool-text" style="color: #ffffff;">• Microsemi Tool</text>
+    
+    <!-- FUTURISTIC HIGHLIGHT BOX -->
+    <rect x="8" y="112" width="109" height="30" rx="3" fill="#140005" stroke="#ff1133" stroke-width="0.75" stroke-dasharray="2,2" />
+    <text x="62" y="130" text-anchor="middle" class="decor-text-green" style="font-size: 8px; font-weight: bold;">[ ADD_MODULES ]</text>
+    
+    <text x="75" y="183" class="telemetry" style="fill: #00F5FF;">EXT: READY</text>
+  </g>
+
+  <!-- Connection Nodes / Vias on Card Borders at y=130 with Organic Staggered Pulses -->
+  <g>
+    <!-- Inputs (Left side) -->
+    <circle cx="20" cy="130" r="3" class="pipeline-node-1" />
+    <circle cx="170" cy="130" r="3" class="pipeline-node-2" />
+    <circle cx="320" cy="130" r="3" class="pipeline-node-3" />
+    <circle cx="470" cy="130" r="3" class="pipeline-node-4" />
+    <circle cx="620" cy="130" r="3" class="pipeline-node-5" />
+    <circle cx="770" cy="130" r="3" class="pipeline-node-2" />
+    <circle cx="920" cy="130" r="3" class="pipeline-node-4" />
+    
+    <!-- Outputs (Right side) -->
+    <circle cx="145" cy="130" r="3" class="pipeline-node-2" />
+    <circle cx="295" cy="130" r="3" class="pipeline-node-3" />
+    <circle cx="445" cy="130" r="3" class="pipeline-node-4" />
+    <circle cx="595" cy="130" r="3" class="pipeline-node-5" />
+    <circle cx="745" cy="130" r="3" class="pipeline-node-1" />
+    <circle cx="895" cy="130" r="3" class="pipeline-node-3" />
+    <circle cx="1045" cy="130" r="3" class="pipeline-node-5" />
+  </g>
+
+  <!-- Bottom Telemetry Footer -->
+  <g transform="translate(20, 260)">
+    <text x="0" y="0" class="telemetry" style="font-size: 8px;">INTEGRATION: FULLY_DECLARATIVE</text>
+    <text x="520" y="0" class="telemetry" style="font-size: 8px;" text-anchor="middle">MANX INTEGRATED SILICON VLSI FLOW PIPELINE v1.2</text>
+    <text x="1040" y="0" class="telemetry" style="font-size: 8px;" text-anchor="end">STATUS: ACTIVE</text>
+  </g>
+</svg>
