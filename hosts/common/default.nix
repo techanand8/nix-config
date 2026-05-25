@@ -24,6 +24,7 @@
     ../../modules/system/apps.nix
     ../../modules/system/vpn.nix
     ../../modules/system/ai.nix
+    ../../modules/system/power.nix
   ]
   ++ (lib.optionals (vars ? enableImpermanence && vars.enableImpermanence) [
     ../../modules/system/stateless.nix

@@ -11,6 +11,7 @@ let
     CONFIG_DIR="$HOME/nix-config"
     export FLAKE="$CONFIG_DIR"
     export NH_FLAKE="$CONFIG_DIR"
+    export NIXPKGS_ALLOW_UNFREE=1
     HOSTNAME="MANX"
     HOST_DIR=$(echo "$HOSTNAME" | tr '[:upper:]' '[:lower:]')
     EDITOR="nvim"
@@ -70,6 +71,13 @@ let
         echo -e "  ''${C_PRIMARY}󰌢  MAINTENANCE & SECURITY''${NC}"
         echo -e "    ''${C_WHITE}clean''${NC}     ''${C_MUTED}❯''${NC} Execute deep system maintenance protocols"
         echo -e "    ''${C_WHITE}check''${NC}     ''${C_MUTED}❯''${NC} Validate configuration health and integrity"
+        echo -e ""
+        echo -e "  ''${C_PRIMARY}󰏆  PRODUCTIVITY & DOCS''${NC}"
+        echo -e "    ''${C_WHITE}word''${NC}      ''${C_MUTED}❯''${NC} Launch the professional OnlyOffice suite"
+        echo -e "    ''${C_WHITE}writer''${NC}    ''${C_MUTED}❯''${NC} Digital Technical Documentation (LibreOffice)"
+        echo -e "    ''${C_WHITE}calc''${NC}      ''${C_MUTED}❯''${NC} Engineering Analysis & Spreadsheets"
+        echo -e "    ''${C_WHITE}impress''${NC}   ''${C_MUTED}❯''${NC} Silicon Design Technical Presentations"
+        echo -e "    ''${C_WHITE}draw''${NC}      ''${C_MUTED}❯''${NC} Schematic & Logic Flow Diagrams"
         echo -e ""
         echo -e "  ''${C_PRIMARY}  DEVELOPMENT UTILITIES''${NC}"
         echo -e "    ''${C_WHITE}edit''${NC}      ''${C_MUTED}❯''${NC} Interactive fuzzy-find or direct file edit"
@@ -229,6 +237,36 @@ let
         success "System maintenance complete. Storage optimized."
         ;;
 
+      word)
+        log "Launching Professional Documentation Suite (OnlyOffice)..."
+        onlyoffice-desktopeditors &> /dev/null &
+        disown
+        ;;
+
+      writer)
+        log "Initializing Technical Documentation Engine (LibreOffice Writer)..."
+        lowriter &> /dev/null &
+        disown
+        ;;
+
+      calc)
+        log "Opening Engineering Analysis Environment (LibreOffice Calc)..."
+        localc &> /dev/null &
+        disown
+        ;;
+
+      impress)
+        log "Launching Silicon Presentation Suite (LibreOffice Impress)..."
+        loimpress &> /dev/null &
+        disown
+        ;;
+
+      draw)
+        log "Initializing Schematic & Flow Diagram Engine (LibreOffice Draw)..."
+        lodraw &> /dev/null &
+        disown
+        ;;
+
       edit)
         # 1. Direct Edit (if filename provided)
         if [ ! -z "$2" ]; then
@@ -320,13 +358,20 @@ let
             info "Llama-3.1 not found locally. Downloading model (visible progress)..."
             ollama pull llama3.1
         fi
+
+        # AUTOMATED SETUP: Ensure OpenClaw configuration exists
+        if [ ! -d "$HOME/.openclaw" ]; then
+            info "First-run setup: Initializing OpenClaw workspace..."
+            openclaw setup &> /dev/null || true
+        fi
+
         info "OpenClaw gateway starting. Web interface will be active at: http://localhost:8082"
         info "Press Ctrl+C to terminate the agent gateway server."
         # Set environment for local Ollama compatibility
         export OPENAI_API_BASE="http://127.0.0.1:11434/v1"
         export OPENAI_API_KEY="ollama"
-        # Launch using the correct subcommand and port
-        openclaw gateway run --port 8082
+        # Launch using the correct subcommand and port with safety flags
+        openclaw gateway run --port 8082 --allow-unconfigured
         ;;
 
       history)
@@ -457,6 +502,21 @@ let
     .TP
     .B clean
     A three-layer deep maintenance protocol for storage optimization.
+    .TP
+    .B word
+    Launches the professional OnlyOffice documentation suite.
+    .TP
+    .B writer
+    Technical word processor for hardware engineering documentation.
+    .TP
+    .B calc
+    Advanced engineering analysis and spreadsheets.
+    .TP
+    .B impress
+    Design presentation and timing diagram visualization.
+    .TP
+    .B draw
+    Vector-based logic flows and schematic diagrams.
     .TP
     .B check
     Validates config integrity using nix flake check.

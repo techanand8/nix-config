@@ -243,6 +243,7 @@
       hl.bind("SUPER + ALT + Down", hl.dsp.exec_cmd("resizeactive 0 50"))
       hl.bind("SUPER + ALT + Up", hl.dsp.exec_cmd("resizeactive 0 -50"))
       hl.bind("Print", hl.dsp.exec_cmd("ambxst run screenshot"))
+      hl.bind("SUPER + L", hl.dsp.exec_cmd("loginctl lock-session"))
     '';
   };
 
@@ -302,6 +303,9 @@
       ];
     };
   };
+
+  # Ensure hypridle starts with the graphical session
+  systemd.user.services.hypridle.Install.WantedBy = [ "graphical-session.target" ];
 
   # Custom Silicon Security Screensaver (Elite Omarchy style)
   home.file.".local/bin/manx-screensaver" = {

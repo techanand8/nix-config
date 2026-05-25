@@ -15,7 +15,6 @@
     algorithm = "zstd";
     memoryPercent = 50; # Use up to 50% of RAM as compressed swap
   };
-  services.power-profiles-daemon.enable = true; # Optimized power management for workstations
   services.irqbalance.enable = true; # Distribute hardware interrupts across cores
   services.fwupd.enable = true; # Enable firmware updates (BIOS, SSD, etc.)
 

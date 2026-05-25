@@ -22,7 +22,8 @@
     gnome-software
     kdePackages.discover
 
-    # --- Productivity & Education ---
+    # --- Professional Productivity & Documentation ---
+    onlyoffice-desktopeditors
     libreoffice-fresh
     xournalpp
     texlive.combined.scheme-full

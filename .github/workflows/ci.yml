@@ -8,20 +8,26 @@ on:
 
 jobs:
   check:
-    name: Flake Checks & Formatting
+    name: Silicon-Grade Configuration Audit
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      # Allow evaluation of proprietary EDA and hardware drivers
+      NIXPKGS_ALLOW_UNFREE: "1"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Nix
-        uses: determinate-systems/nix-installer-action@v12
+      - name: Install Nix (Determinate)
+        uses: DeterminateSystems/determinate-nix-action@v3
 
-      - name: Run Magic Nix Cache
-        uses: determinate-systems/magic-nix-cache-action@v7
+      - name: Initialize Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v2
 
-      - name: Check formatting
+      - name: 01 / Verify Code Style (RFC-166)
         run: nix fmt -- --check
 
-      - name: Run flake checks
+      - name: 02 / Audit Flake Integrity
         run: nix flake check -v --show-trace

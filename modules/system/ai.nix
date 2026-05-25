@@ -6,6 +6,14 @@
     enable = true;
     # Use the ROCm-enabled package for AMD GPU acceleration
     package = pkgs.ollama-rocm;
+
+    # --- AMD LAPTOP STABILITY FIX ---
+    # Many mobile AMD GPUs (like 680M/780M) need this override to prevent
+    # the display driver from crashing/blinking when running ROCm.
+    environmentVariables = {
+      HSA_OVERRIDE_GFX_VERSION = "10.3.0"; # Standard stable override for most modern AMD APUs
+    };
+
     # Automatically pull high-intelligence models on startup
     # Curated for stability & professional engineering:
     # 1. deepseek-coder:6.7b  - High-speed engineering model (VRAM Optimized)
@@ -38,6 +46,8 @@
   environment.systemPackages = with pkgs; [
     # Autonomous CLI Agent (Best for coding & file editing)
     aider-chat-full
+    # Ctags required for Aider's Repo-map functionality
+    universal-ctags
     # OpenClaw (General purpose agent for tasks like emails/planning)
     openclaw
     # Performance monitoring for AMD GPUs (Check your VRAM usage here)

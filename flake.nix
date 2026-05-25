@@ -1,5 +1,5 @@
 {
-  description = "My NixOS Configuration";
+  description = "MANX OS: Declarative silicon-grade engineering environment for hardware description and VLSI design";
 
   inputs = {
     # Using unstable for the latest VLSI and AI/ML tools
