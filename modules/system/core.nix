@@ -112,6 +112,7 @@
     # --- SECURE DECRYPT / ENCRYPT UTILS (Secrets Management) ---
     sops # Encryption/Decryption tool
     age # File encryption tool (standard for sops-nix keys)
+    attic-client # Private binary cache client
 
     # --- SECURE VPN & CORPORATE NETWORK CONNECTIVITY ---
     openconnect # Cisco AnyConnect, GlobalProtect, Fortinet CLI client

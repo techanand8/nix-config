@@ -4,10 +4,14 @@
   # --- OLLAMA (Local LLM Inference Engine) ---
   services.ollama = {
     enable = true;
-    # Accelerate with AMD GPU (ROCm)
-    acceleration = "rocm";
+    # Use the ROCm-enabled package for AMD GPU acceleration
+    package = pkgs.ollama-rocm;
     # Automatically pull some common models on startup
-    loadModels = [ "llama3.1" "deepseek-coder-v2" "mistral" ];
+    loadModels = [
+      "llama3.1"
+      "deepseek-coder-v2"
+      "mistral"
+    ];
   };
 
   # --- OPEN-WEBUI (Professional Frontend for Ollama) ---
@@ -31,8 +35,6 @@
     # Performance monitoring for AMD GPUs (Check your VRAM usage here)
     radeontop
     rocmPackages.rocm-smi
-    # Include local-ai package directly if you still want to run it manually
-    local-ai
   ];
 
   # --- USER-LEVEL DOCS & TRUSTED LINKS ---

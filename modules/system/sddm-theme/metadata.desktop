@@ -1,9 +1,9 @@
 [SddmGreeterTheme]
 Name=manx-vlsi
 Description=VLSI Workstation - High-Fidelity Maroon & Neon Green theme
-Author=Antigravity
+Author=Mayank Anand
 Type=sddm-theme
-Version=2.0
+Version=2.1
 MainScript=Main.qml
 Theme-API=2.0
 QtVersion=6

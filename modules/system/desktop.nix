@@ -40,7 +40,7 @@ in
     wayland.enable = true;
     package = lib.mkForce pkgs.kdePackages.sddm;
     # A highly customized, high-tech Qt6 SDDM theme (Neon Green & Maroon Glow)
-    theme = "manx-vlsi";
+    theme = "${manx-vlsi-theme}/share/sddm/themes/manx-vlsi";
     extraPackages = [
       manx-vlsi-theme
       sddm-faces

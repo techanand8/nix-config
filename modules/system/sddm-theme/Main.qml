@@ -1575,7 +1575,7 @@ Rectangle {
                                 property font tinyFont: Qt.font({ family: "JetBrainsMono Nerd Font", pixelSize: Math.max(8, Math.round(9.5 * uiScale)), bold: true })
 
                                 Text { text: "Engine"; color: textMuted; font: parent.tinyFont }
-                                Text { text: "TPU-v2a [CO-PROC]"; color: textPrimary; font: parent.tinyFont }
+                                Text { text: "NIX-VLSI WORKSTATION ENGINE"; color: textPrimary; font: parent.tinyFont }
 
                                 Text { text: "Load"; color: textMuted; font: parent.tinyFont }
                                 Text {

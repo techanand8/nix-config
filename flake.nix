@@ -42,6 +42,9 @@
 
     # Statelessness / Impermanence
     impermanence.url = "github:nix-community/impermanence";
+
+    # Attic - Private Nix Binary Cache
+    attic.url = "github:zhaofengli/attic";
   };
 
   outputs =
@@ -69,7 +72,10 @@
             {
               nixpkgs.hostPlatform = platform;
               nixpkgs.config.allowUnfree = true;
-              nixpkgs.overlays = [ inputs.nix-cachyos-kernel.overlays.pinned ];
+              nixpkgs.overlays = [ 
+                inputs.nix-cachyos-kernel.overlays.pinned 
+                inputs.attic.overlays.default
+              ];
             }
             ./hosts/${hostname}/configuration.nix
             inputs.ambxst.nixosModules.default
@@ -103,6 +109,7 @@
             inputs.nixos-hardware.nixosModules.common-cpu-amd
             inputs.nixos-hardware.nixosModules.common-gpu-amd
             inputs.nixos-hardware.nixosModules.common-pc-ssd
+            inputs.attic.nixosModules.atticd
           ];
         };
 
@@ -115,6 +122,7 @@
             # Add laptop-specific hardware modules here (e.g. battery, touch-pad)
             inputs.nixos-hardware.nixosModules.common-pc-laptop
             inputs.nixos-hardware.nixosModules.common-pc-laptop-ssd
+            inputs.attic.nixosModules.atticd
           ];
         };
       };

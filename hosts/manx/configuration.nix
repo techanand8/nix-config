@@ -26,6 +26,7 @@
     ../../modules/system/stateless.nix
     ../../modules/system/vpn.nix
     ../../modules/system/ai.nix
+    ../../modules/system/attic-server.nix
   ];
 
   # --- HOST IDENTIFICATION ---
