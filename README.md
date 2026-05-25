@@ -28,26 +28,38 @@
 * **Optional Statelessness (Impermanence)**: Models the root directory (`/`) as a temporary ramdisk wiped on every boot, mapping persistent configurations, private certificates, ssh keys, and the `/home` directories directly to a `/persist` Btrfs subvolume.
 * **Consolidated Control Plane**: A custom management utility, `manx`, exposes a unified, color-coded interactive command suite for rebuilds, system package diffing, garbage collection, and binary cache pushing.
 
----
-
 ## Authentication Interface (VLSI Workstation Console)
 
 The display manager (SDDM) is configured as a VLSI CAD workstation terminal interface, integrating logic gate schematics, timing telemetry, and Verilog-style system warnings.
 
-<table>
+<div align="center">
+<table style="border-collapse: collapse; border: none; width: 100%;">
   <tr>
-    <td width="50%" align="center" style="background-color: #0d0104; border: 1px solid #39ff14; border-radius: 6px; padding: 10px;">
-      <img src="https://github.com/user-attachments/assets/588820c7-05c0-4416-8600-0e960309b439" alt="MANX SDDM — VLSI Logic Synchronization" width="100%" />
+    <td width="50%" style="padding: 10px; border: none; background-color: #0d0104; border-radius: 8px;">
+      <img src="assets/screenshots/sddm-logic.png" alt="MANX SDDM — VLSI Logic Synchronization" width="100%" />
       <br/>
       <sub style="color: #39ff14;"><b>Logic Signal Synchronization</b> — Oscillating waveforms and interactive gates (AND, NAND, XOR) synced with signal flow.</sub>
     </td>
-    <td width="50%" align="center" style="background-color: #0d0104; border: 1px solid #ff1133; border-radius: 6px; padding: 10px;">
-      <img src="https://github.com/user-attachments/assets/8636e053-911e-4505-82b5-3164998064cb" alt="MANX SDDM — Active Authentication" width="100%" />
+    <td width="50%" style="padding: 10px; border: none; background-color: #0d0104; border-radius: 8px;">
+      <img src="assets/screenshots/sddm-auth-active.png" alt="MANX SDDM — Active Authentication" width="100%" />
       <br/>
       <sub style="color: #ff1133;"><b>Active Cryptographic State</b> — Interface dynamically shifts from 'Idle Green' to 'Active Blue/Gold' during authentication.</sub>
     </td>
   </tr>
+  <tr>
+    <td width="50%" style="padding: 10px; border: none; background-color: #0d0104; border-radius: 8px;">
+      <img src="assets/screenshots/sddm-auth-final.png" alt="MANX SDDM — Final Authentication" width="100%" />
+      <br/>
+      <sub style="color: #00F5FF;"><b>Final Handshake</b> — The system validates logic timing before handing over to the Hyprland desktop session.</sub>
+    </td>
+    <td width="50%" style="padding: 10px; border: none; background-color: #0d0104; border-radius: 8px;">
+      <img src="assets/screenshots/sddm-console-view.png" alt="MANX SDDM — Console View" width="100%" />
+      <br/>
+      <sub style="color: #FFD700;"><b>Workstation Console View</b> — A terminal-inspired interface with Verilog-style system state and real-time design telemetry.</sub>
+    </td>
+  </tr>
 </table>
+</div>
 
 <br/>
 
@@ -58,8 +70,6 @@ The display manager (SDDM) is configured as a VLSI CAD workstation terminal inte
 <sub><b>Full Silicon Simulation Walkthrough</b> — Demonstrates the zero-lag neon particle engine, sliding virtual keyboard, and synchronized timing diagrams.</sub>
 
 </div>
-
----
 
 ## Integrated Silicon Design Flow & Toolchain
 
