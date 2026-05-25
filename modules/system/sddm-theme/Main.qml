@@ -3236,6 +3236,12 @@ Rectangle {
         enabled: visible
         focus: false
 
+        onVisibleChanged: {
+            if (visible) {
+                passwordField.forceActiveFocus()
+            }
+        }
+
         y: root.virtualKeyboardActive ? (parent.height - height) : parent.height
 
         Behavior on y {
