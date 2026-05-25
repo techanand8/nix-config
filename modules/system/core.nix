@@ -65,14 +65,21 @@
       "https://nix-community.cachix.org"
       "https://cache.garnix.io"
       "https://attic.xuyh0120.win/lantian"
-    ];
+    ]
+    ++ (lib.optionals (vars ? cachixName && vars.cachixName != "") [
+      "https://${vars.cachixName}.cachix.org"
+    ]);
+
     trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
       "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
-    ];
+    ]
+    ++ (lib.optionals (vars ? cachixPublicKey && vars.cachixPublicKey != "") [
+      "${vars.cachixPublicKey}"
+    ]);
   };
 
   # --- DECLARATIVE CONSISTENCY ---
@@ -112,7 +119,6 @@
     # --- SECURE DECRYPT / ENCRYPT UTILS (Secrets Management) ---
     sops # Encryption/Decryption tool
     age # File encryption tool (standard for sops-nix keys)
-    attic-client # Private binary cache client
 
     # --- SECURE VPN & CORPORATE NETWORK CONNECTIVITY ---
     openconnect # Cisco AnyConnect, GlobalProtect, Fortinet CLI client

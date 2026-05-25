@@ -269,6 +269,7 @@
     enable = true;
     settings = {
       general = {
+        # Secure direct lock with cool effects
         lock_cmd = "pkill -f 'alacritty --class manx-screensaver' || true; ambxst lock";
         before_sleep_cmd = "loginctl lock-session";
         after_sleep_cmd = "ambxst screen on";
@@ -276,20 +277,24 @@
 
       listener = [
         {
+          # 1. Dim Brightness (2.5 mins)
           timeout = 150;
           on-timeout = "ambxst brightness 10 -s";
           on-resume = "ambxst brightness -r";
         }
         {
+          # 2. Launch Visual Screensaver (4 mins)
           timeout = 240;
-          on-timeout = "${config.home.homeDirectory}/.local/bin/manx-screensaver";
+          on-timeout = "pkill -f 'alacritty --class manx-screensaver' || true; ${config.home.homeDirectory}/.local/bin/manx-screensaver";
           on-resume = "pkill -f 'alacritty --class manx-screensaver' || true";
         }
         {
+          # 3. Secure Lock (5 mins)
           timeout = 300;
           on-timeout = "loginctl lock-session";
         }
         {
+          # 4. Power Save / Screen Off (5.5 mins)
           timeout = 330;
           on-timeout = "ambxst screen off";
           on-resume = "ambxst screen on";

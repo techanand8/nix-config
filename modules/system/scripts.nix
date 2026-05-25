@@ -75,6 +75,8 @@ let
         echo -e "    ''${C_WHITE}edit''${NC}      ''${C_MUTED}❯''${NC} Interactive fuzzy-find or direct file edit"
         echo -e "    ''${C_WHITE}search''${NC}    ''${C_MUTED}❯''${NC} Query the Nixpkgs software registry"
         echo -e "    ''${C_WHITE}shell''${NC}     ''${C_MUTED}❯''${NC} Initialize isolated package environments"
+        echo -e "    ''${C_WHITE}aider''${NC}     ''${C_MUTED}❯''${NC} High-Fidelity Engineering Agent (DeepSeek-16B)"
+        echo -e "    ''${C_WHITE}claw''${NC}      ''${C_MUTED}❯''${NC} Intelligent General Agent (Llama-3.1)"
         echo -e "    ''${C_WHITE}vivado''${NC}    ''${C_MUTED}❯''${NC} Enter the AMD Vivado design environment"
         echo -e ""
         echo -e "  ''${C_PRIMARY}󰪢  BRANDING & AESTHETICS''${NC}"
@@ -113,7 +115,8 @@ let
         # 1. Enforce code style standards (RFC-166) BEFORE staging
         nix fmt
         
-        # 2. Stage changes to ensure Nix Flakes see all current work
+        # 2. Stage changes so Nix Flakes can see the configuration
+        # We stage everything here to ensure the build succeeds.
         git add . &> /dev/null || true
         
         # 3. Validate configuration integrity before applying
@@ -122,6 +125,8 @@ let
         if ! nix flake check . 2>"$CHECK_ERR"; then
             grep -v -E "incompatible systems|all-systems" "$CHECK_ERR" >&2 || true
             rm -f "$CHECK_ERR"
+            # Unstage on failure for safety
+            git reset hosts/manx/variables.nix hosts/laptop/variables.nix secrets/secrets.yaml &> /dev/null || true
             error "Configuration audit failed. Please resolve errors before rebuilding."
         else
             grep -v -E "incompatible systems|all-systems" "$CHECK_ERR" >&2 || true
@@ -133,18 +138,31 @@ let
         
         # 5. Apply system configuration via NH
         log "Applying system updates..."
-        nh os switch . --hostname $HOSTNAME -- --accept-flake-config || error "System rebuild failed."
+        nh os switch . --hostname $HOSTNAME -- --accept-flake-config || {
+            # Unstage on failure for safety
+            git reset hosts/manx/variables.nix hosts/laptop/variables.nix secrets/secrets.yaml &> /dev/null || true
+            error "System rebuild failed."
+        }
         
-        # 6. Generate package change report
+        # 6. SDDM Maintenance: Clear persistent cache to force theme update
+        if [ -d "/persist/var/lib/sddm" ]; then
+            log "Clearing SDDM persistent cache for theme synchronization..."
+            sudo rm -rf /persist/var/lib/sddm/* &> /dev/null || true
+        fi
+        
+        # 7. Generate package change report
         NEW_GEN=$(readlink -f /nix/var/nix/profiles/system)
         echo -e "\n''${C_HIGHLIGHT}  Package Changes:''${NC}"
         nvd diff "$OLD_GEN" "$NEW_GEN"
         
         # 7. Record system state with a diff summary
+        # MANDATORY SECURITY: Remove secrets from the index BEFORE committing
+        git reset hosts/manx/variables.nix hosts/laptop/variables.nix secrets/secrets.yaml &> /dev/null || true
+        
         if git status --porcelain | grep -q '^[ MADRCU]'; then
             log "Recording system state to Git history..."
             echo -e "\n''${C_MUTED}Change Summary:''${NC}"
-            git diff --stat HEAD
+            git diff --stat --staged
             git commit -m "System Update: $(date '+%Y-%m-%d %H:%M')" &> /dev/null || true
         fi
 
@@ -155,6 +173,16 @@ let
                 success "GitHub synchronization complete. All changes are backed up!"
             else
                 info "GitHub sync skipped (check internet or remote settings)."
+            fi
+        fi
+
+        # 9. Push to binary cache (Cachix - Modern Cloud Backup)
+        if [ ! -z "${vars.cachixName}" ]; then
+            log "Pushing system build to Cachix (${vars.cachixName})..."
+            if cachix push ${vars.cachixName} "$NEW_GEN" &> /dev/null; then
+                success "Cachix synchronization successful!"
+            else
+                info "Cachix push failed (Check if you are logged in: 'cachix authtoken <token>')"
             fi
         fi
 
@@ -236,6 +264,26 @@ let
         shift
         log "Entering shell for: $@"
         nix-shell -p "$@"
+        ;;
+
+      aider)
+        log "Launching Engineering Agent (DeepSeek-Coder-V2)..."
+        # Ensure model is available
+        ollama pull deepseek-coder-v2 &> /dev/null || true
+        export OLLAMA_API_BASE="http://127.0.0.1:11434"
+        aider --model ollama/deepseek-coder-v2 "$@"
+        ;;
+
+      claw)
+        log "Initializing OpenClaw General Agent (Llama-3.1)..."
+        # Ensure model is available
+        ollama pull llama3.1 &> /dev/null || true
+        info "OpenClaw is active at: http://localhost:8082"
+        # Open in browser if possible
+        if command -v xdg-open &> /dev/null; then
+            xdg-open "http://localhost:8082" &> /dev/null || true
+        fi
+        openclaw --port 8082 --ollama-url "http://127.0.0.1:11434" --default-model "llama3.1"
         ;;
 
       history)

@@ -261,6 +261,24 @@ graph TD
 
 ---
 
+### 🛠️ Multi-Device Build Acceleration (Cachix)
+
+To enable ultra-fast builds on your LAPTOP by downloading binaries from the cloud (Cachix):
+
+1.  **Create your Cache**: Sign up at [cachix.org](https://cachix.org) and create a new cache (e.g., `manx-workstation`).
+2.  **Authenticate**: Run `cachix authtoken <your-token>` on your workstation.
+3.  **Configure**: Update your `hosts/<hostname>/variables.nix` (which are git-ignored) with your cache name and public key:
+    ```nix
+    {
+      # ... existing vars
+      cachixName = "manx-workstation"; 
+      cachixPublicKey = "manx-workstation.cachix.org-1:xyz..."; 
+    }
+    ```
+4.  **Automatic Backup**: Every time you run `manx rebuild`, your workstation will now automatically push the new build to Cachix. Your laptop will pull it instantly!
+
+---
+
 <div align="center">
   <sub>Designed for precision engineering by <b>Mayank Anand</b></sub><br/>
   <sub>Fully Declarative Architecture • Mathematically Reproducible</sub>

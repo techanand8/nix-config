@@ -29,8 +29,9 @@
   # This provides the necessary setuid wrappers for hardware-accelerated recording
   programs.gpu-screen-recorder.enable = true;
 
-  # Required for hyprlock to work securely on NixOS
+  # Required for hyprlock and ambxst to work securely on NixOS
   security.pam.services.hyprlock = { };
+  security.pam.services.ambxst = { };
 
   # Ambxst system-level requirements & functional utilities
   environment.systemPackages = with pkgs; [
