@@ -30,5 +30,6 @@
     kiro-fhs
     cursor-cli
     code-cursor-fhs
+    warp-terminal
   ];
 }
