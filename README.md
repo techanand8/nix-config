@@ -60,7 +60,6 @@ The display manager (SDDM) is configured as a VLSI CAD workstation terminal inte
   </tr>
 </table>
 </div>
-
 <br/>
 
 <div align="center" style="border: 1px solid #4d0012; border-radius: 6px; padding: 12px; background-color: #060002;">
@@ -70,6 +69,18 @@ The display manager (SDDM) is configured as a VLSI CAD workstation terminal inte
 <sub><b>Full Silicon Simulation Walkthrough</b> — Demonstrates the zero-lag neon particle engine, sliding virtual keyboard, and synchronized timing diagrams.</sub>
 
 </div>
+
+<br/>
+
+<div align="center" style="border: 1px solid #39ff14; border-radius: 6px; padding: 12px; background-color: #010602;">
+
+<video src="https://github.com/user-attachments/assets/8d7dd3b6-e967-4537-b5f3-a6325023bcac" width="100%" style="border-radius: 4px; box-shadow: 0 0 15px rgba(57, 255, 20, 0.2);" controls autoplay muted loop />
+
+<sub><b>Silicon Security Screensaver</b> — Elite Omarchy-style branding utilizing high-fidelity Terminal Text Effects (TTE) and live workstation telemetry.</sub>
+
+</div>
+
+---
 
 ## Integrated Silicon Design Flow & Toolchain
 
