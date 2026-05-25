@@ -31,5 +31,6 @@
     cursor-cli
     code-cursor-fhs
     warp-terminal
+    windsurf
   ];
 }
