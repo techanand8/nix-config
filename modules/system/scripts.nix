@@ -12,8 +12,16 @@ let
     export FLAKE="$CONFIG_DIR"
     export NH_FLAKE="$CONFIG_DIR"
     export NIXPKGS_ALLOW_UNFREE=1
-    HOSTNAME="MANX"
+
+    # Smart Host Detection: Get system hostname and convert to UPPERCASE for Flake matching
+    # (e.g., 'manx' becomes 'MANX', 'laptop' becomes 'LAPTOP')
+    RAW_HOSTNAME=$(hostname)
+    HOSTNAME=$(echo "$RAW_HOSTNAME" | tr '[:lower:]' '[:upper:]')
     HOST_DIR=$(echo "$HOSTNAME" | tr '[:upper:]' '[:lower:]')
+
+    # UI Branding (Always MANX for the workstation family)
+    BRAND_NAME="MANX"
+
     EDITOR="nvim"
     VIVADO_VERSION="${vars.vivadoVersion}"
 
@@ -54,7 +62,7 @@ let
         uptime_str+="''$mins""m"
 
         echo -e ""
-        echo -e "  ''${C_PRIMARY}󱄅''${NC}  ''${C_WHITE}M A N X   W O R K S T A T I O N''${NC}  ''${C_MUTED}│''${NC}  ''${C_SECONDARY}''${NC}  ''${C_GOLD}NIXOS SYSTEM''${NC}"
+        echo -e "  ''${C_PRIMARY}󱄅''${NC}  ''${C_WHITE}''$BRAND_NAME   W O R K S T A T I O N''${NC}  ''${C_MUTED}│''${NC}  ''${C_SECONDARY}''${NC}  ''${C_GOLD}NIXOS SYSTEM''${NC}"
         echo -e "  ''${C_MUTED}──────────────────────────────────────────────────────────────────────''${NC}"
         echo -e "  ''${C_HIGHLIGHT}  Host:''${NC} ''${C_WHITE}''$HOSTNAME''${NC}         ''${C_HIGHLIGHT}󰓅  Uptime:''${NC} ''${C_WHITE}''$uptime_str''${NC}"
         echo -e "  ''${C_HIGHLIGHT}  Kernel:''${NC} ''${C_WHITE}''$(uname -r)''${NC}       ''${C_HIGHLIGHT}  Status:''${NC} ''${C_SUCCESS}Online''${NC}"
@@ -344,7 +352,10 @@ let
             ollama pull deepseek-coder:6.7b
         fi
         export OLLAMA_API_BASE="http://127.0.0.1:11434"
-        aider --model ollama/deepseek-coder:6.7b "$@"
+        # Professional Aider Flags: 
+        # --no-browser: Keeps the focus in the terminal
+        # --watch-files: Automatically detects changes you make manually
+        aider --model ollama/deepseek-coder:6.7b --no-browser --watch-files "$@"
         ;;
 
       claw)
