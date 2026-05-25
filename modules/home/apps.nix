@@ -32,5 +32,7 @@
     code-cursor-fhs
     warp-terminal
     windsurf
+    codex
+    codex-acp
   ];
 }

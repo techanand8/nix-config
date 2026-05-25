@@ -50,9 +50,12 @@ in
       pkgs.kdePackages.qtdeclarative
       pkgs.kdePackages.qtwayland
       pkgs.kdePackages.qtvirtualkeyboard
+      pkgs.kdePackages.plasma-workspace
+      pkgs.kdePackages.plasma-keyboard
     ];
     settings = {
       General = {
+        GreeterEnvironment = "QT_WAYLAND_SHELL_INTEGRATION=layer-shell,KWIN_IM_SHOW_ALWAYS=1";
         InputMethod = "qtvirtualkeyboard";
       };
     };
