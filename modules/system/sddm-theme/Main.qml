@@ -2532,6 +2532,60 @@ Rectangle {
                         }
                     }
 
+                    // --- VLSI VIRTUAL KEYBOARD TOGGLE (NEW) ---
+                    Item {
+                        id: vkbToggle
+                        anchors.right: (typeof eyeButton !== "undefined" && eyeButton.visible) ? eyeButton.left : parent.right
+                        anchors.rightMargin: (typeof eyeButton !== "undefined" && eyeButton.visible) ? 8 : 16
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 28
+                        height: 28
+                        visible: (typeof sddm !== "undefined" && sddm !== null)
+                        
+                        property bool isActive: (typeof sddm !== "undefined" && sddm !== null && typeof sddm.virtualKeyboardActive !== "undefined") ? sddm.virtualKeyboardActive : false
+
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: Math.round(24 * uiScale)
+                            height: Math.round(18 * uiScale)
+                            radius: 3
+                            color: vkbToggle.isActive ? "#1A39FF14" : "#1A000000"
+                            border.color: vkbToggle.isActive ? neonGreen : (vkbMouse.containsMouse ? maroonBright : strokeSoft)
+                            border.width: vkbToggle.isActive ? 1.5 : 1
+
+                            Behavior on color { ColorAnimation { duration: 200 } }
+                            Behavior on border.color { ColorAnimation { duration: 200 } }
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: "⌨"
+                                font.pixelSize: Math.round(12 * uiScale)
+                                color: vkbToggle.isActive ? neonGreen : (vkbMouse.containsMouse ? maroonBright : textMuted)
+                                
+                                SequentialAnimation on opacity {
+                                    running: vkbToggle.isActive
+                                    loops: Animation.Infinite
+                                    NumberAnimation { from: 1.0; to: 0.4; duration: 800; easing.type: Easing.InOutSine }
+                                    NumberAnimation { from: 0.4; to: 1.0; duration: 800; easing.type: Easing.InOutSine }
+                                }
+                            }
+                        }
+
+                        MouseArea {
+                            id: vkbMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                if (typeof sddm !== "undefined" && sddm !== null) {
+                                    sddm.virtualKeyboardActive = !sddm.virtualKeyboardActive
+                                    root.isGlitchActive = true
+                                    glitchCoolDown.restart()
+                                }
+                            }
+                        }
+                    }
+
                     property real shakeOffset: 0
                     transform: Translate { x: passwordField.shakeOffset }
 

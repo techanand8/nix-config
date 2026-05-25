@@ -49,7 +49,13 @@ in
       pkgs.kdePackages.qt5compat
       pkgs.kdePackages.qtdeclarative
       pkgs.kdePackages.qtwayland
+      pkgs.kdePackages.qtvirtualkeyboard
     ];
+    settings = {
+      General = {
+        InputMethod = "qtvirtualkeyboard";
+      };
+    };
   };
 
   # Make the custom theme packages visible in the system path so SDDM can find them
