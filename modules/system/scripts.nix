@@ -289,17 +289,32 @@ let
 
       aider)
         log "Launching Engineering Agent (DeepSeek-Coder:6.7b Stable)..."
-        # Ensure model is available
-        ollama pull deepseek-coder:6.7b &> /dev/null || true
+        # Verify Ollama service is active
+        if ! curl -s http://127.0.0.1:11434 &>/dev/null; then
+            error "Ollama service is not running! Start it via 'sudo systemctl start ollama'."
+        fi
+        # Check if the model is locally pulled; download with progress if missing
+        if ! ollama list 2>/dev/null | grep -q "deepseek-coder:6.7b"; then
+            info "DeepSeek-Coder:6.7b not found locally. Downloading model (visible progress)..."
+            ollama pull deepseek-coder:6.7b
+        fi
         export OLLAMA_API_BASE="http://127.0.0.1:11434"
         aider --model ollama/deepseek-coder:6.7b "$@"
         ;;
 
       claw)
         log "Initializing OpenClaw General Agent (Llama-3.1)..."
-        # Ensure model is available
-        ollama pull llama3.1 &> /dev/null || true
-        info "OpenClaw is active at: http://localhost:8082"
+        # Verify Ollama service is active
+        if ! curl -s http://127.0.0.1:11434 &>/dev/null; then
+            error "Ollama service is not running! Start it via 'sudo systemctl start ollama'."
+        fi
+        # Check if the model is locally pulled; download with progress if missing
+        if ! ollama list 2>/dev/null | grep -q "llama3.1"; then
+            info "Llama-3.1 not found locally. Downloading model (visible progress)..."
+            ollama pull llama3.1
+        fi
+        info "OpenClaw gateway starting. Web interface will be active at: http://localhost:8082"
+        info "Press Ctrl+C to terminate the agent gateway server."
         # Set environment for local Ollama compatibility
         export OPENAI_API_BASE="http://127.0.0.1:11434/v1"
         export OPENAI_API_KEY="ollama"

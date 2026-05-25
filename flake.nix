@@ -61,7 +61,12 @@
           extraModules ? [ ],
         }:
         let
-          vars = import ./hosts/${hostname}/variables.nix;
+          vars =
+            let
+              varsFile = ./hosts/${hostname}/variables.nix;
+              exampleFile = ./hosts/${hostname}/variables.nix.example;
+            in
+            if builtins.pathExists varsFile then import varsFile else import exampleFile;
         in
         nixpkgs.lib.nixosSystem {
           specialArgs = {
@@ -161,7 +166,7 @@
               deadnix
             ];
             shellHook = ''
-              echo " ❄️MANX Engineering Environment Active"
+              echo "❄️MANX Engineering Environment Active"
             '';
           };
         }
