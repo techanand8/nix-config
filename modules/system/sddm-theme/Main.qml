@@ -1,8 +1,8 @@
-import QtQuick 2.15
-import QtQuick.Controls 2.15 as QQC2
-import QtQuick.Layouts 1.15
-import QtQuick.Window 2.15
-import SddmComponents 2.0
+import QtQuick
+import QtQuick.Controls as QQC2
+import QtQuick.Layouts
+import QtQuick.Window
+import SddmComponents
 import Qt5Compat.GraphicalEffects
 
 Rectangle {

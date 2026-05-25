@@ -48,6 +48,7 @@ in
       pkgs.kdePackages.qtsvg
       pkgs.kdePackages.qt5compat
       pkgs.kdePackages.qtdeclarative
+      pkgs.kdePackages.qtwayland
     ];
   };
 

@@ -4,6 +4,9 @@
   # Enable AMD GPU Drivers
   services.xserver.videoDrivers = lib.mkDefault [ "amdgpu" ];
 
+  # Early KMS support for smoother boot and SDDM transition
+  boot.initrd.kernelModules = [ "amdgpu" ];
+
   # ROCm for AI/ML acceleration
   hardware.graphics = {
     enable = lib.mkDefault true;
