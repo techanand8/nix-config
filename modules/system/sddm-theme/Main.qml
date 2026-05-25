@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import QtQuick.Window
+import QtQuick.VirtualKeyboard
 import SddmComponents
 import Qt5Compat.GraphicalEffects
 
@@ -3181,6 +3182,21 @@ Rectangle {
             authenticating = false
             messageColor = textWarning
             messageText = message
+        }
+    }
+
+    // --- VIRTUAL KEYBOARD PANEL (Slide-up Animation) ---
+    InputPanel {
+        id: inputPanel
+        z: 99
+        width: parent.width
+        y: (typeof sddm !== "undefined" && sddm !== null && sddm.virtualKeyboardActive) ? (parent.height - height) : parent.height
+
+        Behavior on y {
+            NumberAnimation {
+                duration: 300
+                easing.type: Easing.OutQuad
+            }
         }
     }
 }
