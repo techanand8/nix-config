@@ -74,6 +74,7 @@ Rectangle {
     property string binarySeconds: "0b000000"
     property string timingStats: "tpd 0.8s  |  f = 60Hz  |  VDD = 1.8V"
 
+    property bool virtualKeyboardActive: false
     property color spectrumColor: neonGreen
 
     SequentialAnimation {
@@ -968,10 +969,15 @@ Rectangle {
         }
 
         Timer {
-            interval: authenticating ? 33 : 16
+            interval: 33
             running: root.visible
             repeat: true
             onTriggered: {
+                // Sync virtual keyboard state if changed by system
+                if (Qt.inputMethod.visible !== root.virtualKeyboardActive) {
+                    root.virtualKeyboardActive = Qt.inputMethod.visible
+                }
+
                 // Update simulated CPU load and system telemetry noise
                 root.telemetryNoiseAccumulator += 0.02
                 // If not currently in a manual overclock surge, update base telemetry from simulated CPU load
@@ -2541,9 +2547,9 @@ Rectangle {
                         anchors.verticalCenter: parent.verticalCenter
                         width: 28
                         height: 28
-                        visible: (typeof sddm !== "undefined" && sddm !== null)
+                        visible: true
                         
-                        property bool isActive: (typeof sddm !== "undefined" && sddm !== null && typeof sddm.virtualKeyboardActive !== "undefined") ? sddm.virtualKeyboardActive : false
+                        property bool isActive: root.virtualKeyboardActive
 
                         Rectangle {
                             anchors.centerIn: parent
@@ -2578,11 +2584,14 @@ Rectangle {
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                                if (typeof sddm !== "undefined" && sddm !== null) {
-                                    sddm.virtualKeyboardActive = !sddm.virtualKeyboardActive
-                                    root.isGlitchActive = true
-                                    glitchCoolDown.restart()
+                                root.virtualKeyboardActive = !root.virtualKeyboardActive
+                                if (root.virtualKeyboardActive) {
+                                    Qt.inputMethod.show()
+                                } else {
+                                    Qt.inputMethod.hide()
                                 }
+                                root.isGlitchActive = true
+                                glitchCoolDown.restart()
                             }
                         }
                     }
@@ -3190,7 +3199,7 @@ Rectangle {
         id: inputPanel
         z: 99
         width: parent.width
-        y: (typeof sddm !== "undefined" && sddm !== null && sddm.virtualKeyboardActive) ? (parent.height - height) : parent.height
+        y: root.virtualKeyboardActive ? (parent.height - height) : parent.height
 
         Behavior on y {
             NumberAnimation {
@@ -3199,4 +3208,4 @@ Rectangle {
             }
         }
     }
-}
+    }
