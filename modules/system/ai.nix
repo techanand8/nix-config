@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   # --- OLLAMA (Local LLM Inference Engine) ---
@@ -59,4 +64,20 @@
   # You can access your local agents at:
   # Open-WebUI: http://localhost:8081 (Chat)
   # Ollama API: http://localhost:11434 (Backend)
+
+  # --- SYSTEMD OVERRIDES ---
+  # Force Ollama to use a static user for persistence compatibility
+  systemd.services.ollama.serviceConfig = {
+    DynamicUser = lib.mkForce false;
+    User = "ollama";
+    Group = "ollama";
+  };
+
+  # Create the static user
+  users.users.ollama = {
+    isSystemUser = true;
+    group = "ollama";
+    home = "/var/lib/ollama";
+  };
+  users.groups.ollama = { };
 }

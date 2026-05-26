@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   # --- XDG Config Files (The Nix Way) ---
@@ -294,26 +299,35 @@
       #!/usr/bin/env bash
       # Omarchy-standard Screensaver Orchestrator
 
+      LOG_FILE="/tmp/manx-screensaver.log"
+      echo "$(date): Screensaver orchestrator started" >> "$LOG_FILE"
+
       # Ensure solid PATH for hypridle environment
-      export PATH="$PATH:/run/current-system/sw/bin:$HOME/.nix-profile/bin"
+      export PATH="$PATH:/run/current-system/sw/bin:/etc/profiles/per-user/$USER/bin:$HOME/.nix-profile/bin"
 
       # 0. PRE-FLIGHT CHECKS
-      if ! command -v tte &>/dev/null; then exit 1; fi
+      if ! ${pkgs.procps}/bin/pgrep -f "tte" >/dev/null && ! command -v tte &>/dev/null; then
+          echo "$(date): ERROR: tte not found" >> "$LOG_FILE"
+          exit 1
+      fi
 
       # Prevent multiple instances
-      if pgrep -f "alacritty --class manx-screensaver" >/dev/null; then
+      if ${pkgs.procps}/bin/pgrep -f "alacritty --class manx-screensaver" >/dev/null; then
+          echo "$(date): Screensaver already running, exiting" >> "$LOG_FILE"
           exit 0
       fi
 
       # 1. CHECK TOGGLE STATE
       # If this file exists, screensaver is manually disabled
       if [[ -f "$HOME/.local/state/omarchy/toggles/screensaver-off" ]]; then
+          echo "$(date): Screensaver manually disabled via toggle" >> "$LOG_FILE"
           exit 0
       fi
 
       FORCE=false
       if [[ "$1" == "--force" ]]; then
           FORCE=true
+          echo "$(date): Force flag detected" >> "$LOG_FILE"
       fi
 
       if [[ "$FORCE" == "false" ]]; then
@@ -322,20 +336,21 @@
              [[ "$(axctl system is-inhibited 2>/dev/null)" == "true" ]] || \
              [[ "$(axctl system is-system-inhibited 2>/dev/null)" == "\"true\"" ]] || \
              [[ "$(axctl system is-system-inhibited 2>/dev/null)" == "true" ]]; then
-              echo "Inhibited by Ambxst/Caffeine."
+              echo "$(date): Inhibited by Ambxst/Caffeine" >> "$LOG_FILE"
               exit 0
           fi
 
           # 3. CHECK MEDIA
           if axctl system media-inhibit-check 2>/dev/null | grep -q '"count": [1-9]'; then
-              echo "Inhibited by media."
+              echo "$(date): Inhibited by media" >> "$LOG_FILE"
               exit 0
           fi
       fi
 
+      echo "$(date): Launching Alacritty for screensaver" >> "$LOG_FILE"
       # 4. LAUNCH (Elite Mode)
       # We force LC_ALL=C for clean XKB handling
-      LC_ALL=C alacritty --class manx-screensaver \
+      LC_ALL=C ${pkgs.alacritty}/bin/alacritty --class manx-screensaver \
                 --title Screensaver \
                 -o "window.startup_mode='Fullscreen'" \
                 -o "window.decorations='None'" \
@@ -359,31 +374,33 @@
                      INITIAL_CURSOR=$(hyprctl cursorpos 2>/dev/null || echo "0, 0")
 
                      screensaver_in_focus() {
-                         # Allow a grace period of 3 seconds at startup for Alacritty to map and focus
+                         # Allow a grace period of 10 seconds at startup for Alacritty to map and focus
                          local uptime_s=$(awk '{print int($1)}' /proc/uptime)
                          local elapsed=$((uptime_s - START_TIME))
-                         if [[ $elapsed -lt 3 ]]; then
+                         if [[ $elapsed -lt 10 ]]; then
                              return 0
                          fi
 
-                         active_window=$(hyprctl activewindow -j | jq -r '.class' 2>/dev/null)
+                         active_window=$(${pkgs.hyprland}/bin/hyprctl activewindow -j | ${pkgs.jq}/bin/jq -r '.class' 2>/dev/null)
                          if [[ "$active_window" == "manx-screensaver" ]]; then
                              return 0
                          else
+                             echo "$(date): Exit: Lost focus (Active: $active_window)" >> "/tmp/manx-screensaver.log"
                              return 1
                          fi
                      }
 
                      cursor_moved() {
-                         # Allow a grace period of 3 seconds before checking cursor movement
+                         # Allow a grace period of 10 seconds before checking cursor movement
                          local uptime_s=$(awk '{print int($1)}' /proc/uptime)
                          local elapsed=$((uptime_s - START_TIME))
-                         if [[ $elapsed -lt 3 ]]; then
+                         if [[ $elapsed -lt 10 ]]; then
                              return 1
                          fi
 
-                         CURRENT_CURSOR=$(hyprctl cursorpos 2>/dev/null || echo "0, 0")
+                         CURRENT_CURSOR=$(${pkgs.hyprland}/bin/hyprctl cursorpos 2>/dev/null || echo "0, 0")
                          if [[ "$CURRENT_CURSOR" != "$INITIAL_CURSOR" ]]; then
+                             echo "$(date): Exit: Cursor moved from $INITIAL_CURSOR to $CURRENT_CURSOR" >> "/tmp/manx-screensaver.log"
                              return 0
                          else
                              return 1
@@ -391,18 +408,19 @@
                      }
 
                      exit_screensaver() {
+                         echo "$(date): Exiting screensaver" >> "/tmp/manx-screensaver.log"
                          # Restore cursor
-                         hyprctl keyword cursor:invisible false >/dev/null 2>&1
+                         ${pkgs.hyprland}/bin/hyprctl keyword cursor:invisible false >/dev/null 2>&1
                          # Kill background processes
-                         pkill -f "tte" >/dev/null 2>&1
-                         pkill -f "alacritty --class manx-screensaver" >/dev/null 2>&1
+                         ${pkgs.procps}/bin/pkill -f "tte" >/dev/null 2>&1
+                         ${pkgs.procps}/bin/pkill -f "alacritty --class manx-screensaver" >/dev/null 2>&1
                          exit 0
                      }
 
                      trap exit_screensaver SIGINT SIGTERM EXIT
 
                      # Hide cursor for immersion
-                     hyprctl keyword cursor:invisible true >/dev/null 2>&1
+                     ${pkgs.hyprland}/bin/hyprctl keyword cursor:invisible true >/dev/null 2>&1
                      sleep 0.5
 
                      # Branding Paths
@@ -413,22 +431,22 @@
                      # 2. Start Animation (Bulletproof Loop)
                      while true; do
                          # Get terminal size for dynamic scaling
-                         cols=$(tput cols)
-                         rows=$(tput lines)
+                         cols=$(${pkgs.ncurses}/bin/tput cols)
+                         rows=$(${pkgs.ncurses}/bin/tput lines)
 
                          # --- LIVE DYNAMIC BRANDING GENERATION ---
                          if [[ -f "$LOGO_PATH" ]]; then
                              # Calculate optimal size (80% of screen width, 70% of height)
                              target_cols=$((cols * 8 / 10))
                              target_rows=$((rows * 7 / 10))
-                             LOGO_TEXT=$(chafa --format=symbols --size=''${target_cols}x''${target_rows} "$LOGO_PATH")
+                             LOGO_TEXT=$(${pkgs.chafa}/bin/chafa --format=symbols --size=''${target_cols}x''${target_rows} "$LOGO_PATH")
                          elif [[ -f "$TEXT_PATH" ]]; then
                              # Read text and strip leading/trailing empty lines for perfect centering
                              LOGO_TEXT=$(awk 'NF {p=1} p' "$TEXT_PATH" | tac | awk 'NF {p=1} p' | tac)
                          else
                              # Calculate LIVE stats for every theme cycle
                              CPU_LOAD=$(grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {printf "%.1f%%", usage}')
-                             MEM_USAGE=$(free -m | awk '/Mem:/ { printf "%.0f%%", $3/$2*100 }')
+                             MEM_USAGE=$(${pkgs.procps}/bin/free -m | awk '/Mem:/ { printf "%.0f%%", $3/$2*100 }')
 
                              LOGO_TEXT=$(cat << EOF
                   ▄▄▄▄███▄▄▄▄      ▄████████ ▄██   ▄      ▄████████ ███▄▄▄▄      ▄█   ▄█▄ 
@@ -461,10 +479,11 @@
                          )
                          effect=''${effects[$RANDOM % ''${#effects[@]}]}
 
+                         echo "$(date): Starting TTE animation with effect: $effect" >> "/tmp/manx-screensaver.log"
                          # Start TTE animation with high-fidelity adaptive scaling and dual centering
                          # --canvas-width/height: Synchronizes TTE canvas with physical terminal dimensions
                          # --anchor-canvas c --anchor-text c: Ensures artwork is centered vertically and horizontally
-                         echo "$LOGO_TEXT" | tte --frame-rate 60 --xterm-colors --no-restore-cursor \
+                         echo "$LOGO_TEXT" | ${pkgs.terminaltexteffects}/bin/tte --frame-rate 60 --xterm-colors --no-restore-cursor \
                                                  --canvas-width "$cols" --canvas-height "$rows" \
                                                  --anchor-canvas c --anchor-text c \
                                                  --no-eol \

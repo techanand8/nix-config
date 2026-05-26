@@ -113,6 +113,8 @@
   systemd.tmpfiles.rules = [
     "d /persist 0755 root root -"
     "d /persist/var/lib/ollama 0700 ollama ollama -"
+    "d /persist/var/lib/ollama/.ollama 0700 ollama ollama -"
+    "Z /persist/var/lib/ollama - ollama ollama -"
   ];
 
   # Allow non-root users to browse the persistence bind mounts if needed
