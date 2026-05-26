@@ -77,9 +77,41 @@ Rectangle {
     property bool virtualKeyboardActive: false
     property color spectrumColor: neonGreen
 
+    // --- IDLE & STABILITY ENGINE ---
+    property int lastActivityTime: 0
+    property bool isIdle: false
+    property int frameCount: 0
+
+    Timer {
+        id: idleDetector
+        interval: 1000
+        running: true
+        repeat: true
+        onTriggered: {
+            lastActivityTime++
+            if (lastActivityTime > 300) { // 5 minutes of inactivity
+                isIdle = true
+            }
+        }
+    }
+
+    function resetIdle() {
+        lastActivityTime = 0
+        isIdle = false
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        propagateComposedEvents: true
+        hoverEnabled: true
+        acceptedButtons: Qt.NoButton // Crucial: Do not block clicks for elements below
+        onPositionChanged: resetIdle()
+        z: -1 // Behind everything
+    }
+
     SequentialAnimation {
         id: spectrumAnimation
-        running: true
+        running: !isIdle
         loops: Animation.Infinite
         ColorAnimation { target: root; property: "spectrumColor"; from: "#39FF14"; to: "#99FF11"; duration: 4000; easing.type: Easing.InOutQuad }
         ColorAnimation { target: root; property: "spectrumColor"; from: "#99FF11"; to: "#FF9900"; duration: 4000; easing.type: Easing.InOutQuad }
@@ -110,7 +142,7 @@ Rectangle {
 
     SequentialAnimation {
         id: rainbowAnimation
-        running: true
+        running: !isIdle
         loops: Animation.Infinite
         ColorAnimation { target: root; property: "rainbowColor"; to: "#00E5FF"; duration: 2000; easing.type: Easing.InOutQuad } // VLSI Cyan (Clock)
         ColorAnimation { target: root; property: "rainbowColor"; to: "#FF9900"; duration: 2000; easing.type: Easing.InOutQuad } // VLSI Gold (Power)
@@ -220,10 +252,10 @@ Rectangle {
         anchors.fill: parent
         z: 0
         renderTarget: Canvas.FramebufferObject
-        renderStrategy: Canvas.Threaded
+        renderStrategy: Canvas.Threaded // Use Threaded to prevent UI lag
 
         property var particles: []
-        property int numParticles: 30
+        property int numParticles: 15 // Reduced for performance
         property real pulse: 0
         property real simulationProgress: 0
 
@@ -488,16 +520,12 @@ Rectangle {
                 ctx.fillStyle = "rgba(255, 255, 255, 0.7)"
                 ctx.fillText(label + " =", x - 8 * uiScale - (textW - labelW), y)
                 ctx.fillStyle = valColor
-                ctx.shadowBlur = 8 * uiScale
-                ctx.shadowColor = valColor
                 ctx.fillText(val, x - 8 * uiScale, y)
             } else {
                 ctx.textAlign = "left"
                 ctx.fillStyle = "rgba(255, 255, 255, 0.7)"
                 ctx.fillText(label + " =", x + 8 * uiScale, y)
                 ctx.fillStyle = valColor
-                ctx.shadowBlur = 8 * uiScale
-                ctx.shadowColor = valColor
                 ctx.fillText(val, x + 8 * uiScale + labelW, y)
             }
             ctx.restore()
@@ -518,8 +546,6 @@ Rectangle {
             ctx.textAlign = "left"
             ctx.fillText(label + " =", startX, y)
             ctx.fillStyle = valColor
-            ctx.shadowBlur = 8 * uiScale
-            ctx.shadowColor = valColor
             ctx.fillText(val, startX + labelW, y)
             ctx.restore()
         }
@@ -969,10 +995,14 @@ Rectangle {
         }
 
         Timer {
-            interval: 33
+            interval: 33 // Stable 30fps - much better for SDDM performance
             running: root.visible
             repeat: true
             onTriggered: {
+                if (root.isIdle) {
+                    if (++root.frameCount % 5 !== 0) return;
+                }
+                
                 // Update simulated CPU load and system telemetry noise
                 root.telemetryNoiseAccumulator += 0.02
                 // If not currently in a manual overclock surge, update base telemetry from simulated CPU load
@@ -1084,6 +1114,7 @@ Rectangle {
         }
 
         Rectangle {
+            id: leftPanel
             Layout.fillHeight: true
             Layout.preferredWidth: 470
             radius: 28
@@ -1614,6 +1645,7 @@ Rectangle {
         }
 
         Rectangle {
+            id: rightPanel
             Layout.fillHeight: true
             Layout.fillWidth: true
             radius: 28
@@ -2028,14 +2060,7 @@ Rectangle {
                                     Behavior on font.letterSpacing { NumberAnimation { duration: 250 } }
                                     Behavior on color { ColorAnimation { duration: 150 } }
 
-                                    layer.enabled: userCard.isActive
-                                    layer.effect: DropShadow {
-                                        horizontalOffset: 0
-                                        verticalOffset: 0
-                                        radius: 6
-                                        color: spectrumColor
-                                        fast: true
-                                    }
+                                    layer.enabled: false // Disabling expensive shadow layer for performance
                                 }
 
                                 Text {
@@ -2624,6 +2649,7 @@ Rectangle {
                     }
 
                     onTextChanged: {
+                        root.resetIdle()
                         if (!authenticating) {
                             messageColor = textMuted
                             messageText = "Awaiting secure authentication"
@@ -2698,7 +2724,10 @@ Rectangle {
                         KeyNavigation.tab: clearButton
                         KeyNavigation.backtab: passwordField
 
-                        onClicked: attemptLogin()
+                        onClicked: {
+                            root.resetIdle()
+                            attemptLogin()
+                        }
 
                         contentItem: RowLayout {
                             anchors.fill: parent
@@ -2788,13 +2817,6 @@ Rectangle {
                                 NumberAnimation { from: 0.3; to: 1.0; duration: 450 }
                                 NumberAnimation { from: 1.0; to: 0.3; duration: 450 }
                             }
-
-                            RectangularGlow {
-                                anchors.fill: parent
-                                glowRadius: 4
-                                spread: 0.2
-                                color: textWarning
-                            }
                         }
 
                         Text {
@@ -2881,7 +2903,7 @@ Rectangle {
                     }
 
                     Repeater {
-                        model: 16 // 16 floating logic particles
+                        model: 12 // Perfectly balanced for speed and visuals
 
                         delegate: Item {
                             id: particleItem
@@ -2891,72 +2913,43 @@ Rectangle {
                             property color particleColor: "#39FF14"
                             property string particleText: "0"
 
-                            // Stylish hollow neon circuit ring
-                            Rectangle {
-                                id: hollowCircle
+                            // --- LIGHTWEIGHT CYBER PARTICLES ---
+                            
+                            // 1. Digital '0' or '1'
+                            Text {
                                 anchors.centerIn: parent
-                                width: Math.round(7 * uiScale)
-                                height: Math.round(7 * uiScale)
+                                text: parent.particleText
+                                color: parent.particleColor
+                                font { family: "JetBrainsMono Nerd Font"; bold: true; pixelSize: Math.round(13 * uiScale) }
+                                visible: parent.particleText !== "•"
+                                opacity: 0.9
+                            }
+
+                            // 2. Hollow Logic Circle (The "Cool" Part)
+                            Rectangle {
+                                anchors.centerIn: parent
+                                width: Math.round(8 * uiScale)
+                                height: Math.round(8 * uiScale)
                                 radius: width / 2
                                 color: "transparent"
-                                border.width: 1.5
+                                border.width: 2
                                 border.color: parent.particleColor
                                 visible: parent.particleText === "•"
-
-                                // High-performance simulated glow (no layer required)
+                                
+                                // Internal "Core" dot
                                 Rectangle {
                                     anchors.centerIn: parent
-                                    width: parent.width + 4
-                                    height: parent.height + 4
-                                    radius: width / 2
-                                    color: "transparent"
-                                    border.width: 1.5
-                                    border.color: parent.border.color
-                                    opacity: 0.3
-                                }
-
-                                // Breathing scale glow effect (Lightning / Pulse style)
-                                SequentialAnimation on scale {
-                                    loops: Animation.Infinite
-                                    NumberAnimation { from: 0.8; to: 1.35; duration: 1300; easing.type: Easing.InOutQuad }
-                                    NumberAnimation { from: 1.35; to: 0.8; duration: 1300; easing.type: Easing.InOutQuad }
+                                    width: 2; height: 2; radius: 1
+                                    color: "white"
+                                    opacity: 0.8
                                 }
                             }
 
-                            // 0 or 1 digital state text
-                            Item {
-                                anchors.centerIn: parent
-                                visible: parent.particleText !== "•"
-                                width: Math.round(12 * uiScale)
-                                height: Math.round(12 * uiScale)
-
-                                // Layer 1: Deep Outer Glow
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: parent.parent.particleText
-                                    color: parent.parent.particleColor
-                                    font { family: "JetBrainsMono Nerd Font"; bold: true; pixelSize: Math.round(14 * uiScale) }
-                                    opacity: 0.15
-                                }
-
-                                // Layer 2: Soft Inner Glow
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: parent.parent.particleText
-                                    color: parent.parent.particleColor
-                                    font { family: "JetBrainsMono Nerd Font"; bold: true; pixelSize: Math.round(12 * uiScale) }
-                                    opacity: 0.4
-                                }
-
-                                // Layer 3: Sharp Core
-                                Text {
-                                    id: particleTextLabel
-                                    anchors.centerIn: parent
-                                    text: parent.parent.particleText
-                                    color: "#FFFFFF" // White core for that realistic neon look
-                                    font { family: "JetBrainsMono Nerd Font"; bold: true; pixelSize: Math.round(10 * uiScale) }
-                                    opacity: 0.9
-                                }
+                            // Cyber Flicker Effect (Very Cheap Performance)
+                            SequentialAnimation on opacity {
+                                loops: Animation.Infinite
+                                NumberAnimation { from: 0.9; to: 0.4; duration: 800; easing.type: Easing.InOutSine }
+                                NumberAnimation { from: 0.4; to: 0.9; duration: 800; easing.type: Easing.InOutSine }
                             }
 
                             function resetParticle() {
@@ -3081,14 +3074,6 @@ Rectangle {
                                     opacity: powerBtn.hovered ? 1.0 : 0.7
                                     Behavior on color { ColorAnimation { duration: 180 } }
                                     Behavior on opacity { NumberAnimation { duration: 180 } }
-                                    
-                                    layer.enabled: powerBtn.hovered
-                                    layer.effect: Glow {
-                                        radius: 10
-                                        samples: 16
-                                        color: modelData.color
-                                        spread: 0.3
-                                    }
                                 }
                                 
                                 Text {
@@ -3141,6 +3126,7 @@ Rectangle {
                                         opacity: 0.6
                                         
                                         SequentialAnimation on opacity {
+                                            running: !isIdle
                                             loops: Animation.Infinite
                                             NumberAnimation { from: 0.4; to: 0.8; duration: 1200; easing.type: Easing.InOutQuad }
                                             NumberAnimation { from: 0.8; to: 0.4; duration: 1200; easing.type: Easing.InOutQuad }
@@ -3157,6 +3143,7 @@ Rectangle {
                                         z: 5
                                         
                                         SequentialAnimation on x {
+                                            running: !isIdle
                                             loops: Animation.Infinite
                                             NumberAnimation { from: -20; to: powerBtnBg.width + 20; duration: 950; easing.type: Easing.Linear }
                                             PauseAnimation { duration: 150 }
