@@ -286,7 +286,8 @@
           # 2. Launch Visual Screensaver (4 mins)
           timeout = 240;
           on-timeout = "${config.home.homeDirectory}/.local/bin/manx-screensaver";
-          on-resume = "pkill -f 'alacritty --class manx-screensaver' || true";
+          # We removed on-resume pkill here because the script handles its own exit.
+          # This prevents the 'immediate kill' jitter when the window gains focus.
         }
         {
           # 3. Secure Lock (5 mins)
