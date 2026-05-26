@@ -21,7 +21,7 @@ let
   # A highly customized, high-tech Qt6 SDDM theme (Neon Green & Maroon Glow)
   manx-vlsi-theme = pkgs.stdenv.mkDerivation {
     pname = "manx-vlsi-theme";
-    version = "2.9";
+    version = "3.0";
     src = ./sddm-theme;
 
     installPhase = ''
@@ -55,7 +55,7 @@ in
     ];
     settings = {
       General = {
-        GreeterEnvironment = "QT_WAYLAND_SHELL_INTEGRATION=layer-shell,KWIN_IM_SHOW_ALWAYS=1,QT_IM_MODULE=qtvirtualkeyboard,LC_ALL=en_US.UTF-8,QT_VIRTUALKEYBOARD_NO_SPELLCHECK=1";
+        GreeterEnvironment = "QT_WAYLAND_SHELL_INTEGRATION=layer-shell,KWIN_IM_SHOW_ALWAYS=1,QT_IM_MODULE=qtvirtualkeyboard,LC_ALL=en_US.UTF-8,QT_VIRTUALKEYBOARD_NO_SPELLCHECK=1,QSG_RENDER_LOOP=basic";
         InputMethod = "qtvirtualkeyboard";
       };
     };

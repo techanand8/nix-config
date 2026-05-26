@@ -387,7 +387,7 @@ Rectangle {
             var isSingle = (gateType === "BUF" || gateType === "NOT")
             var numSigs = isSingle ? 2 : 3
             var sigNames  = isSingle ? ["IN", "Y"] : ["A", "B", "Y"]
-            var numPoints = 30 // Reduced for massive performance gain
+            var numPoints = 40 // Slightly increased for better accuracy
             var rowCount  = rows.length
             var labelW    = 18 * uiScale
             var sigH      = wh / numSigs
@@ -395,8 +395,7 @@ Rectangle {
             // High-contrast Glassmorphic Card background
             ctx.save()
             var rr = 6 * uiScale
-            ctx.fillStyle = "rgba(5, 1, 8, 0.96)"
-            // Shadows disabled for performance on main thread
+            ctx.fillStyle = "rgba(5, 1, 8, 0.98)"
             ctx.beginPath()
 
             ctx.moveTo(wx + rr, wy)
@@ -410,7 +409,7 @@ Rectangle {
             ctx.quadraticCurveTo(wx, wy, wx + rr, wy)
             ctx.closePath()
             ctx.fill()
-            ctx.strokeStyle = isActive ? "rgba(57, 255, 20, 0.35)" : "rgba(255, 17, 51, 0.25)"
+            ctx.strokeStyle = isActive ? "rgba(57, 255, 20, 0.45)" : "rgba(255, 17, 51, 0.35)"
             ctx.lineWidth = 1 * uiScale
             ctx.stroke()
             ctx.restore()
@@ -418,40 +417,40 @@ Rectangle {
             // Draw each signal trace
             for (var si = 0; si < numSigs; si++) {
                 var baseY  = wy + si * sigH + sigH * 0.5
-                var amp    = sigH * 0.32
+                var amp    = sigH * 0.35
                 var sName  = sigNames[si]
                 var colIdx = (isSingle ? [0, 2] : [0, 1, 2])[si]
 
                 // Signal label
                 ctx.save()
-                ctx.fillStyle = "rgba(255, 255, 255, 0.5)"
-                ctx.font = "bold " + Math.max(7, Math.round(8 * uiScale)) + "px 'JetBrainsMono Nerd Font'"
+                ctx.fillStyle = "rgba(255, 255, 255, 0.6)"
+                ctx.font = "bold " + Math.max(7, Math.round(9 * uiScale)) + "px 'JetBrainsMono Nerd Font'"
                 ctx.textAlign = "left"
                 ctx.textBaseline = "middle"
-                ctx.fillText(sName, wx + 4, baseY)
+                ctx.fillText(sName, wx + 6, baseY)
                 ctx.restore()
 
                 // Waveform trace with dynamic segment coloring
                 ctx.save()
-                ctx.lineWidth = 1.8 * uiScale
+                ctx.lineWidth = 2.2 * uiScale
 
                 var prevVal = -1
-                var startX = wx + labelW
-                var endX = wx + ww - 6 * uiScale
+                var startX = wx + labelW + 4 * uiScale
+                var endX = wx + ww - 8 * uiScale
 
                 for (var pi = 0; pi <= numPoints; pi++) {
                     var t = (pi / numPoints + sp) % 1.0
 
-                    // tpd delay shift for output signal
+                    // tpd delay shift for output signal - more accurate timing
                     var sampleT = t
-                    if (si === numSigs - 1) sampleT = (t - (0.6 / rowCount) + 1.0) % 1.0
+                    if (si === numSigs - 1) sampleT = (t - (0.5 / rowCount) + 1.0) % 1.0
 
                     var rowIdx = Math.floor(sampleT * rowCount) % rowCount
                     var row = rows[rowIdx]
                     var val = parseInt(row[colIdx])
                     if (isNaN(val)) val = 0
                     if (root.isGlitchActive) {
-                        val = (Math.random() < 0.05) ? (Math.random() < 0.5 ? 1 : 0) : 0
+                        val = (Math.random() < 0.08) ? (Math.random() < 0.5 ? 1 : 0) : 0
                     }
 
                     var px = startX + (pi / numPoints) * (endX - startX)
@@ -461,26 +460,21 @@ Rectangle {
                     if (pi === 0) {
                         ctx.beginPath()
                         ctx.moveTo(px, py)
-                        prevVal = val
                     } else if (val !== prevVal) {
-                        // Vertical transition
-                        ctx.lineTo(px, prevVal === 0 ? baseY + amp : baseY - amp)
+                        // Sharp vertical transition for logic accuracy
+                        ctx.lineTo(px, py === baseY + amp ? baseY - amp : baseY + amp)
                         ctx.lineTo(px, py)
-
-                        // Close and stroke previous segment with its color
-                        ctx.strokeStyle = (prevVal === 1) ? "#39FF14" : "#FF1133"
-                        ctx.stroke()
-
-                        // Start new segment
-                        ctx.beginPath()
-                        ctx.moveTo(px, py)
                     } else {
                         ctx.lineTo(px, py)
                     }
 
-                    if (pi === numPoints) {
-                        ctx.strokeStyle = segmentColor
+                    if (pi === numPoints || val !== prevVal) {
+                        ctx.strokeStyle = (prevVal === 1) ? "#39FF14" : "#FF1133"
                         ctx.stroke()
+                        if (pi < numPoints) {
+                            ctx.beginPath()
+                            ctx.moveTo(px, py)
+                        }
                     }
 
                     prevVal = val
@@ -988,31 +982,36 @@ Rectangle {
         }
 
         Timer {
-            interval: 100 // Set to 100ms (10fps) - This is the "Lag Killer"
+            interval: 60 // Changed from 500ms to 60ms (~16fps) for smoother movement
             running: root.visible
             repeat: true
             onTriggered: {
                 if (root.isIdle) {
-                    if (++root.frameCount % 5 !== 0) return;
+                    if (++root.frameCount % 5 !== 0) return; 
                 }
                 
                 // Update simulated CPU load and system telemetry noise
-                root.telemetryNoiseAccumulator += 0.02
-                // If not currently in a manual overclock surge, update base telemetry from simulated CPU load
+                root.telemetryNoiseAccumulator += 0.01 
                 if (root.telemetrySpeedMultiplier <= 2.8) {
                     root.cpuLoad = Math.max(0.12, Math.min(0.88, 0.45 + 0.25 * Math.sin(root.telemetryNoiseAccumulator) + 0.15 * Math.sin(root.telemetryNoiseAccumulator * 2.3) + 0.05 * Math.cos(root.telemetryNoiseAccumulator * 4.7)))
                     root.telemetrySpeedMultiplier = 0.5 + 1.8 * root.cpuLoad
                 }
                 
+                // Synchronize Technical Telemetry (Timing Stats)
+                var currentFreq = (3.2 + (root.cpuLoad * 1.8)).toFixed(1) // 3.2GHz to 5.0GHz range
+                var currentTpd = (780 - (root.cpuLoad * 120)).toFixed(0) // 780ps down to 660ps
+                var currentVdd = (0.95 + (root.cpuLoad * 0.35)).toFixed(2) // 0.95V to 1.30V
+                root.timingStats = "tpd " + currentTpd + "ps  |  f = " + currentFreq + "GHz  |  VDD = " + currentVdd + "V"
+
                 root.telemetryJitter = root.isGlitchActive ? 0.85 : (root.cpuLoad > 0.7 ? 0.06 : 0.01)
 
-                // Typing overclocking: uses the telemetry multiplier (which surges on keystrokes)
-                var speedStep = 0.008 * root.telemetrySpeedMultiplier
+                // Adjust speed step for 60ms interval
+                var speedStep = 0.005 * root.telemetrySpeedMultiplier 
                 bgCanvas.simulationProgress = (bgCanvas.simulationProgress + speedStep) % 1.0
 
                 // Success Wave progress step
                 if (root.isSuccessWaveActive) {
-                    root.successWaveProgress = Math.min(1.0, root.successWaveProgress + 0.045)
+                    root.successWaveProgress = Math.min(1.0, root.successWaveProgress + 0.025) 
                 }
 
                 bgCanvas.requestPaint()
@@ -1047,7 +1046,7 @@ Rectangle {
         NumberAnimation on y {
             from: 0
             to: root.height
-            duration: 10000
+            duration: 15000 // Slowed down from 10000
             loops: Animation.Infinite
         }
     }
@@ -1119,8 +1118,8 @@ Rectangle {
             }
             border.width: 1
             border.color: stroke
-            layer.enabled: true
-            layer.samples: 4
+            layer.enabled: false
+            layer.samples: 0
 
             Rectangle {
                 anchors.fill: parent
@@ -1178,8 +1177,8 @@ Rectangle {
                             antialiasing: true
                             z: 2
                             
-                            layer.enabled: true
-                            layer.effect: Glow {
+                            layer.enabled: false
+                            /* layer.effect: Glow {
                                 id: logoGlowEffect
                                 radius: 12
                                 samples: 16
@@ -1192,7 +1191,7 @@ Rectangle {
                                     NumberAnimation { from: 8; to: 16; duration: 4500; easing.type: Easing.InOutQuad }
                                     NumberAnimation { from: 16; to: 8; duration: 4500; easing.type: Easing.InOutQuad }
                                 }
-                            }
+                            } */
                         }
 
                         // Internal highlight (Light reflecting off the silicon)
@@ -1209,6 +1208,7 @@ Rectangle {
 
                     // High-quality outer aura
                     RectangularGlow {
+                        visible: false
                         anchors.fill: logoOuterRect
                         glowRadius: 28
                         spread: 0.1
@@ -1650,8 +1650,8 @@ Rectangle {
             }
             border.width: 1
             border.color: stroke
-            layer.enabled: true
-            layer.samples: 4
+            layer.enabled: false
+            layer.samples: 0
 
             Rectangle {
                 anchors.fill: parent
@@ -1814,6 +1814,7 @@ Rectangle {
                         height: Math.round(130 * uiScale)
 
                         RectangularGlow {
+                        visible: false
                             id: avatarOuterGlow
                             anchors.fill: avatarBorderRect
                             glowRadius: 18
@@ -1983,6 +1984,7 @@ Rectangle {
                                     height: Math.round(160 * uiScale)
 
                                     RectangularGlow {
+                        visible: false
                                         id: avatarGlow
                                         anchors.fill: cardAvatarRect
                                         glowRadius: userCard.isActive ? (userMouse.containsMouse ? 36 : 8) : (userMouse.containsMouse ? 20 : 0)
@@ -2139,6 +2141,7 @@ Rectangle {
 
                     background: Item {
                         RectangularGlow {
+                        visible: false
                             id: selectorGlow
                             anchors.fill: selectorBg
                             glowRadius: sessionSelector.hovered || sessionSelector.popup.visible ? 8 : 0
@@ -2194,6 +2197,7 @@ Rectangle {
 
                         background: Item {
                             RectangularGlow {
+                        visible: false
                                 id: popupGlow
                                 anchors.fill: popupBg
                                 glowRadius: 16
@@ -2854,6 +2858,7 @@ Rectangle {
 
                         // Glowing backlight
                         RectangularGlow {
+                        visible: false
                             anchors.fill: parent
                             glowRadius: Math.round(8 * uiScale)
                             spread: 0.2
@@ -2869,13 +2874,12 @@ Rectangle {
                             radius: 1
                             color: "#FFFFFF"
 
-                            layer.enabled: true
-                            layer.effect: Glow {
+                            layer.enabled: false
+                            /* layer.effect: Glow {
                                 radius: Math.round(6 * uiScale)
                                 samples: 10
                                 color: "#00E5FF"
-                            }
-
+                            } */
                             NumberAnimation on x {
                                 from: -100
                                 to: logicFlowEmitter.width + 100
@@ -3100,17 +3104,17 @@ Rectangle {
                                     id: maskContainer
                                     anchors.fill: parent
                                     visible: powerBtn.hovered
-                                    layer.enabled: true
-                                    layer.effect: OpacityMask {
+                                    layer.enabled: false
+                                    /* layer.effect: OpacityMask {
                                         maskSource: Rectangle {
                                             width: powerBtnBg.width
                                             height: powerBtnBg.height
                                             radius: powerBtnBg.radius
                                         }
-                                    }
-
+                                    } */
                                     // Glowing Aura (Contained)
                                     RectangularGlow {
+                        visible: false
                                         anchors.fill: parent
                                         glowRadius: 16
                                         spread: 0.3
@@ -3143,6 +3147,7 @@ Rectangle {
                                         }
 
                                         RectangularGlow {
+                        visible: false
                                             anchors.fill: parent
                                             glowRadius: 10
                                             spread: 0.4

@@ -106,6 +106,7 @@ let
         echo -e "    ''${C_WHITE}agent''${NC}     ''${C_MUTED}❯''${NC} Local Execution Agent (Does computer tasks for you)"
         echo -e "    ''${C_WHITE}webui''${NC}     ''${C_MUTED}❯''${NC} Local Intelligence Interface (Professional Web-UI)"
         echo -e "    ''${C_WHITE}vivado''${NC}    ''${C_MUTED}❯''${NC} Enter the AMD Vivado design environment"
+        echo -e "    ''${C_WHITE}routine''${NC}   ''${C_MUTED}❯''${NC} Launch Silicon Routine & Self-Improvement Dashboard"
         echo -e ""
         echo -e "  ''${C_PRIMARY}󰪢  BRANDING & AESTHETICS''${NC}"
         echo -e "    ''${C_WHITE}screensaver''${NC} ''${C_MUTED}❯''${NC} Orchestrate immersive workstation branding"
@@ -561,6 +562,28 @@ let
         ${pkgs.xdg-utils}/bin/xdg-open "http://localhost:8081" &>/dev/null &
         ;;
 
+      routine|tracker)
+        log "Starting MANX Self-Improvement & Daily Routine Tracker..."
+        
+        TRACKER_DIR="$CONFIG_DIR/modules/system/tracker"
+        DATA_DIR="$HOME/daily-routine-data"
+        mkdir -p "$DATA_DIR"
+
+        # Check if tracker is already running
+        if ${pkgs.curl}/bin/curl -s -o /dev/null -w "%{http_code}" "http://localhost:8090/api/data?date=2020-01-01" &>/dev/null; then
+            info "Tracker backend is active. Opening dashboard..."
+        else
+            info "Initializing lightweight secure tracker database engine..."
+            # Start Python standard library web server in background
+            ${pkgs.python3}/bin/python3 "$TRACKER_DIR/server.py" &>/dev/null &
+            sleep 0.8
+        fi
+
+        # Open browser
+        ${pkgs.xdg-utils}/bin/xdg-open "http://localhost:8090" &>/dev/null &
+        success "Routine Workspace successfully engaged."
+        ;;
+
       *)
         error "Unknown command: $1. Type 'manx' for help."
         ;;
@@ -623,6 +646,9 @@ let
     .TP
     .B vivado
     Enters the high-compatibility Vivado container.
+    .TP
+    .B routine
+    Launch the Silicon Routine & Self-Improvement Dashboard (Private database logs).
     .TP
     .B screensaver
     Manages custom branding (ASCII/Image) and the master toggle for the Omarchy-style screensaver.
