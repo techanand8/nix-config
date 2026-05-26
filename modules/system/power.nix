@@ -62,20 +62,20 @@ in
   };
 
   # 3. Intelligent CPU Frequency Scaling (auto-cpufreq)
-  services.auto-cpufreq.enable = isLaptop && (powerBackend == "auto-cpufreq");
-  services.auto-cpufreq.settings = lib.mkIf (isLaptop && powerBackend == "auto-cpufreq") {
+  services.auto-cpufreq.enable = powerBackend == "auto-cpufreq";
+  services.auto-cpufreq.settings = lib.mkIf (powerBackend == "auto-cpufreq") {
     battery = {
       governor = "powersave";
       turbo = "never";
     };
     charger = {
-      governor = "performance";
+      governor = "balanced"; # Changed from performance for better thermals
       turbo = "auto";
     };
   };
 
   # 4. Conflict-Free Battery Charge Threshold Service
-  # Runs on laptop boot when TLP is NOT the active backend.
+  # Runs on boot when TLP is NOT the active backend.
   # Directly interacts with sysfs kernel endpoints to enforce battery boundaries.
   systemd.services.battery-charge-threshold = lib.mkIf (isLaptop && powerBackend != "tlp") {
     description = "Apply hardware-level battery charge thresholds";
@@ -115,9 +115,16 @@ in
     powertop # Power consumption diagnostic tool
     acpi # Battery and thermal status
     pciutils # PCI device management (helpful for power debugging)
+    lm_sensors # Temperature and fan monitoring (sensors command)
+    nvtopPackages.amd # Professional GPU monitor (best for AMD thermals)
   ];
 
   # 6. Automated Power Tuning (Safe Defaults)
   # Only enabled if powerBackend is 'none' to prevent overwriting active backend decisions.
   powerManagement.powertop.enable = isLaptop && (powerBackend == "none");
+
+  # 7. Linux Thermal Daemon (thermald)
+  # Prevents overheating by interacting with kernel thermal endpoints.
+  # Works in tandem with auto-cpufreq for extra safety.
+  services.thermald.enable = true;
 }
