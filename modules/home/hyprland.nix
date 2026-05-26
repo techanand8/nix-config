@@ -520,8 +520,8 @@
                                 
                                 # Interaction loop
                                 while kill -0 "$TTE_PID" 2>/dev/null; do
-                                    local current_uptime=$(awk '{print int($1)}' /proc/uptime)
-                                    local elapsed_s=$((current_uptime - START_TIME))
+                                    current_uptime=$(awk '{print int($1)}' /proc/uptime)
+                                    elapsed_s=$((current_uptime - START_TIME))
                                     if [[ $elapsed_s -ge 2 ]]; then
                                         if read -n 1 -t 0.1; then
                                             echo "$(date): Exit: Key pressed" >> "/tmp/manx-screensaver.log"
