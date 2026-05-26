@@ -82,7 +82,6 @@
               nixpkgs.hostPlatform = platform;
               nixpkgs.config.allowUnfree = true;
               nixpkgs.config.permittedInsecurePackages = [
-                "openclaw-2026.5.7"
               ];
               nixpkgs.overlays = [
                 inputs.nix-cachyos-kernel.overlays.pinned

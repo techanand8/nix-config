@@ -252,7 +252,7 @@ Rectangle {
         anchors.fill: parent
         z: 0
         renderTarget: Canvas.FramebufferObject
-        renderStrategy: Canvas.Threaded // Use Threaded to prevent UI lag
+        renderStrategy: Canvas.Immediate // Use Immediate to prevent synchronization freezes in SDDM
 
         property var particles: []
         property int numParticles: 15 // Reduced for performance
@@ -1502,7 +1502,7 @@ Rectangle {
                         Layout.fillWidth: true
                         implicitHeight: Math.round(84 * uiScale)
                         renderTarget: Canvas.FramebufferObject
-                        renderStrategy: Canvas.Threaded
+                        renderStrategy: Canvas.Immediate
 
                         Component.onCompleted: requestPaint()
 

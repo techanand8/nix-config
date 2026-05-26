@@ -1,0 +1,19 @@
+{
+  "agents": {
+    "defaults": {
+      "workspace": "/home/mayank-anand/.openclaw/workspace"
+    }
+  },
+  "gateway": {
+    "mode": "local",
+    "auth": {
+      "mode": "token",
+      "token": "b97d9596266cc5a6661719fba9401fd105d7235159eb4046"
+    }
+  },
+  "extensions": {
+    "openai": {
+      "enabled": false
+    }
+  }
+}

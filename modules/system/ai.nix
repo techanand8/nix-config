@@ -50,8 +50,6 @@
     aider-chat-full
     # Ctags required for Aider's Repo-map functionality
     universal-ctags
-    # OpenClaw (General purpose agent for tasks like emails/planning)
-    openclaw
     # Performance monitoring for AMD GPUs (Check your VRAM usage here)
     radeontop
     rocmPackages.rocm-smi
@@ -60,6 +58,5 @@
   # --- USER-LEVEL DOCS & TRUSTED LINKS ---
   # You can access your local agents at:
   # Open-WebUI: http://localhost:8081 (Chat)
-  # OpenClaw: http://localhost:8082 (General Agent)
   # Ollama API: http://localhost:11434 (Backend)
 }

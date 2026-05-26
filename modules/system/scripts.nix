@@ -92,7 +92,6 @@ let
         echo -e "    ''${C_WHITE}search''${NC}    ''${C_MUTED}❯''${NC} Query the Nixpkgs software registry"
         echo -e "    ''${C_WHITE}shell''${NC}     ''${C_MUTED}❯''${NC} Initialize isolated package environments"
         echo -e "    ''${C_WHITE}aider''${NC}     ''${C_MUTED}❯''${NC} High-Fidelity Engineering Agent (DeepSeek-16B)"
-        echo -e "    ''${C_WHITE}claw''${NC}      ''${C_MUTED}❯''${NC} Intelligent General Agent (Llama-3.1)"
         echo -e "    ''${C_WHITE}vivado''${NC}    ''${C_MUTED}❯''${NC} Enter the AMD Vivado design environment"
         echo -e ""
         echo -e "  ''${C_PRIMARY}󰪢  BRANDING & AESTHETICS''${NC}"
@@ -356,34 +355,6 @@ let
         # --no-browser: Keeps the focus in the terminal
         # --watch-files: Automatically detects changes you make manually
         aider --model ollama/deepseek-coder:6.7b --no-browser --watch-files "$@"
-        ;;
-
-      claw)
-        log "Initializing OpenClaw General Agent (Llama-3.1)..."
-        info "Note: High VRAM usage detected. Use 'radeontop' to monitor GPU memory."
-        # Verify Ollama service is active
-        if ! curl -s http://127.0.0.1:11434 &>/dev/null; then
-            error "Ollama service is not running! Start it via 'sudo systemctl start ollama'."
-        fi
-        # Check if the model is locally pulled; download with progress if missing
-        if ! ollama list 2>/dev/null | grep -q "llama3.1"; then
-            info "Llama-3.1 not found locally. Downloading model (visible progress)..."
-            ollama pull llama3.1
-        fi
-
-        # AUTOMATED SETUP: Ensure OpenClaw configuration exists
-        if [ ! -d "$HOME/.openclaw" ]; then
-            info "First-run setup: Initializing OpenClaw workspace..."
-            openclaw setup &> /dev/null || true
-        fi
-
-        info "OpenClaw gateway starting. Web interface will be active at: http://localhost:8082"
-        info "Press Ctrl+C to terminate the agent gateway server."
-        # Set environment for local Ollama compatibility
-        export OPENAI_API_BASE="http://127.0.0.1:11434/v1"
-        export OPENAI_API_KEY="ollama"
-        # Launch using the correct subcommand and port with safety flags
-        openclaw gateway run --port 8082 --allow-unconfigured
         ;;
 
       history)
