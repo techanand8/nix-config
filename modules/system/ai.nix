@@ -58,6 +58,26 @@
     # Performance monitoring for AMD GPUs (Check your VRAM usage here)
     radeontop
     rocmPackages.rocm-smi
+
+    # Python environment for AI scripting (Pre-baked with common libraries)
+    (python3.withPackages (
+      ps: with ps; [
+        openai
+        anthropic
+        google-generativeai
+        litellm
+        huggingface-hub
+        pydantic
+        matplotlib
+        ipython
+        httpx
+        aiohttp
+        beautifulsoup4
+        selenium
+        pandas
+        numpy
+      ]
+    ))
   ];
 
   # --- USER-LEVEL DOCS & TRUSTED LINKS ---
