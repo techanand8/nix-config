@@ -360,6 +360,7 @@ let
 
       claw)
         log "Initializing OpenClaw General Agent (Llama-3.1)..."
+        info "Note: High VRAM usage detected. Use 'radeontop' to monitor GPU memory."
         # Verify Ollama service is active
         if ! curl -s http://127.0.0.1:11434 &>/dev/null; then
             error "Ollama service is not running! Start it via 'sudo systemctl start ollama'."

@@ -9,6 +9,7 @@
 
 {
   # --- SYSTEM PERFORMANCE OPTIMIZATIONS ---
+  systemd.oomd.enable = true;
   services.fstrim.enable = true;
   zramSwap = {
     enable = true;

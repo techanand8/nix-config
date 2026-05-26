@@ -12,6 +12,8 @@
     # The 9.0.0 override is the most stable fallback for this architecture.
     environmentVariables = {
       HSA_OVERRIDE_GFX_VERSION = "9.0.0";
+      OLLAMA_KEEP_ALIVE = "5m";
+      HSA_ENABLE_SDMA = "0"; # Improved stability on Vega/Barcelo APUs
     };
 
     # Automatically pull high-intelligence models on startup
