@@ -312,49 +312,29 @@
     text = ''
       #!/usr/bin/env bash
       # Omarchy-standard Screensaver Orchestrator
-
       LOG_FILE="/tmp/manx-screensaver.log"
-      echo "$(date): [Orchestrator] Starting..." >> "$LOG_FILE"
 
-      # Ensure solid PATH for hypridle environment
-      export PATH="$PATH:/run/current-system/sw/bin:/etc/profiles/per-user/$USER/bin:$HOME/.nix-profile/bin"
-
-      # 0. PRE-FLIGHT CHECKS
-      if ! command -v tte &>/dev/null; then
-          echo "$(date): [Orchestrator] ERROR: tte not found in PATH ($PATH)" >> "$LOG_FILE"
-          exit 1
-      fi
-
-      # 1. CHECK TOGGLE STATE
+      # 0. PRE-FLIGHT
       if [[ -f "$HOME/.local/state/omarchy/toggles/screensaver-off" ]]; then
-          echo "$(date): [Orchestrator] Manually disabled via toggle" >> "$LOG_FILE"
+          echo "$(date): [Orchestrator] Disabled via toggle" >> "$LOG_FILE"
           exit 0
       fi
 
-      FORCE=false
-      [[ "$1" == "--force" ]] && FORCE=true
-
-      if [[ "$FORCE" == "false" ]]; then
-          # 2. CHECK CAFFEINE / INHIBITION
-          INHIBITED=$(axctl system is-inhibited 2>/dev/null)
-          if [[ "$INHIBITED" == "true" ]] || [[ "$INHIBITED" == "\"true\"" ]]; then
-              echo "$(date): [Orchestrator] Inhibited by Caffeine" >> "$LOG_FILE"
-              exit 0
-          fi
-
-          # 3. CHECK MEDIA
-          if axctl system media-inhibit-check 2>/dev/null | grep -q '"count": [1-9]'; then
-              echo "$(date): [Orchestrator] Inhibited by media" >> "$LOG_FILE"
+      # 1. CHECK INHIBITION
+      if [[ "$1" != "--force" ]]; then
+          if [[ "$(axctl system is-inhibited 2>/dev/null)" == "true" ]] || \
+             [[ "$(axctl system is-inhibited 2>/dev/null)" == "\"true\"" ]] || \
+             axctl system media-inhibit-check 2>/dev/null | grep -q '"count": [1-9]'; then
+              echo "$(date): [Orchestrator] System inhibited" >> "$LOG_FILE"
               exit 0
           fi
       fi
 
-      # Prevent multiple instances and kill any hanging ones
+      # 2. CLEANUP & LAUNCH
       ${pkgs.procps}/bin/pkill -f "alacritty --class manx-screensaver" || true
       sleep 0.2
 
       echo "$(date): [Orchestrator] Launching Alacritty..." >> "$LOG_FILE"
-      # 4. LAUNCH
       LC_ALL=C ${pkgs.alacritty}/bin/alacritty --class manx-screensaver \
                 --title Screensaver \
                 -o "window.startup_mode='Fullscreen'" \
@@ -367,104 +347,93 @@
   home.file.".local/bin/manx-screensaver-run" = {
     executable = true;
     text = ''
-            #!/usr/bin/env bash
-            # Screensaver Core Loop (Enhanced Omarchy Style)
+      #!/usr/bin/env bash
+      # Screensaver Core Loop (Elite Silicon Grade)
+      LOG_FILE="/tmp/manx-screensaver.log"
 
-            LOG_FILE="/tmp/manx-screensaver.log"
-            export PATH="$PATH:/run/current-system/sw/bin:$HOME/.nix-profile/bin"
+      # Absolute tool paths for Nix stability
+      HYPRCTL="${pkgs.hyprland}/bin/hyprctl"
+      JQ="${pkgs.jq}/bin/jq"
+      TTE="${pkgs.terminaltexteffects}/bin/tte"
+      CHAFA="${pkgs.chafa}/bin/chafa"
+      TPUT="${pkgs.ncurses}/bin/tput"
+      PKILL="${pkgs.procps}/bin/pkill"
+      FREE="${pkgs.procps}/bin/free"
 
-            START_TIME=$(awk '{print int($1)}' /proc/uptime)
-            INITIAL_CURSOR=$(${pkgs.hyprland}/bin/hyprctl cursorpos 2>/dev/null || echo "0, 0")
-            echo "$(date): [Core] Started. Initial cursor at $INITIAL_CURSOR" >> "$LOG_FILE"
+      START_TIME=$(awk '{print int($1)}' /proc/uptime)
+      INITIAL_CURSOR=$($HYPRCTL cursorpos 2>/dev/null || echo "0, 0")
 
-            screensaver_in_focus() {
-                local uptime_s=$(awk '{print int($1)}' /proc/uptime)
-                local elapsed=$((uptime_s - START_TIME))
-                if [[ $elapsed -lt 10 ]]; then return 0; fi
+      exit_screensaver() {
+          local reason=$1
+          echo "$(date): [Core] Exit triggered by: $reason" >> "$LOG_FILE"
+          $HYPRCTL keyword cursor:invisible false >/dev/null 2>&1
+          $PKILL -P $$ 2>/dev/null
+          $PKILL -f "alacritty --class manx-screensaver" 2>/dev/null
+          exit 0
+      }
 
-                active_window=$(${pkgs.hyprland}/bin/hyprctl activewindow -j | ${pkgs.jq}/bin/jq -r '.class' 2>/dev/null)
-                if [[ "$active_window" == "manx-screensaver" ]]; then
-                    return 0
-                else
-                    echo "$(date): [Core] Exit: Focus lost (Active: $active_window)" >> "$LOG_FILE"
-                    return 1
-                fi
-            }
+      trap "exit_screensaver 'Signal'" SIGINT SIGTERM EXIT
+      $HYPRCTL keyword cursor:invisible true >/dev/null 2>&1
 
-            cursor_moved() {
-                local uptime_s=$(awk '{print int($1)}' /proc/uptime)
-                local elapsed=$((uptime_s - START_TIME))
-                if [[ $elapsed -lt 10 ]]; then return 1; fi
+      echo "$(date): [Core] Started at $INITIAL_CURSOR" >> "$LOG_FILE"
 
-                CURRENT_CURSOR=$(${pkgs.hyprland}/bin/hyprctl cursorpos 2>/dev/null || echo "0, 0")
-                if [[ "$CURRENT_CURSOR" != "$INITIAL_CURSOR" ]]; then
-                    echo "$(date): [Core] Exit: Cursor moved from $INITIAL_CURSOR to $CURRENT_CURSOR" >> "$LOG_FILE"
-                    return 0
-                fi
-                return 1
-            }
+      # Branding
+      LOGO_PATH="$HOME/.config/omarchy/branding/logo.png"
+      TEXT_PATH="$HOME/.config/omarchy/branding/screensaver.txt"
 
-            exit_screensaver() {
-                echo "$(date): [Core] Exiting..." >> "$LOG_FILE"
-                ${pkgs.hyprland}/bin/hyprctl keyword cursor:invisible false >/dev/null 2>&1
-                ${pkgs.procps}/bin/pkill -P $$ 2>/dev/null
-                exit 0
-            }
+      while true; do
+          cols=$($TPUT cols)
+          rows=$($TPUT lines)
 
-            trap exit_screensaver SIGINT SIGTERM EXIT
-            ${pkgs.hyprland}/bin/hyprctl keyword cursor:invisible true >/dev/null 2>&1
+          if [[ -f "$LOGO_PATH" ]]; then
+              target_cols=$((cols * 8 / 10))
+              target_rows=$((rows * 7 / 10))
+              LOGO_TEXT=$($CHAFA --format=symbols --size=''${target_cols}x''${target_rows} "$LOGO_PATH")
+          elif [[ -f "$TEXT_PATH" ]]; then
+              LOGO_TEXT=$(awk 'NF {p=1} p' "$TEXT_PATH" | tac | awk 'NF {p=1} p' | tac)
+          else
+              CPU=$(grep 'cpu ' /proc/stat | awk '{u=($2+$4)*100/($2+$4+$5)} END {printf "%.1f%%", u}')
+              MEM=$($FREE -m | awk '/Mem:/ { printf "%.0f%%", $3/$2*100 }')
+              LOGO_TEXT="⚡ MANX OS ⚡\n[ SILICON WORKSTATION ]\n\nCPU: $CPU | RAM: $MEM\nSTATUS: ENCRYPTED"
+          fi
 
-            # Branding Paths
-            LOGO_PATH="$HOME/.config/omarchy/branding/logo.png"
-            TEXT_PATH="$HOME/.config/omarchy/branding/screensaver.txt"
-            mkdir -p "$HOME/.config/omarchy/branding"
+          effects=("beams" "binarypath" "blackhole" "bubbles" "burn" "colorshift" "matrix" "rain" "slide" "waves")
+          effect=''${effects[$RANDOM % ''${#effects[@]}]}
 
-            while true; do
-                cols=$(tput cols)
-                rows=$(tput lines)
+          echo "$(date): [Core] Running $effect..." >> "$LOG_FILE"
 
-                if [[ -f "$LOGO_PATH" ]]; then
-                    target_cols=$((cols * 8 / 10))
-                    target_rows=$((rows * 7 / 10))
-                    LOGO_TEXT=$(${pkgs.chafa}/bin/chafa --format=symbols --size=''${target_cols}x''${target_rows} "$LOGO_PATH")
-                elif [[ -f "$TEXT_PATH" ]]; then
-                    LOGO_TEXT=$(awk 'NF {p=1} p' "$TEXT_PATH" | tac | awk 'NF {p=1} p' | tac)
-                else
-                    CPU_LOAD=$(grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {printf "%.1f%%", usage}')
-                    MEM_USAGE=$(${pkgs.procps}/bin/free -m | awk '/Mem:/ { printf "%.0f%%", $3/$2*100 }')
-                    LOGO_TEXT=$(cat << EOF
-         ⚡ M A N X   O S ⚡
-       [ SILICON WORKSTATION ]
+          # Run TTE and capture errors to the main log
+          echo -e "$LOGO_TEXT" | $TTE --frame-rate 60 --xterm-colors --no-restore-cursor \
+                                      --canvas-width "$cols" --canvas-height "$rows" \
+                                      --anchor-canvas c --anchor-text c --no-eol "$effect" 2>> "$LOG_FILE" &
+          TTE_PID=$!
 
-      SYSTEM DASHBOARD TELEMETRY:
-      CPU: $CPU_LOAD | RAM: $MEM_USAGE
-      STATUS: ENCRYPTED & SECURED
-      EOF
-      )
-                fi
+          # Interaction Loop
+          while kill -0 "$TTE_PID" 2>/dev/null; do
+              # 1. Keypress check
+              if read -n 1 -t 0.1; then
+                  exit_screensaver "Keypress"
+              fi
 
-                effects=("beams" "binarypath" "blackhole" "bouncyballs" "bubbles" "burn" "colorshift" "crumble" "decrypt" "matrix" "rain" "slide" "smoke" "waves")
-                effect=''${effects[$RANDOM % ''${#effects[@]}]}
+              # Grace period for focus/cursor
+              uptime_s=$(awk '{print int($1)}' /proc/uptime)
+              if [[ $((uptime_s - START_TIME)) -gt 5 ]]; then
+                  # 2. Focus check
+                  active=$($HYPRCTL activewindow -j | $JQ -r '.class' 2>/dev/null)
+                  if [[ "$active" != "manx-screensaver" ]]; then
+                      exit_screensaver "Focus Lost (Active: $active)"
+                  fi
+                  # 3. Cursor check
+                  current=$($HYPRCTL cursorpos 2>/dev/null || echo "0, 0")
+                  if [[ "$current" != "$INITIAL_CURSOR" ]]; then
+                      exit_screensaver "Cursor Move ($current)"
+                  fi
+              fi
+          done
 
-                echo "$(date): [Core] Animation: $effect" >> "$LOG_FILE"
-                echo "$LOGO_TEXT" | tte --frame-rate 60 --xterm-colors --no-restore-cursor \
-                                        --canvas-width "$cols" --canvas-height "$rows" \
-                                        --anchor-canvas c --anchor-text c --no-eol "$effect" 2>/dev/null &
-                TTE_PID=$!
-                 
-                while kill -0 "$TTE_PID" 2>/dev/null; do
-                    if read -n 1 -t 0.1; then
-                        echo "$(date): [Core] Exit: Key pressed" >> "$LOG_FILE"
-                        exit_screensaver
-                    elif ! screensaver_in_focus; then
-                        exit_screensaver
-                    elif cursor_moved; then
-                        exit_screensaver
-                    fi
-                done
-                sleep 0.5
-                clear
-            done
+          sleep 0.5
+          clear
+      done
     '';
   };
 
