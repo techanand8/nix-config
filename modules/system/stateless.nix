@@ -112,7 +112,7 @@
   # Ensure the persistence directory exists with correct permissions
   systemd.tmpfiles.rules = [
     "d /persist 0755 root root -"
-    "d /persist/var/lib/ollama 0755 root root -"
+    "d /persist/var/lib/ollama 0700 ollama ollama -"
   ];
 
   # Allow non-root users to browse the persistence bind mounts if needed

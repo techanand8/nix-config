@@ -255,7 +255,7 @@ Rectangle {
         renderStrategy: Canvas.Immediate // Use Immediate to prevent synchronization freezes in SDDM
 
         property var particles: []
-        property int numParticles: 15 // Reduced for performance
+        property int numParticles: 4 // Set to minimum for high responsiveness
         property real pulse: 0
         property real simulationProgress: 0
 
@@ -387,7 +387,7 @@ Rectangle {
             var isSingle = (gateType === "BUF" || gateType === "NOT")
             var numSigs = isSingle ? 2 : 3
             var sigNames  = isSingle ? ["IN", "Y"] : ["A", "B", "Y"]
-            var numPoints = 80
+            var numPoints = 30 // Reduced for massive performance gain
             var rowCount  = rows.length
             var labelW    = 18 * uiScale
             var sigH      = wh / numSigs
@@ -396,9 +396,9 @@ Rectangle {
             ctx.save()
             var rr = 6 * uiScale
             ctx.fillStyle = "rgba(5, 1, 8, 0.96)"
-            ctx.shadowBlur = 6 * uiScale
-            ctx.shadowColor = "rgba(0,0,0,0.8)"
+            // Shadows disabled for performance on main thread
             ctx.beginPath()
+
             ctx.moveTo(wx + rr, wy)
             ctx.lineTo(wx + ww - rr, wy)
             ctx.quadraticCurveTo(wx + ww, wy, wx + ww, wy + rr)
@@ -607,8 +607,7 @@ Rectangle {
             ctx.beginPath()
             ctx.arc(curX, curY, 4.5 * uiScale, 0, Math.PI * 2)
             ctx.fillStyle = baseColor
-            ctx.shadowBlur = 12 * uiScale
-            ctx.shadowColor = baseColor
+            // shadows disabled
             ctx.fill()
             ctx.beginPath()
             ctx.arc(curX, curY, 1.8 * uiScale, 0, Math.PI * 2)
@@ -633,16 +632,16 @@ Rectangle {
             // Dynamic vignette overlays
             var vignette = ctx.createRadialGradient(width * 0.5, height * 0.5, Math.min(width, height) * 0.1,
                                                     width * 0.5, height * 0.5, Math.max(width, height) * 0.7)
-            vignette.addColorStop(0.0, "rgba(168, 8, 0, 0.16)")
-            vignette.addColorStop(0.45, "rgba(57, 255, 20, 0.03)")
-            vignette.addColorStop(1.0, "rgba(0, 0, 0, 0.94)")
+            vignette.addColorStop(0.0, "rgba(168, 8, 0, 0.08)") // Dimmed from 0.16
+            vignette.addColorStop(0.45, "rgba(57, 255, 20, 0.02)") // Dimmed from 0.03
+            vignette.addColorStop(1.0, "rgba(0, 0, 0, 0.96)") // Darkened from 0.94
             ctx.fillStyle = vignette
             ctx.fillRect(0, 0, width, height)
 
             pulse += authenticating ? 0.030 : 0.012
 
             // High-fidelity background grid lines
-            ctx.strokeStyle = "rgba(57, 255, 20, 0.05)"
+            ctx.strokeStyle = "rgba(57, 255, 20, 0.02)" // Dimmed from 0.05
             ctx.lineWidth = 1
             var gridOffsetY = Math.sin(pulse * 0.4) * 12
             var gridOffsetX = Math.cos(pulse * 0.4) * 12
@@ -669,20 +668,20 @@ Rectangle {
             ctx.save()
             ctx.beginPath()
             ctx.arc(wcx, wcy, wra, 0, 2 * Math.PI)
-            ctx.strokeStyle = "rgba(57, 255, 20, 0.08)"
+            ctx.strokeStyle = "rgba(57, 255, 20, 0.04)" // Dimmed from 0.08
             ctx.lineWidth = 1
             ctx.stroke()
 
             ctx.beginPath()
             ctx.arc(wcx, wcy, wra * 0.6, 0, 2 * Math.PI)
-            ctx.strokeStyle = "rgba(57, 255, 20, 0.03)"
+            ctx.strokeStyle = "rgba(57, 255, 20, 0.015)" // Dimmed from 0.03
             ctx.stroke()
 
             var sweepAngle = (simulationProgress * 2 * Math.PI)
             ctx.beginPath()
             ctx.moveTo(wcx, wcy)
             ctx.lineTo(wcx + wra * Math.cos(sweepAngle), wcy + wra * Math.sin(sweepAngle))
-            ctx.strokeStyle = "rgba(57, 255, 20, 0.08)"
+            ctx.strokeStyle = "rgba(57, 255, 20, 0.04)" // Dimmed from 0.08
             ctx.lineWidth = 2
             ctx.stroke()
             ctx.restore()
@@ -769,12 +768,8 @@ Rectangle {
                 var dynamicGradColor = root.isGlitchActive ? "rgba(139,0,0,0.2)" : (passwordField.text.length > 0 ? (isGateActive ? "rgba(0,240,255,0.2)" : "rgba(255,215,0,0.15)") : (isGateActive ? "rgba(57,255,20,0.2)" : "rgba(255,17,51,0.15)"))
                 gateGrad.addColorStop(1, dynamicGradColor)
                 ctx.fillStyle = gateGrad
-                var glow = (phase === 2) ? (16 + 10 * Math.sin(simulationProgress * 60)) : (isGateActive ? 12 : 4)
+                // Shadows disabled for performance on main thread
                 var isGateHovered = (gi === root.hoveredGateIndex)
-                if (isGateHovered) {
-                    glow = glow * 1.8
-                }
-                ctx.shadowBlur = glow * uiScale; ctx.shadowColor = logicColor
                 if (isGateHovered) {
                     ctx.save()
                     ctx.translate(gx, gy)
@@ -830,7 +825,7 @@ Rectangle {
                     ctx.scale(1.05, 1.05)
                     ctx.translate(-cardCenterX, -cardCenterY)
                 }
-                ctx.save(); ctx.fillStyle = "rgba(4,1,8,0.98)"; ctx.shadowBlur = (isTableHovered ? 20 : 10)*uiScale; ctx.shadowColor = isTableHovered ? logicColor : "rgba(0,0,0,0.9)"; var rr=10*uiScale; ctx.beginPath(); ctx.moveTo(hx+rr, hy); ctx.lineTo(hx+hudW-rr, hy); ctx.quadraticCurveTo(hx+hudW, hy, hx+hudW, hy+rr); ctx.lineTo(hx+hudW, hy+hudH-rr); ctx.quadraticCurveTo(hx+hudW, hy+hudH, hx+hudW-rr, hy+hudH); ctx.lineTo(hx+rr, hy+hudH); ctx.quadraticCurveTo(hx, hy+hudH, hx, hy+hudH-rr); ctx.lineTo(hx, hy+rr); ctx.quadraticCurveTo(hx, hy, hx+rr, hy); ctx.closePath(); ctx.fill(); ctx.strokeStyle = logicColor; ctx.lineWidth = (isTableHovered ? 1.6 : 1)*uiScale; ctx.stroke(); ctx.restore()
+                ctx.save(); ctx.fillStyle = "rgba(4,1,8,0.98)"; var rr=10*uiScale; ctx.beginPath(); ctx.moveTo(hx+rr, hy); ctx.lineTo(hx+hudW-rr, hy); ctx.quadraticCurveTo(hx+hudW, hy, hx+hudW, hy+rr); ctx.lineTo(hx+hudW, hy+hudH-rr); ctx.quadraticCurveTo(hx+hudW, hy+hudH, hx+hudW-rr, hy+hudH); ctx.lineTo(hx+rr, hy+hudH); ctx.quadraticCurveTo(hx, hy+hudH, hx, hy+hudH-rr); ctx.lineTo(hx, hy+rr); ctx.quadraticCurveTo(hx, hy, hx+rr, hy); ctx.closePath(); ctx.fill(); ctx.strokeStyle = logicColor; ctx.lineWidth = (isTableHovered ? 1.6 : 1)*uiScale; ctx.stroke(); ctx.restore()
                 ctx.save(); ctx.fillStyle = logicColor; ctx.font = "bold " + Math.round(9*uiScale) + "px 'JetBrainsMono Nerd Font'"; ctx.fillText(gate.name, hx+12*uiScale, hy+13*uiScale); ctx.restore()
                 ctx.save(); ctx.textAlign = "center"; ctx.fillStyle = "rgba(255,255,255,0.4)"; ctx.font = "bold " + Math.round(9*uiScale) + "px 'JetBrainsMono Nerd Font'"
                 if(totalStates<3){ctx.fillText("IN", hx+36*uiScale, hy+26*uiScale); ctx.fillText("OUT", hx+82*uiScale, hy+26*uiScale)}
@@ -929,8 +924,7 @@ Rectangle {
 
                     ctx.save()
                     ctx.fillStyle = "rgba(4, 1, 8, 0.98)"
-                    ctx.shadowBlur = 12 * uiScale
-                    ctx.shadowColor = ttColor
+                    // shadows disabled
                     var tr = 8 * uiScale
                     ctx.beginPath()
                     ctx.moveTo(ttx + tr, tty)
@@ -979,8 +973,7 @@ Rectangle {
                 ctx.arc(centerX, centerY, currentRadius, 0, Math.PI * 2)
                 ctx.lineWidth = 15 * uiScale
                 ctx.strokeStyle = "rgba(57, 255, 20, " + (0.8 * (1.0 - root.successWaveProgress)) + ")"
-                ctx.shadowBlur = 30 * uiScale
-                ctx.shadowColor = "#39FF14"
+                // shadows disabled
                 ctx.stroke()
 
                 // Secondary particle flash ring
@@ -995,7 +988,7 @@ Rectangle {
         }
 
         Timer {
-            interval: 33 // Stable 30fps - much better for SDDM performance
+            interval: 100 // Set to 100ms (10fps) - This is the "Lag Killer"
             running: root.visible
             repeat: true
             onTriggered: {
@@ -2903,7 +2896,7 @@ Rectangle {
                     }
 
                     Repeater {
-                        model: 12 // Perfectly balanced for speed and visuals
+                        model: 5 // Reduced from 12 to 5 for better performance
 
                         delegate: Item {
                             id: particleItem

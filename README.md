@@ -4,7 +4,7 @@
 
 <br/>
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=20&duration=3000&pause=1000&color=39FF14&center=true&vCenter=true&width=760&lines=Declarative+silicon-grade+engineering+environment;Mathematically+reproducible+%E2%80%A2+Stateless-ready+%E2%80%A2+EDA-native;System+synchronized+via+the+secure+manx+rebuild+utility" alt="Typing tagline" />
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&duration=3500&pause=1000&color=39FF14&center=true&vCenter=true&width=800&lines=DECLARATIVE+SILICON-GRADE+ENGINEERING+SYSTEM;MATHEMATICALLY+REPRODUCIBLE+•+STATELESS+•+EDA-NATIVE;DYNAMIC+THEME+SYNCING+WITH+AMBXST+ENGINE;SYSTEM+MANAGED+VIA+THE+BESPOKE+MANX+UTILITY" alt="Typing tagline" />
 
 <br/>
 
@@ -27,6 +27,21 @@
 * **Isolated EDA Execution**: Proprietary heavy toolchains (such as AMD Vivado and Vitis) run in an isolated high-performance container (Distrobox) utilizing native host Wayland window pass-through and direct JTAG `udev` hardware mapping.
 * **Optional Statelessness (Impermanence)**: Models the root directory (`/`) as a temporary ramdisk wiped on every boot, mapping persistent configurations, private certificates, ssh keys, and the `/home` directories directly to a `/persist` Btrfs subvolume.
 * **Consolidated Control Plane**: A custom management utility, `manx`, exposes a unified, color-coded interactive command suite for rebuilds, system package diffing, garbage collection, and binary cache pushing.
+
+```mermaid
+graph TD
+    A[🔄 System Reboot] --> B[⚙️ Initrd Stage Rollback Scripts]
+    B --> C[💾 Mount Physical Btrfs Root subvolid=5]
+    C --> D[🧹 Delete Previous /root Subvolume]
+    D --> E[❄️ Clone Fresh /blank Snapshot to /root]
+    E --> F[🔒 Bind Mount Persistent Paths /persist]
+    style A fill:#0d1117,stroke:#ff1133,stroke-width:2px;
+    style B fill:#0d1117,stroke:#ff5555,stroke-width:2px;
+    style C fill:#0d1117,stroke:#39ff14,stroke-width:2px;
+    style D fill:#0d1117,stroke:#39ff14,stroke-width:2px;
+    style E fill:#0d1117,stroke:#00f5ff,stroke-width:2px;
+    style F fill:#0d1117,stroke:#7c3aed,stroke-width:2px;
+```
 
 ## Authentication Interface (VLSI Workstation Console)
 
@@ -128,6 +143,7 @@ The system operations workflow is completely centralized inside a high-fidelity 
   󰌢  MAINTENANCE & SECURITY
     clean     ❯ Execute deep system maintenance protocols
     check     ❯ Validate configuration health and integrity
+    bootstrap ❯ Setup Btrfs blank subvolumes & secrets keypaths
 ```
 
 ### Reference Table
@@ -137,29 +153,31 @@ The system operations workflow is completely centralized inside a high-fidelity 
 | `manx rebuild` | `nix fmt` ➔ Stages changes ➔ Runs Flake audit ➔ Evaluates NH switch ➔ `nvd` changes | **Security Shield**: Forcefully stages `variables.nix` / `secrets.yaml` so Nix can read them, but triggers a global reset trap to keep private keys unstaged immediately. |
 | `manx check` | Stages files ➔ `nix flake check` ➔ Automated Reset | Validates that the Nix configuration compiles and option definitions are valid without executing a build. |
 | `manx clean` | `nh clean all --keep 3` ➔ Garbage collects system/user store ➔ Hard-links duplicates | Reclaims storage blocks on your NVMe SSD. |
+| `manx bootstrap` | Analyzes partition filesystem ➔ Secures `/persist` mappings ➔ Secures SOPS age directories | Automatically builds the pristine `/blank` Btrfs snapshots and decryption keypaths for single-step provisioning. |
 | `manx vivado` | Distrobox engine initialization ➔ Icon mapping ➔ GUI entry | Enters the secure high-compatibility hardware design sandbox. |
 | `manx edit` | fuzzy-finds `*.nix` and `*.yaml` ➔ launches Neovim | Accelerates config development via rapid module navigation. |
 
 ---
 
-## Operating System Architecture
+## 📂 Operating System Architecture
 
-The repository layout follows a DRY (Don't Repeat Yourself) host-module hierarchy, separating generic hardware/software rules from host-specific disk configurations and network properties.
+The repository layout follows a **DRY (Don't Repeat Yourself)** host-module hierarchy, separating generic hardware/software rules from host-specific disk configurations and network properties.
 
-```
-├── flake.nix                  # Unified entrypoint; pins external dependencies
-├── hosts/
-│   ├── common/                # Shared module imports (boot, networks, locales)
-│   ├── manx/                  # Primary Workstation configuration
-│   │   ├── variables.nix      # Hardware properties, system UUIDs (Git-ignored)
-│   │   └── variables.nix.example
-│   └── laptop/                # Engineering Laptop configuration
-├── modules/
-│   ├── home/                  # Home Manager files (shell, Neovim, user-packages)
-│   └── system/                # System packages (virtualization, Plymouth, scripts)
-└── secrets/
-    ├── secrets.yaml           # SOPS age-encrypted system passwords (Git-ignored)
-    └── secrets.yaml.example
+```bash
+📁 nix-config/
+├── ❄️ flake.nix                  # Unified entrypoint; pins external dependencies
+├── 🖥️ hosts/
+│   ├── 🌐 common/                # Shared module imports (boot, networks, locales)
+│   ├── 🚀 manx/                  # Primary Workstation configuration
+│   │   ├── 🔑 variables.nix      # Hardware properties, system UUIDs (Git-ignored)
+│   │   └── 📄 variables.nix.example
+│   └── 💻 laptop/                # Engineering Laptop configuration
+├── 🧩 modules/
+│   ├── 🏠 home/                  # Home Manager files (shell, Neovim, user-packages)
+│   └── 🛡️ system/                # System packages (virtualization, Plymouth, scripts)
+└── 🔒 secrets/
+    ├── 🔑 secrets.yaml           # SOPS age-encrypted system passwords (Git-ignored)
+    └── 📄 secrets.yaml.example
 ```
 
 ---
@@ -230,6 +248,24 @@ To prevent duplicate builds between the heavy primary workstation and the batter
    cachixPublicKey = "your-cache-subdomain.cachix.org-1:your-public-key-here=";
    ```
 On every successful `manx rebuild` run, the workstation will compile and automatically push new closures to the cache. The laptop will then fetch these pre-compiled closures, saving CPU and battery power!
+
+---
+
+<div align="center">
+  <img src="assets/credits.svg" alt="Workstation Acknowledgments" width="100%" />
+</div>
+
+## ◈ Credits & Acknowledgments
+
+The **MANX OS** environment is a culmination of exceptional open-source contributions. We extend our deepest gratitude to the following visionaries whose work forms the backbone of this workstation:
+
+### Core Frameworks & Logic
+*   **[Illogical Impulse](https://github.com/Illogical-Impulse)**: For the foundational keybindings, meticulous window rules, and the visionary **Omarchy Linux** screensaver logic that provides our high-fidelity security layer.
+*   **[Ambxst Project](https://github.com/Axenide/Ambxst)**: For the sophisticated **Hyprland** shell framework and the aesthetic direction that defines the Ambxst experience.
+*   **[ZaneyOS](https://github.com/Zaney/ZaneyOS)**: For the declarative structural inspiration and the clean organizational patterns that make this system mathematically reproducible.
+
+### Engineering & Tooling
+*   **The VLSI Community**: Our work is powered by the giants of open-source silicon design. Endless thanks to the maintainers of **Yosys**, **Verilator**, **Magic-VLSI**, and the **OpenLane** project. It is your commitment to open hardware that makes this workstation possible.
 
 ---
 

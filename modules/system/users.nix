@@ -31,6 +31,7 @@
       "wheel"
       "video"
       "render"
+      "bluetooth" # Required for some Bluetooth UIs/GDBus tools
       "kvm" # VM acceleration
       "libvirtd" # Virtualization system daemon
       "input" # Mouse / touchpad raw input control

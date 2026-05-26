@@ -117,6 +117,7 @@
     distrobox
     xhost
     usbutils
+    bluez # Required for bluetoothctl & background CLI helpers
     ripgrep
     imagemagick
 

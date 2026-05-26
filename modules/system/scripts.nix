@@ -13,11 +13,21 @@ let
     export NH_FLAKE="$CONFIG_DIR"
     export NIXPKGS_ALLOW_UNFREE=1
 
-    # Smart Host Detection: Get system hostname and convert to UPPERCASE for Flake matching
-    # (e.g., 'manx' becomes 'MANX', 'laptop' becomes 'LAPTOP')
+    # Smart Host Detection: Normalize hostname to match Flake targets (MANX or LAPTOP)
     RAW_HOSTNAME=$(hostname)
-    HOSTNAME=$(echo "$RAW_HOSTNAME" | tr '[:lower:]' '[:upper:]')
-    HOST_DIR=$(echo "$HOSTNAME" | tr '[:upper:]' '[:lower:]')
+    UPPER_HOST=$(echo "$RAW_HOSTNAME" | tr '[:lower:]' '[:upper:]')
+
+    if [[ "$UPPER_HOST" == *LAPTOP* ]]; then
+        HOSTNAME="LAPTOP"
+        HOST_DIR="laptop"
+    elif [[ "$UPPER_HOST" == *MANX* ]]; then
+        HOSTNAME="MANX"
+        HOST_DIR="manx"
+    else
+        # Fallback to MANX as default workstation
+        HOSTNAME="MANX"
+        HOST_DIR="manx"
+    fi
 
     # UI Branding (Always MANX for the workstation family)
     BRAND_NAME="MANX"
@@ -79,6 +89,7 @@ let
         echo -e "  ''${C_PRIMARY}󰌢  MAINTENANCE & SECURITY''${NC}"
         echo -e "    ''${C_WHITE}clean''${NC}     ''${C_MUTED}❯''${NC} Execute deep system maintenance protocols"
         echo -e "    ''${C_WHITE}check''${NC}     ''${C_MUTED}❯''${NC} Validate configuration health and integrity"
+        echo -e "    ''${C_WHITE}bootstrap''${NC} ''${C_MUTED}❯''${NC} Setup Btrfs blank subvolumes & secrets keypaths"
         echo -e ""
         echo -e "  ''${C_PRIMARY}󰏆  PRODUCTIVITY & DOCS''${NC}"
         echo -e "    ''${C_WHITE}word''${NC}      ''${C_MUTED}❯''${NC} Launch the professional OnlyOffice suite"
@@ -242,6 +253,62 @@ let
         sudo nix-store --optimise
         
         success "System maintenance complete. Storage optimized."
+        ;;
+
+      bootstrap)
+        log "Initializing Stateless Btrfs & SOPS Environment Bootstrapping..."
+        
+        # 1. Btrfs subvolume layout setup
+        if findmnt -n -o FSTYPE / 2>/dev/null | grep -q "btrfs" || findmnt -n -o FSTYPE /persist 2>/dev/null | grep -q "btrfs"; then
+            log "Btrfs file system verified."
+            
+            # Find physical Btrfs device
+            DEV_PATH=$(findmnt -n -o SOURCE /persist 2>/dev/null || findmnt -n -o SOURCE / 2>/dev/null || true)
+            if [ -n "$DEV_PATH" ]; then
+                log "Discovered Btrfs device: $DEV_PATH"
+                
+                # Setup Mount and Verify Subvolume Layout
+                mkdir -p /tmp/btrfs-root
+                if sudo mount -t btrfs -o subvolid=5 "$DEV_PATH" /tmp/btrfs-root &>/dev/null; then
+                    log "Mounted Btrfs root subvolid=5 successfully."
+                    
+                    if [ ! -d "/tmp/btrfs-root/blank" ]; then
+                        info "Stateless rollback snapshot '/blank' not found. Creating it..."
+                        sudo btrfs subvolume create /tmp/btrfs-root/blank
+                        success "Pristine '/blank' subvolume created."
+                    else
+                        success "Pristine '/blank' subvolume already exists."
+                    fi
+                    
+                    sudo umount /tmp/btrfs-root
+                    rm -rf /tmp/btrfs-root
+                else
+                    info "Unable to mount Btrfs subvolid=5 directly. Ensure you run this with sudo permissions."
+                fi
+            fi
+        else
+            info "Root/Persist is not formatted as Btrfs. Skipping subvolume checks."
+        fi
+
+        # 2. SOPS age keyfile directory setup
+        KEY_DIR="/persist/var/lib/sops-nix"
+        if [ -d "/persist" ]; then
+            log "Verifying SOPS decryption keypaths..."
+            sudo mkdir -p "$KEY_DIR"
+            sudo chmod 0755 /persist/var/lib 2>/dev/null || true
+            sudo chmod 0700 "$KEY_DIR" 2>/dev/null || true
+            
+            if [ ! -f "$KEY_DIR/key.txt" ]; then
+                info "SOPS age key '$KEY_DIR/key.txt' is missing."
+                info "Generate using: 'age-keygen -o $KEY_DIR/key.txt'"
+            else
+                success "SOPS decryption age key is present."
+            fi
+        else
+            info "/persist directory not found. Skipping secrets keypath checks."
+        fi
+        
+        success "Bootstrap process completed."
         ;;
 
       word)
@@ -503,6 +570,9 @@ let
     .TP
     .B check
     Validates config integrity using nix flake check.
+    .TP
+    .B bootstrap
+    Automates Btrfs pristine blank subvolume setup and SOPS age keys directories.
     .TP
     .B vivado
     Enters the high-compatibility Vivado container.

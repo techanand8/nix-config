@@ -21,7 +21,7 @@ let
   # A highly customized, high-tech Qt6 SDDM theme (Neon Green & Maroon Glow)
   manx-vlsi-theme = pkgs.stdenv.mkDerivation {
     pname = "manx-vlsi-theme";
-    version = "2.2";
+    version = "2.9";
     src = ./sddm-theme;
 
     installPhase = ''
@@ -97,9 +97,11 @@ in
   hardware.bluetooth.settings = {
     General = {
       AutoEnable = true;
+      Experimental = true; # Required for battery status & better metadata in some UIs
     };
   };
   services.blueman.enable = true;
+  services.upower.enable = true;
 
   # --- DESKTOP INTERCONNECTS (Flatpak & KDE Connect) ---
   services.flatpak.enable = true;

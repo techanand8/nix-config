@@ -355,9 +355,35 @@
                      # Ensure solid PATH
                      export PATH="$PATH:/run/current-system/sw/bin:$HOME/.nix-profile/bin"
 
+                     START_TIME=$(awk '{print int($1)}' /proc/uptime)
+                     INITIAL_CURSOR=$(hyprctl cursorpos 2>/dev/null || echo "0, 0")
+
                      screensaver_in_focus() {
+                         # Allow a grace period of 3 seconds at startup for Alacritty to map and focus
+                         local uptime_s=$(awk '{print int($1)}' /proc/uptime)
+                         local elapsed=$((uptime_s - START_TIME))
+                         if [[ $elapsed -lt 3 ]]; then
+                             return 0
+                         fi
+
                          active_window=$(hyprctl activewindow -j | jq -r '.class' 2>/dev/null)
                          if [[ "$active_window" == "manx-screensaver" ]]; then
+                             return 0
+                         else
+                             return 1
+                         fi
+                     }
+
+                     cursor_moved() {
+                         # Allow a grace period of 3 seconds before checking cursor movement
+                         local uptime_s=$(awk '{print int($1)}' /proc/uptime)
+                         local elapsed=$((uptime_s - START_TIME))
+                         if [[ $elapsed -lt 3 ]]; then
+                             return 1
+                         fi
+
+                         CURRENT_CURSOR=$(hyprctl cursorpos 2>/dev/null || echo "0, 0")
+                         if [[ "$CURRENT_CURSOR" != "$INITIAL_CURSOR" ]]; then
                              return 0
                          else
                              return 1
@@ -446,7 +472,7 @@
                          TTE_PID=$!
                          # Interaction loop
                          while kill -0 "$TTE_PID" 2>/dev/null; do
-                             if read -n 1 -t 0.1 || ! screensaver_in_focus; then
+                             if read -n 1 -t 0.1 || ! screensaver_in_focus || cursor_moved; then
                                  exit_screensaver
                              fi
                          done

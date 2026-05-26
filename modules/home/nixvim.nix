@@ -121,7 +121,7 @@
     # =========================================================================
     plugins.image = {
       enable = true;
-      backend = "ueberzug";
+      backend = "kitty";
       integrations.markdown.enabled = true;
     };
 
