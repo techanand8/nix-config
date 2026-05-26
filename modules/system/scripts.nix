@@ -103,6 +103,8 @@ let
         echo -e "    ''${C_WHITE}search''${NC}    ''${C_MUTED}❯''${NC} Query the Nixpkgs software registry"
         echo -e "    ''${C_WHITE}shell''${NC}     ''${C_MUTED}❯''${NC} Initialize isolated package environments"
         echo -e "    ''${C_WHITE}aider''${NC}     ''${C_MUTED}❯''${NC} High-Fidelity Engineering Agent (DeepSeek-16B)"
+        echo -e "    ''${C_WHITE}agent''${NC}     ''${C_MUTED}❯''${NC} Local Execution Agent (Does computer tasks for you)"
+        echo -e "    ''${C_WHITE}webui''${NC}     ''${C_MUTED}❯''${NC} Local Intelligence Interface (Professional Web-UI)"
         echo -e "    ''${C_WHITE}vivado''${NC}    ''${C_MUTED}❯''${NC} Enter the AMD Vivado design environment"
         echo -e ""
         echo -e "  ''${C_PRIMARY}󰪢  BRANDING & AESTHETICS''${NC}"
@@ -407,7 +409,7 @@ let
         ;;
 
       aider)
-        log "Launching Engineering Agent (DeepSeek-Coder:6.7b Stable)..."
+        log "Launching High-Fidelity Engineering Agent (DeepSeek-Coder:6.7b Stable)..."
         # Verify Ollama service is active
         if ! curl -s http://127.0.0.1:11434 &>/dev/null; then
             error "Ollama service is not running! Start it via 'sudo systemctl start ollama'."
@@ -422,6 +424,33 @@ let
         # --no-browser: Keeps the focus in the terminal
         # --watch-files: Automatically detects changes you make manually
         aider --model ollama/deepseek-coder:6.7b --no-browser --watch-files "$@"
+        ;;
+
+      agent)
+        log "Launching Elite Personal Task Agent (Open-Interpreter + Llama-3.1)..."
+        
+        # 1. Verify Ollama is alive
+        if ! curl -s http://127.0.0.1:11434 &>/dev/null; then
+            error "Ollama is not running! Start it first."
+        fi
+
+        # 2. Check for container engine
+        if ! command -v podman &> /dev/null && ! command -v docker &> /dev/null; then
+            error "No container engine found (Podman/Docker)!"
+        fi
+
+        # 3. Setup Agent Container if missing
+        if ! distrobox list | grep -q "manx-agent"; then
+            info "Initializing Intelligent Agent environment (First time only)..."
+            distrobox create --name manx-agent --image ubuntu:22.04 --yes
+            distrobox enter manx-agent -- bash -c "sudo apt update && sudo apt install -y python3-pip && pip3 install open-interpreter"
+            success "Agent brain initialized!"
+        fi
+
+        # 4. Run the Agent (Connected to Local Ollama)
+        log "Agent is active. Type 'exit' to return to MANX shell."
+        # We tell interpreter to use our local Ollama instance
+        distrobox enter manx-agent -- interpreter --local --model llama3.1 --api_base http://127.0.0.1:11434/v1 "$@"
         ;;
 
       history)
@@ -523,6 +552,15 @@ let
         fi
         ;;
 
+      webui)
+        log "Launching Professional AI Interface (Open-WebUI)..."
+        # Verify if service is active
+        if ! ${pkgs.curl}/bin/curl -s http://127.0.0.1:8081 &>/dev/null; then
+            info "Service is waking up... please wait a few seconds."
+        fi
+        ${pkgs.xdg-utils}/bin/xdg-open "http://localhost:8081" &>/dev/null &
+        ;;
+
       *)
         error "Unknown command: $1. Type 'manx' for help."
         ;;
@@ -573,6 +611,15 @@ let
     .TP
     .B bootstrap
     Automates Btrfs pristine blank subvolume setup and SOPS age keys directories.
+    .TP
+    .B aider
+    High-Fidelity Engineering Agent (DeepSeek-16B).
+    .TP
+    .B agent
+    Local Execution Agent (Uses Llama-3.1 to perform system tasks).
+    .TP
+    .B webui
+    Local Intelligence Interface (Professional Web-UI).
     .TP
     .B vivado
     Enters the high-compatibility Vivado container.
