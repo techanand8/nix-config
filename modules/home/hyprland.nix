@@ -377,155 +377,169 @@
   home.file.".local/bin/manx-screensaver-run" = {
     executable = true;
     text = ''
-                     #!/usr/bin/env bash
-                     # Screensaver Core Loop (Enhanced Omarchy Style)
+                           #!/usr/bin/env bash
+                           # Screensaver Core Loop (Enhanced Omarchy Style)
 
-                     # Ensure solid PATH
-                     export PATH="$PATH:/run/current-system/sw/bin:$HOME/.nix-profile/bin"
+                           # Ensure solid PATH
+                           export PATH="$PATH:/run/current-system/sw/bin:$HOME/.nix-profile/bin"
 
-                     START_TIME=$(awk '{print int($1)}' /proc/uptime)
-                     INITIAL_CURSOR=$(hyprctl cursorpos 2>/dev/null || echo "0, 0")
+                           START_TIME=$(awk '{print int($1)}' /proc/uptime)
+                           INITIAL_CURSOR=$(hyprctl cursorpos 2>/dev/null || echo "0, 0")
 
-                     screensaver_in_focus() {
-                         # Allow a grace period of 10 seconds at startup for Alacritty to map and focus
-                         local uptime_s=$(awk '{print int($1)}' /proc/uptime)
-                         local elapsed=$((uptime_s - START_TIME))
-                         if [[ $elapsed -lt 10 ]]; then
-                             return 0
-                         fi
+                           screensaver_in_focus() {
+                               # Allow a grace period of 10 seconds at startup for Alacritty to map and focus
+                               local uptime_s=$(awk '{print int($1)}' /proc/uptime)
+                               local elapsed=$((uptime_s - START_TIME))
+                               if [[ $elapsed -lt 10 ]]; then
+                                   return 0
+                               fi
 
-                         active_window=$(${pkgs.hyprland}/bin/hyprctl activewindow -j | ${pkgs.jq}/bin/jq -r '.class' 2>/dev/null)
-                         if [[ "$active_window" == "manx-screensaver" ]]; then
-                             return 0
-                         else
-                             echo "$(date): Exit: Lost focus (Active: $active_window)" >> "/tmp/manx-screensaver.log"
-                             return 1
-                         fi
-                     }
+                               active_window=$(${pkgs.hyprland}/bin/hyprctl activewindow -j | ${pkgs.jq}/bin/jq -r '.class' 2>/dev/null)
+                               if [[ "$active_window" == "manx-screensaver" ]]; then
+                                   return 0
+                               else
+                                   echo "$(date): Exit: Lost focus (Active: $active_window)" >> "/tmp/manx-screensaver.log"
+                                   return 1
+                               fi
+                           }
 
-                     cursor_moved() {
-                         # Allow a grace period of 10 seconds before checking cursor movement
-                         local uptime_s=$(awk '{print int($1)}' /proc/uptime)
-                         local elapsed=$((uptime_s - START_TIME))
-                         if [[ $elapsed -lt 10 ]]; then
-                             return 1
-                         fi
+                           cursor_moved() {
+                               # Allow a grace period of 10 seconds before checking cursor movement
+                               local uptime_s=$(awk '{print int($1)}' /proc/uptime)
+                               local elapsed=$((uptime_s - START_TIME))
+                               if [[ $elapsed -lt 10 ]]; then
+                                   return 1
+                               fi
 
-                         CURRENT_CURSOR=$(${pkgs.hyprland}/bin/hyprctl cursorpos 2>/dev/null || echo "0, 0")
-                         if [[ "$CURRENT_CURSOR" != "$INITIAL_CURSOR" ]]; then
-                             echo "$(date): Exit: Cursor moved from $INITIAL_CURSOR to $CURRENT_CURSOR" >> "/tmp/manx-screensaver.log"
-                             return 0
-                         else
-                             return 1
-                         fi
-                     }
+                               CURRENT_CURSOR=$(${pkgs.hyprland}/bin/hyprctl cursorpos 2>/dev/null || echo "0, 0")
+                               if [[ "$CURRENT_CURSOR" != "$INITIAL_CURSOR" ]]; then
+                                   echo "$(date): Exit: Cursor moved from $INITIAL_CURSOR to $CURRENT_CURSOR" >> "/tmp/manx-screensaver.log"
+                                   return 0
+                               else
+                                   return 1
+                               fi
+                           }
 
-                     exit_screensaver() {
-                         echo "$(date): Exiting screensaver" >> "/tmp/manx-screensaver.log"
-                         # Restore cursor
-                         ${pkgs.hyprland}/bin/hyprctl keyword cursor:invisible false >/dev/null 2>&1
-                         # Kill background processes
-                         ${pkgs.procps}/bin/pkill -f "tte" >/dev/null 2>&1
-                         ${pkgs.procps}/bin/pkill -f "alacritty --class manx-screensaver" >/dev/null 2>&1
-                         exit 0
-                     }
+                           exit_screensaver() {
+                               echo "$(date): Exiting screensaver" >> "/tmp/manx-screensaver.log"
+                               # Restore cursor
+                               ${pkgs.hyprland}/bin/hyprctl keyword cursor:invisible false >/dev/null 2>&1
+                               # Kill background processes
+                               ${pkgs.procps}/bin/pkill -f "tte" >/dev/null 2>&1
+                               ${pkgs.procps}/bin/pkill -f "alacritty --class manx-screensaver" >/dev/null 2>&1
+                               exit 0
+                           }
 
-                     trap exit_screensaver SIGINT SIGTERM EXIT
+                           trap exit_screensaver SIGINT SIGTERM EXIT
 
-                     # Hide cursor for immersion
-                     ${pkgs.hyprland}/bin/hyprctl keyword cursor:invisible true >/dev/null 2>&1
-                     sleep 0.5
+                           # Hide cursor for immersion
+                           ${pkgs.hyprland}/bin/hyprctl keyword cursor:invisible true >/dev/null 2>&1
+                           sleep 0.5
 
-                     # Branding Paths
-                     LOGO_PATH="$HOME/.config/omarchy/branding/logo.png"
-                     TEXT_PATH="$HOME/.config/omarchy/branding/screensaver.txt"
-                     mkdir -p "$HOME/.config/omarchy/branding"
+                           # Branding Paths
+                           LOGO_PATH="$HOME/.config/omarchy/branding/logo.png"
+                           TEXT_PATH="$HOME/.config/omarchy/branding/screensaver.txt"
+                           mkdir -p "$HOME/.config/omarchy/branding"
 
-                     # 2. Start Animation (Bulletproof Loop)
-                     while true; do
-                         # Get terminal size for dynamic scaling
-                         cols=$(${pkgs.ncurses}/bin/tput cols)
-                         rows=$(${pkgs.ncurses}/bin/tput lines)
+                           # 2. Start Animation (Bulletproof Loop)
+                           while true; do
+                               # Get terminal size for dynamic scaling
+                               cols=$(${pkgs.ncurses}/bin/tput cols)
+                               rows=$(${pkgs.ncurses}/bin/tput lines)
 
-                         # --- LIVE DYNAMIC BRANDING GENERATION ---
-                         if [[ -f "$LOGO_PATH" ]]; then
-                             # Calculate optimal size (80% of screen width, 70% of height)
-                             target_cols=$((cols * 8 / 10))
-                             target_rows=$((rows * 7 / 10))
-                             LOGO_TEXT=$(${pkgs.chafa}/bin/chafa --format=symbols --size=''${target_cols}x''${target_rows} "$LOGO_PATH")
-                         elif [[ -f "$TEXT_PATH" ]]; then
-                             # Read text and strip leading/trailing empty lines for perfect centering
-                             LOGO_TEXT=$(awk 'NF {p=1} p' "$TEXT_PATH" | tac | awk 'NF {p=1} p' | tac)
-                         else
-                             # Calculate LIVE stats for every theme cycle
-                             CPU_LOAD=$(grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {printf "%.1f%%", usage}')
-                             MEM_USAGE=$(${pkgs.procps}/bin/free -m | awk '/Mem:/ { printf "%.0f%%", $3/$2*100 }')
-
-                             LOGO_TEXT=$(cat << EOF
-                  ▄▄▄▄███▄▄▄▄      ▄████████ ▄██   ▄      ▄████████ ███▄▄▄▄      ▄█   ▄█▄ 
-                ▄██▀▀▀███▀▀▀██▄   ███    ███ ███   ██▄   ███    ███ ███▀▀▀██▄   ███ ▄███▀ 
-                ███   ███   ███   ███    ███ ███▄▄▄███   ███    ███ ███   ███   ███▐██▀   
-                ███   ███   ███   ███    ███ ▀▀▀▀▀▀███   ███    ███ ███   ███  ▄█████▀    
-                ███   ███   ███ ▀███████████ ▄██   ███ ▀███████████ ███   ███ ▀▀█████▄    
-                ███   ███   ███   ███    ███ ███   ███   ███    ███ ███   ███   ███▐██▄   
-                ███   ███   ███   ███    ███ ███   ███   ███    ███ ███   ███   ███ ▀███▄ 
-                 ▀█   ███   █▀    ███    █▀   ▀█████▀    ███    █▀   ▀█   █▀    ███   ▀█▀ 
-                                                                                ▀         
-                        SILICON WORKSTATION SECURED
-                   [ VLSI Simulation Pipeline Active ]
-
-                   SYSTEM DASHBOARD:
-                   CPU LOAD: $CPU_LOAD | RAM: $MEM_USAGE
-                   STATUS: ENCRYPTED & PROTECTED
+                               # --- LIVE DYNAMIC BRANDING GENERATION ---
+                               if [[ -f "$LOGO_PATH" ]]; then
+                                   # Calculate optimal size (80% of screen width, 70% of height)
+                                   target_cols=$((cols * 8 / 10))
+                                   target_rows=$((rows * 7 / 10))
+                                   LOGO_TEXT=$(${pkgs.chafa}/bin/chafa --format=symbols --size=''${target_cols}x''${target_rows} "$LOGO_PATH")
+                               elif [[ -f "$TEXT_PATH" ]]; then
+                                   # Read text and strip leading/trailing empty lines for perfect centering
+                                   LOGO_TEXT=$(awk 'NF {p=1} p' "$TEXT_PATH" | tac | awk 'NF {p=1} p' | tac)
+                               elif [[ $cols -lt 85 ]]; then
+                                   # Centered compact layout for smaller/split terminals to prevent wrapping artifacts
+                                   CPU_LOAD=$(grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {printf "%.1f%%", usage}')
+                                   MEM_USAGE=$(${pkgs.procps}/bin/free -m | awk '/Mem:/ { printf "%.0f%%", $3/$2*100 }')
+                                   LOGO_TEXT=$(cat << EOF
+                            ⚡ M A N X   O S ⚡
+                      [ SILICON WORKSTATION ]
+                   
+                     SYSTEM DASHBOARD TELEMETRY:
+                     CPU: $CPU_LOAD | RAM: $MEM_USAGE
+                     STATUS: ENCRYPTED & SECURED
       EOF
       )
-                         fi
+                               else
+                                   # Calculate LIVE stats for every theme cycle
+                                   CPU_LOAD=$(grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {printf "%.1f%%", usage}')
+                                   MEM_USAGE=$(${pkgs.procps}/bin/free -m | awk '/Mem:/ { printf "%.0f%%", $3/$2*100 }')
 
-                         # Select a random effect
-                         effects=(
-                             "beams" "binarypath" "blackhole" "bouncyballs" "bubbles" "burn"
-                             "colorshift" "crumble" "decrypt" "errorcorrect" "expand" "fireworks"
-                             "highlight" "laseretch" "matrix" "middleout" "orbittingvolley" "overflow"
-                             "pour" "print" "rain" "randomsequence" "rings" "scattered" "slice"
-                             "slide" "smoke" "spotlights" "spray" "swarm" "sweep" "synthgrid"
-                             "thunderstorm" "unstable" "vhstape" "waves" "wipe"
-                         )
-                         effect=''${effects[$RANDOM % ''${#effects[@]}]}
+                                   LOGO_TEXT=$(cat << EOF
+                        ▄▄▄▄███▄▄▄▄      ▄████████ ▄██   ▄      ▄████████ ███▄▄▄▄      ▄█   ▄█▄ 
+                      ▄██▀▀▀███▀▀▀██▄   ███    ███ ███   ██▄   ███    ███ ███▀▀▀██▄   ███ ▄███▀ 
+                      ███   ███   ███   ███    ███ ███▄▄▄███   ███    ███ ███   ███   ███▐██▀   
+                      ███   ███   ███   ███    ███ ▀▀▀▀▀▀███   ███    ███ ███   ███  ▄█████▀    
+                      ███   ███   ███ ▀███████████ ▄██   ███ ▀███████████ ███   ███ ▀▀█████▄    
+                      ███   ███   ███   ███    ███ ███   ███   ███    ███ ███   ███   ███▐██▄   
+                      ███   ███   ███   ███    ███ ███   ███   ███    ███ ███   ███   ███ ▀███▄ 
+                       ▀█   ███   █▀    ███    █▀   ▀█████▀    ███    █▀   ▀█   █▀    ███   ▀█▀ 
+                                                                                      ▀         
+                              SILICON WORKSTATION SECURED
+                         [ VLSI Simulation Pipeline Active ]
 
-                         echo "$(date): Starting TTE animation with effect: $effect" >> "/tmp/manx-screensaver.log"
-                         # Start TTE animation with high-fidelity adaptive scaling and dual centering
-                         # --canvas-width/height: Synchronizes TTE canvas with physical terminal dimensions
-                         # --anchor-canvas c --anchor-text c: Ensures artwork is centered vertically and horizontally
-                         echo "$LOGO_TEXT" | ${pkgs.terminaltexteffects}/bin/tte --frame-rate 60 --xterm-colors --no-restore-cursor \
-                                                 --canvas-width "$cols" --canvas-height "$rows" \
-                                                 --anchor-canvas c --anchor-text c \
-                                                 --no-eol \
-                                                 "$effect" &
-                          # Flush any initial startup query escape sequences sent by Alacritty
-                          while read -r -t 0.01; do :; done
-                          
-                          # Interaction loop
-                          while kill -0 "$TTE_PID" 2>/dev/null; do
-                              local current_uptime=$(awk '{print int($1)}' /proc/uptime)
-                              local elapsed_s=$((current_uptime - START_TIME))
-                              if [[ $elapsed_s -ge 2 ]]; then
-                                  if read -n 1 -t 0.1; then
-                                      echo "$(date): Exit: Key pressed" >> "/tmp/manx-screensaver.log"
-                                      exit_screensaver
-                                  elif ! screensaver_in_focus; then
-                                      exit_screensaver
-                                  elif cursor_moved; then
-                                      exit_screensaver
-                                  fi
-                              else
-                                  # Empty standard input during grace period to discard initial queries
-                                  read -r -t 0.1 -n 10000 2>/dev/null || true
-                              fi
-                          done
+                         SYSTEM DASHBOARD:
+                         CPU LOAD: $CPU_LOAD | RAM: $MEM_USAGE
+                         STATUS: ENCRYPTED & PROTECTED
+      EOF
+      )
+                               fi
 
-                         sleep 1
-                         clear
-                     done
+                               # Select a random effect
+                               effects=(
+                                   "beams" "binarypath" "blackhole" "bouncyballs" "bubbles" "burn"
+                                   "colorshift" "crumble" "decrypt" "errorcorrect" "expand" "fireworks"
+                                   "highlight" "laseretch" "matrix" "middleout" "orbittingvolley" "overflow"
+                                   "pour" "print" "rain" "randomsequence" "rings" "scattered" "slice"
+                                   "slide" "smoke" "spotlights" "spray" "swarm" "sweep" "synthgrid"
+                                   "thunderstorm" "unstable" "vhstape" "waves" "wipe"
+                               )
+                               effect=''${effects[$RANDOM % ''${#effects[@]}]}
+
+                               echo "$(date): Starting TTE animation with effect: $effect" >> "/tmp/manx-screensaver.log"
+                               # Start TTE animation with high-fidelity adaptive scaling and dual centering
+                               # --canvas-width/height: Synchronizes TTE canvas with physical terminal dimensions
+                               # --anchor-canvas c --anchor-text c: Ensures artwork is centered vertically and horizontally
+                               echo "$LOGO_TEXT" | ${pkgs.terminaltexteffects}/bin/tte --frame-rate 60 --xterm-colors --no-restore-cursor \
+                                                       --canvas-width "$cols" --canvas-height "$rows" \
+                                                       --anchor-canvas c --anchor-text c \
+                                                       --no-eol \
+                                                       "$effect" 2>/dev/null &
+                                TTE_PID=$!
+                                # Flush any initial startup query escape sequences sent by Alacritty
+                                while read -r -t 0.01; do :; done
+                                
+                                # Interaction loop
+                                while kill -0 "$TTE_PID" 2>/dev/null; do
+                                    local current_uptime=$(awk '{print int($1)}' /proc/uptime)
+                                    local elapsed_s=$((current_uptime - START_TIME))
+                                    if [[ $elapsed_s -ge 2 ]]; then
+                                        if read -n 1 -t 0.1; then
+                                            echo "$(date): Exit: Key pressed" >> "/tmp/manx-screensaver.log"
+                                            exit_screensaver
+                                        elif ! screensaver_in_focus; then
+                                            exit_screensaver
+                                        elif cursor_moved; then
+                                            exit_screensaver
+                                        fi
+                                    else
+                                        # Empty standard input during grace period to discard initial queries
+                                        read -r -t 0.1 -n 10000 2>/dev/null || true
+                                    fi
+                                done
+
+                               sleep 1
+                               clear
+                           done
     '';
   };
 }
