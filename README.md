@@ -4,7 +4,7 @@
 
 <br/>
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&duration=3500&pause=1000&color=39FF14&center=true&vCenter=true&width=800&lines=DECLARATIVE+SILICON-GRADE+ENGINEERING+SYSTEM;MATHEMATICALLY+REPRODUCIBLE+•+STATELESS+•+EDA-NATIVE;DYNAMIC+THEME+SYNCING+WITH+AMBXST+ENGINE;SYSTEM+MANAGED+VIA+THE+BESPOKE+MANX+UTILITY" alt="Typing tagline" />
+<img src="assets/tagline.svg" alt="Typing tagline" width="100%" />
 
 <br/>
 

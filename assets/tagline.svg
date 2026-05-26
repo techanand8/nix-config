@@ -1,0 +1,221 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 50" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradients (matching manx_logo.svg) -->
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0002" />
+      <stop offset="50%" stop-color="#1c0005" />
+      <stop offset="100%" stop-color="#050001" />
+    </linearGradient>
+
+    <!-- Neon Glow Filters -->
+    <filter id="glow-green" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter id="glow-red" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Typing Clipping Paths -->
+    <clipPath id="clip-line1">
+      <rect id="rect-line1" x="0" y="-20" width="0" height="30" />
+    </clipPath>
+    <clipPath id="clip-line2">
+      <rect id="rect-line2" x="0" y="-20" width="0" height="30" />
+    </clipPath>
+    <clipPath id="clip-line3">
+      <rect id="rect-line3" x="0" y="-20" width="0" height="30" />
+    </clipPath>
+    <clipPath id="clip-line4">
+      <rect id="rect-line4" x="0" y="-20" width="0" height="30" />
+    </clipPath>
+  </defs>
+
+  <style>
+    /* CSS Animations for pure SVG/Markdown compatibility */
+    
+    /* Active pulse indicator */
+    @keyframes pulse-active {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; filter: url(#glow-green); }
+    }
+
+    /* Terminal corner bracket pulsing */
+    @keyframes pulse-brackets {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 0.9; }
+    }
+
+    /* Standard blinking block cursor */
+    @keyframes cursor-blink {
+      0%, 100% { fill-opacity: 1; }
+      50% { fill-opacity: 0.1; }
+    }
+
+    /* Text opacity control - strictly guarantees 1 active message at a time */
+    @keyframes opacity-line-1 {
+      0%, 23% { opacity: 1; }
+      23.0001%, 100% { opacity: 0; }
+    }
+    @keyframes opacity-line-2 {
+      0%, 24.9999% { opacity: 0; }
+      25%, 48% { opacity: 1; }
+      48.0001%, 100% { opacity: 0; }
+    }
+    @keyframes opacity-line-3 {
+      0%, 49.9999% { opacity: 0; }
+      50%, 73% { opacity: 1; }
+      73.0001%, 100% { opacity: 0; }
+    }
+    @keyframes opacity-line-4 {
+      0%, 74.9999% { opacity: 0; }
+      75%, 98% { opacity: 1; }
+      98.0001%, 100% { opacity: 0; }
+    }
+
+    /* Clipping width keyframes matching typing lengths at Fira Code monospace proportions */
+    @keyframes clip-reveal-1 {
+      0% { width: 0; }
+      1.5% { width: 0; }
+      8% { width: 465px; }
+      21% { width: 465px; }
+      23% { width: 0; }
+      23.0001%, 100% { width: 0; }
+    }
+    @keyframes clip-reveal-2 {
+      0%, 25% { width: 0; }
+      26.5% { width: 0; }
+      33% { width: 565px; }
+      46% { width: 565px; }
+      48% { width: 0; }
+      48.0001%, 100% { width: 0; }
+    }
+    @keyframes clip-reveal-3 {
+      0%, 50% { width: 0; }
+      51.5% { width: 0; }
+      58% { width: 435px; }
+      71% { width: 435px; }
+      73% { width: 0; }
+      73.0001%, 100% { width: 0; }
+    }
+    @keyframes clip-reveal-4 {
+      0%, 75% { width: 0; }
+      76.5% { width: 0; }
+      83% { width: 465px; }
+      96% { width: 465px; }
+      98% { width: 0; }
+      98.0001%, 100% { width: 0; }
+    }
+
+    /* Synchronized moving cursor tracker */
+    @keyframes cursor-track {
+      /* Phase 1 */
+      0% { transform: translateX(0); fill-opacity: 1; }
+      1.5% { transform: translateX(0); fill-opacity: 1; }
+      8% { transform: translateX(465px); fill-opacity: 1; }
+      21% { transform: translateX(465px); fill-opacity: 1; }
+      23% { transform: translateX(0); fill-opacity: 0; }
+      24.9999% { transform: translateX(0); fill-opacity: 0; }
+      /* Phase 2 */
+      25% { transform: translateX(0); fill-opacity: 1; }
+      26.5% { transform: translateX(0); fill-opacity: 1; }
+      33% { transform: translateX(565px); fill-opacity: 1; }
+      46% { transform: translateX(565px); fill-opacity: 1; }
+      48% { transform: translateX(0); fill-opacity: 0; }
+      49.9999% { transform: translateX(0); fill-opacity: 0; }
+      /* Phase 3 */
+      50% { transform: translateX(0); fill-opacity: 1; }
+      51.5% { transform: translateX(0); fill-opacity: 1; }
+      58% { transform: translateX(435px); fill-opacity: 1; }
+      71% { transform: translateX(435px); fill-opacity: 1; }
+      73% { transform: translateX(0); fill-opacity: 0; }
+      74.9999% { transform: translateX(0); fill-opacity: 0; }
+      /* Phase 4 */
+      75% { transform: translateX(0); fill-opacity: 1; }
+      76.5% { transform: translateX(0); fill-opacity: 1; }
+      83% { transform: translateX(465px); fill-opacity: 1; }
+      96% { transform: translateX(465px); fill-opacity: 1; }
+      98% { transform: translateX(0); fill-opacity: 0; }
+      100% { transform: translateX(0); fill-opacity: 0; }
+    }
+
+    /* Class definitions */
+    .text-base {
+      font-family: 'Fira Code', 'JetBrains Mono', 'Fira Mono', monospace;
+      font-size: 15.5px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      fill: #ffffff;
+    }
+    .prompt-text {
+      font-family: 'Fira Code', 'JetBrains Mono', 'Fira Mono', monospace;
+      font-size: 15.5px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+    .cursor {
+      fill: #39ff14;
+      filter: url(#glow-green);
+      animation: cursor-track 16s infinite, cursor-blink 0.8s infinite;
+    }
+    .status-active {
+      font-family: 'Fira Code', monospace;
+      font-size: 8px;
+      font-weight: bold;
+      fill: #39ff14;
+      letter-spacing: 1px;
+      filter: url(#glow-green);
+    }
+  </style>
+
+  <!-- Dark Background Capsule (matching manx_logo.svg) -->
+  <rect width="800" height="50" fill="url(#bg-grad)" rx="6" stroke="#4d0012" stroke-width="1" />
+
+  <!-- Cybernetic Frame & Status Indicators -->
+  <g style="animation: pulse-brackets 4s ease-in-out infinite;">
+    <!-- Left Bracket -->
+    <path d="M 25,12 L 15,12 L 15,38 L 25,38" stroke="#ff1133" stroke-width="1.5" fill="none" opacity="0.8" filter="url(#glow-red)" />
+    <!-- Right Bracket -->
+    <path d="M 775,12 L 785,12 L 785,38 L 775,38" stroke="#ff1133" stroke-width="1.5" fill="none" opacity="0.8" filter="url(#glow-red)" />
+  </g>
+
+  <!-- Live Pulse Diagnostic Indicator -->
+  <circle cx="42" cy="25" r="3.5" fill="#39ff14" style="animation: pulse-active 2.5s infinite ease-in-out;" />
+
+  <!-- Terminal Command Prompt -->
+  <text class="prompt-text" x="60" y="30.5">
+    <tspan fill="#ff1133" filter="url(#glow-red)">manx</tspan>
+    <tspan fill="#ffffff" opacity="0.8"> ❯ </tspan>
+  </text>
+
+  <!-- Typing Content Group -->
+  <g transform="translate(145, 30.5)">
+    <!-- Line 1 -->
+    <text class="text-line-1 text-base" clip-path="url(#clip-line1)">DECLARATIVE SILICON-GRADE ENGINEERING SYSTEM</text>
+    
+    <!-- Line 2 -->
+    <text class="text-line-2 text-base" clip-path="url(#clip-line2)">MATHEMATICALLY REPRODUCIBLE • STATELESS • EDA-NATIVE</text>
+    
+    <!-- Line 3 -->
+    <text class="text-line-3 text-base" clip-path="url(#clip-line3)">DYNAMIC THEME SYNCING WITH AMBXST ENGINE</text>
+    
+    <!-- Line 4 -->
+    <text class="text-line-4 text-base" clip-path="url(#clip-line4)">SYSTEM MANAGED VIA THE BESPOKE MANX UTILITY</text>
+
+    <!-- Synchronized Blinking Cybernetic Cursor -->
+    <rect class="cursor" x="2" y="-14" width="8" height="17" />
+  </g>
+
+  <!-- Right Dashboard Telemetry Badge -->
+  <g transform="translate(715, 17)">
+    <rect x="0" y="0" width="50" height="15" rx="3" fill="#0d1117" stroke="#39ff14" stroke-width="0.75" opacity="0.9" />
+    <text class="status-active" x="25" y="10.5" text-anchor="middle">ACTIVE</text>
+  </g>
+</svg>
