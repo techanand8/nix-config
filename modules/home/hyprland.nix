@@ -215,6 +215,19 @@
       hl.window_rule({ match = { class = "manx-screensaver" }, no_anim = true })
       hl.window_rule({ match = { class = "manx-screensaver" }, no_shadow = true })
 
+      -- ############ EDA & VLSI ENGINEERING TOOLING WINDOW RULES ############
+      -- Float and center all secondary Vivado/Vitis popups and dialog windows
+      hl.window_rule({ match = { class = "vivado", title = "^(?!Vivado).*$" }, float = true })
+      hl.window_rule({ match = { class = "vivado", title = "^(?!Vivado).*$" }, center = true })
+      hl.window_rule({ match = { class = "Vivado", title = "^(?!Vivado).*$" }, float = true })
+      hl.window_rule({ match = { class = "Vivado", title = "^(?!Vivado).*$" }, center = true })
+
+      -- Float physical design editors so they don't get squished by tiling layouts
+      hl.window_rule({ match = { class = "magic" }, float = true })
+      hl.window_rule({ match = { class = "klayout" }, float = true })
+      hl.window_rule({ match = { class = "xschem" }, float = true })
+      hl.window_rule({ match = { class = "gtkwave" }, float = true })
+
       hl.workspace_rule({ workspace = "special:special", gaps_out = 30 })
     '';
     "hypr/hyprland/keybinds.lua".text = ''

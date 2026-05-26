@@ -228,6 +228,16 @@
         LIMIT_MONTHLY = "0";
         LIMIT_YEARLY = "0";
       };
+      persist = {
+        SUBVOLUME = "/persist";
+        TIMELINE_CREATE = true;
+        TIMELINE_CLEANUP = true;
+        LIMIT_HOURLY = "10";
+        LIMIT_DAILY = "7";
+        LIMIT_WEEKLY = "3";
+        LIMIT_MONTHLY = "0";
+        LIMIT_YEARLY = "0";
+      };
     };
   };
 }
