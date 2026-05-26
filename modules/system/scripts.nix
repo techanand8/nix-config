@@ -425,20 +425,23 @@ let
             # Professional Aider Flags: 
             # --no-browser: Keeps the focus in the terminal
             # --watch-files: Automatically detects changes you make manually
+            shift
             aider --model ollama/deepseek-coder:6.7b --no-browser --watch-files "$@"
             ;;
 
           agent)
             log "Launching Elite Personal Task Agent (Open-Interpreter + Llama-3.1)..."
-            
+
             # Verify Ollama is alive
             if ! curl -s http://127.0.0.1:11434 &>/dev/null; then
                 error "Ollama service is not running! Start it via 'sudo systemctl start ollama'."
             fi
 
+            shift
             case $1 in
               update)
                 shift
+
                 log "Self-healing Agent Environment..."
                 nix-shell -p python312 pipx gcc rustc cargo --run "pipx install --python python3.12 --force open-interpreter && pipx runpip open-interpreter install 'setuptools<70'"
                 # Re-apply the library fix
