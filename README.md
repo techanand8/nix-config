@@ -13,6 +13,7 @@
 [![Storage](https://img.shields.io/badge/Storage-Btrfs_LUKS-39ff14?style=for-the-badge&logo=git&logoColor=black)](https://btrfs.readthedocs.io)
 [![WM](https://img.shields.io/badge/Desktop-Hyprland_Wayland-ffb59e?style=for-the-badge&logo=hyprland&logoColor=white)](https://hyprland.org)
 [![IDE](https://img.shields.io/badge/IDE-Nixvim-7c3aed?style=for-the-badge&logo=neovim&logoColor=white)](https://github.com/nix-community/nixvim)
+[![Showcase](https://img.shields.io/badge/Showcase-Silicon_HUD-00f5ff?style=for-the-badge&logo=serverless&logoColor=white)](https://techanand8.github.io)
 
 </div>
 
