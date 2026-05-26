@@ -199,6 +199,86 @@ The repository layout follows a **DRY (Don't Repeat Yourself)** host-module hier
 
 ---
 
+## 📦 Distrobox EDA Sandbox Guide (AMD Vivado & Vitis)
+
+To run heavy, proprietary hardware design and verification frameworks like **AMD Xilinx Vivado & Vitis** without breaking NixOS's declarative and stateless nature, MANX OS deploys a high-compatibility high-performance container sandbox using **Distrobox** and **Podman/Docker**. 
+
+This allows you to run Vivado with **native performance**, full hardware acceleration, Wayland screen rendering, and direct USB/JTAG device programming!
+
+```mermaid
+graph LR
+    subgraph Host [❄️ Host: MANX OS]
+        A[Desktop Launcher / CLI] -->|distrobox enter| B(🐧 manx-vivado Sandbox)
+        C[🔌 Physical JTAG/FPGA USB] -->|Host Udev /dev/bus/usb| D(⚡ Interactive Programming)
+    end
+    subgraph Container [🐳 Arch/Ubuntu Sandbox]
+        B -->|Wayland Socket Pass-through| E[🖥️ Vivado GUI / Waveforms]
+        B -->|JTAG Hardware Bindings| D
+    end
+    style Host fill:#0d1117,stroke:#00f5ff,stroke-width:2px;
+    style Container fill:#0d1117,stroke:#ff1133,stroke-width:2px;
+```
+
+<details>
+<summary><b>🚀 1. Automated Provisioning & First Launch</b></summary>
+<br/>
+
+Setting up the EDA sandbox is extremely streamlined. Execute the following simple sequence to initialize your environment:
+
+1. **Verify Podman/Docker Service**: Ensure virtualization is active:
+   ```bash
+   systemctl status podman --user
+   ```
+2. **Create the EDA Sandbox Container**:
+   Initialize a high-compatibility environment (Ubuntu or Arch based) optimized for Vivado dependencies:
+   ```bash
+   distrobox-create --image archlinux:latest --name manx-vivado --home ~/.local/share/manx-vivado-home
+   ```
+3. **Install Core System Dependencies**:
+   Enter the container and install X11/GL libraries required by Vivado's Java GUI:
+   ```bash
+   distrobox enter manx-vivado -- sudo pacman -Syu --noconfirm git base-devel libx11 libxft libxrender libxtst libxi libxrandr fontconfig freetype2 ncurses
+   ```
+</details>
+
+<details>
+<summary><b>⚡ 2. Installing AMD Vivado & Vitis</b></summary>
+<br/>
+
+1. **Download the Installer**: Obtain the Linux self-extracting installer (`.run` or `.bin`) for AMD Vivado/Vitis from the official site.
+2. **Execute Installer inside Sandbox**:
+   Move the installer to your shared home folder and launch it inside the container:
+   ```bash
+   distrobox enter manx-vivado -- ./FPGAs_Vivado_Unified_lnx.bin
+   ```
+3. **Installation Directory**: Ensure you install it directly under `/tools/Xilinx` (the standard enterprise path). The sandbox home is automatically mapped, maintaining file persistence across system reboots!
+</details>
+
+<details>
+<summary><b>🔌 3. USB JTAG Hardware Bindings (FPGA Programming)</b></summary>
+<br/>
+
+To program physical hardware targets (like Basys 3, Nexys, or custom boards) directly from the Vivado GUI inside the container:
+
+1. **Deploy Host Udev Rules**: Ensure the host has access to Digilent/Xilinx JTAG programmers. This is automatically handled by the system configuration in `modules/system/vivado.nix`!
+2. **Load Cable Drivers inside Container**:
+   Once Vivado is installed, register the Digilent cable drivers inside the Distrobox container:
+   ```bash
+   distrobox enter manx-vivado -- sudo /tools/Xilinx/Vivado/202X.X/data/xicom/cable_drivers/lin64/install_script/install_drivers/install_drivers
+   ```
+3. When you plug in your FPGA board via USB, Vivado will immediately recognize it on the JTAG chain!
+</details>
+
+<details>
+<summary><b>🖥️ 4. GUI Tiling & Window Rules Safety</b></summary>
+<br/>
+
+- Vivado GUI is built on Java AWT, which has rendering issues in tiling window managers. The **MANX OS** wrapper automatically passes the key environment variable `_JAVA_AWT_WM_NONREPARENTING=1` to prevent gray screens.
+- **Tiling Workaround**: Clicking settings, runs, or IP management generates secondary dialog windows. Hyprland is configured with S-Tier regex window rules that capture these popup frames and automatically floats and centers them cleanly on top of your main working workspace!
+</details>
+
+---
+
 ## Deployment & Setup Guide
 
 ### 1. Repository Setup
