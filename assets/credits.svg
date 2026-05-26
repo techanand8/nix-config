@@ -1,58 +1,221 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 150" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" width="100%" height="100%">
   <defs>
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="3" result="blur" />
-      <feMerge>
-        <feMergeNode in="blur" />
-        <feMergeNode in="SourceGraphic" />
-      </feMerge>
-    </filter>
+    <!-- Background Grid Pattern -->
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(57, 255, 20, 0.05)" stroke-width="0.5" />
+      <circle cx="40" cy="0" r="1.5" fill="rgba(57, 255, 20, 0.12)" />
+      <circle cx="0" cy="40" r="1.5" fill="rgba(57, 255, 20, 0.12)" />
+    </pattern>
+
+    <!-- Clip path for the side timing diagrams -->
+    <clipPath id="panel-clip-left">
+      <rect x="30" y="45" width="110" height="110" />
+    </clipPath>
   </defs>
+
   <style>
-    @keyframes fade-in-out {
-      0%, 5% { opacity: 0; transform: translateY(10px); }
-      15%, 85% { opacity: 1; transform: translateY(0); }
-      95%, 100% { opacity: 0; transform: translateY(-10px); }
+    @keyframes slide-fade {
+      0% {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      2% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      18% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      20% {
+        opacity: 0;
+        transform: translateY(-12px);
+      }
+      20.0001%, 100% {
+        opacity: 0;
+        transform: translateY(12px);
+      }
     }
-    .text {
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    .text-msg {
       font-family: 'Fira Code', 'JetBrains Mono', monospace;
-      font-size: 16px;
-      fill: #39ff14;
+      font-size: 10.5px;
       text-anchor: middle;
       opacity: 0;
-      filter: url(#glow);
+      animation: slide-fade 20s infinite ease-in-out;
     }
-    .highlight {
-      fill: #ff1133;
-      font-weight: bold;
-    }
+
     .title {
       font-family: 'Orbitron', sans-serif;
       font-size: 12px;
-      letter-spacing: 4px;
-      fill: rgba(255, 255, 255, 0.4);
+      letter-spacing: 5px;
+      fill: #ffffff;
       text-anchor: middle;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      font-family: 'Fira Code', monospace;
+      font-size: 8px;
+      letter-spacing: 2px;
+      fill: rgba(57, 255, 20, 0.6);
+      text-anchor: middle;
+    }
+
+    .telemetry-label {
+      font-family: 'Fira Code', monospace;
+      font-size: 8px;
+      fill: rgba(255, 255, 255, 0.3);
+    }
+
+    .telemetry-value {
+      font-family: 'Fira Code', monospace;
+      font-size: 8px;
+      fill: #39ff14;
+      font-weight: bold;
+    }
+
+    .cursor {
+      animation: blink 1s infinite;
     }
   </style>
 
-  <rect width="800" height="150" fill="#050107" rx="8" />
-  
-  <text x="400" y="30" class="title">WORKSTATION ACKNOWLEDGMENTS</text>
+  <!-- Solid background -->
+  <rect width="800" height="200" fill="#050107" rx="8" />
 
-  <g transform="translate(400, 85)">
-    <text class="text" style="animation: fade-in-out 10s infinite 0s;">
-      Deep gratitude to <tspan class="highlight">ILLOGICAL IMPULSE</tspan> for the Omarchy security layer
+  <!-- Grid overlay -->
+  <rect width="800" height="200" fill="url(#grid)" rx="8" />
+
+  <!-- Subtle gradient border -->
+  <rect x="6" y="6" width="788" height="188" fill="none" stroke="rgba(57, 255, 20, 0.1)" stroke-width="1.5" rx="6" />
+
+  <!-- Corner Brackets -->
+  <path d="M 6,30 L 6,6 L 30,6" fill="none" stroke="#39ff14" stroke-width="2.5" />
+  <path d="M 794,30 L 794,6 L 770,6" fill="none" stroke="#39ff14" stroke-width="2.5" />
+  <path d="M 6,170 L 6,194 L 30,194" fill="none" stroke="#39ff14" stroke-width="2.5" />
+  <path d="M 794,170 L 794,194 L 770,194" fill="none" stroke="#39ff14" stroke-width="2.5" />
+
+  <!-- Divider Line below Header -->
+  <line x1="150" y1="55" x2="650" y2="55" stroke="rgba(57, 255, 20, 0.15)" stroke-width="1" />
+  <circle cx="400" cy="55" r="3" fill="#39ff14" />
+  
+  <!-- Header Title -->
+  <text x="400" y="36" class="title">WORKSTATION ACKNOWLEDGMENTS</text>
+  <text x="400" y="48" class="subtitle">DEC_OS :: COOPERATIVE ENGINEERING RECORD</text>
+
+  <!-- Left Side: Animated Logic Waveforms (VLSI Simulation vibe) -->
+  <!-- Border for waveform panel -->
+  <rect x="25" y="65" width="115" height="90" fill="#08020d" stroke="rgba(0, 245, 255, 0.15)" stroke-width="1" rx="4" />
+  <text x="32" y="80" font-family="'Fira Code', monospace" font-size="7" fill="rgba(0, 245, 255, 0.6)" font-weight="bold">LOGIC_ANALYZER</text>
+  
+  <!-- Scrolling Clock Signal (CLK) -->
+  <g clip-path="url(#panel-clip-left)">
+    <!-- Clock Wave -->
+    <g transform="translate(30, 115)">
+      <text x="2" y="-5" font-family="'Fira Code', monospace" font-size="7" fill="rgba(255,255,255,0.25)">CLK</text>
+      <!-- Repeated square wave -->
+      <path d="M -40,0 L -30,0 L -30,-15 L -20,-15 L -20,0 L -10,0 L -10,-15 L 0,-15 L 0,0 L 10,0 L 10,-15 L 20,-15 L 20,0 L 30,0 L 30,-15 L 40,-15 L 40,0 L 50,0 L 50,-15 L 60,-15 L 60,0 L 70,0 L 70,-15 L 80,-15 L 80,0 L 90,0 L 90,-15 L 100,-15 L 100,0 L 110,0 L 110,-15 L 120,-15 L 120,0" fill="none" stroke="#00F5FF" stroke-width="1.5">
+        <animateTransform attributeName="transform" type="translate" from="0,0" to="20,0" dur="2s" repeatCount="indefinite" />
+      </path>
+    </g>
+
+    <!-- Scrolling Data Signal (SDA) -->
+    <g transform="translate(30, 145)">
+      <text x="2" y="-5" font-family="'Fira Code', monospace" font-size="7" fill="rgba(255,255,255,0.25)">SDA</text>
+      <!-- Repeated custom wave -->
+      <path d="M -60,0 L -45,0 L -45,-15 L -15,-15 L -15,0 L 15,0 L 15,-15 L 30,-15 L 30,0 L 60,0 L 60,-15 L 90,-15 L 90,0 L 120,0" fill="none" stroke="#ff1133" stroke-width="1.5">
+        <animateTransform attributeName="transform" type="translate" from="0,0" to="30,0" dur="3s" repeatCount="indefinite" />
+      </path>
+    </g>
+  </g>
+
+  <!-- Right Side: Workstation Telemetry -->
+  <rect x="660" y="65" width="115" height="90" fill="#08020d" stroke="rgba(57, 255, 20, 0.15)" stroke-width="1" rx="4" />
+  <text x="667" y="80" font-family="'Fira Code', monospace" font-size="7" fill="rgba(57, 255, 20, 0.6)" font-weight="bold">SYS_TELEMETRY</text>
+  
+  <g transform="translate(667, 95)">
+    <text x="0" y="0" class="telemetry-label">HOST:</text>
+    <text x="96" y="0" class="telemetry-value" text-anchor="end">MANX</text>
+
+    <text x="0" y="12" class="telemetry-label">CORE_STATUS:</text>
+    <text x="96" y="12" class="telemetry-value" fill="#39ff14" text-anchor="end">ACTIVE</text>
+
+    <text x="0" y="24" class="telemetry-label">FREQ:</text>
+    <text x="96" y="24" class="telemetry-value" text-anchor="end">5.20 GHz</text>
+
+    <text x="0" y="36" class="telemetry-label">SEC_DESTRUCT:</text>
+    <text x="96" y="36" class="telemetry-value" fill="#ff1133" text-anchor="end">ARMED</text>
+
+    <text x="0" y="48" class="telemetry-label">IMPERMANENCE:</text>
+    <text x="96" y="48" class="telemetry-value" text-anchor="end">ENABLED</text>
+  </g>
+
+  <!-- Center Gratitude Display Terminal -->
+  <g transform="translate(0, 115)">
+    <!-- Terminal Background Box -->
+    <rect x="160" y="-35" width="480" height="75" fill="#040108" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1" rx="4" />
+    
+    <!-- Top Bar of Terminal Box -->
+    <rect x="160" y="-35" width="480" height="15" fill="#0d0815" rx="4" />
+    <circle cx="170" cy="-27" r="2.5" fill="#ff1133" />
+    <circle cx="178" cy="-27" r="2.5" fill="#ffb59e" />
+    <circle cx="186" cy="-27" r="2.5" fill="#39ff14" />
+    <text x="400" y="-25" font-family="'Fira Code', monospace" font-size="7" fill="rgba(255,255,255,0.3)" text-anchor="middle">manx-os://workstation/acknowledgments</text>
+    
+    <!-- Message 1: Illogical Impulse -->
+    <text class="text-msg" x="400" style="animation-delay: 0s;">
+      <tspan fill="#39ff14" font-weight="bold">[  OK  ]</tspan> 
+      <tspan fill="#00F5FF" font-weight="bold">SECURE_LAYER</tspan>
+      <tspan fill="#ffffff"> :: </tspan>
+      <tspan fill="#ff1133" font-weight="bold">ILLOGICAL IMPULSE</tspan>
+      <tspan fill="#ffffff"> (gestures &amp; window rules)</tspan>
     </text>
-    <text class="text" style="animation: fade-in-out 10s infinite 2.5s;">
-      Aesthetic frameworks and Hyprland logic powered by <tspan class="highlight">AMBXST PROJECT</tspan>
+    
+    <!-- Message 2: Ambxst Project -->
+    <text class="text-msg" x="400" style="animation-delay: -16s;">
+      <tspan fill="#39ff14" font-weight="bold">[  OK  ]</tspan> 
+      <tspan fill="#00F5FF" font-weight="bold">SHELL_ENGINE</tspan>
+      <tspan fill="#ffffff"> :: Aesthetics &amp; Hyprland by </tspan>
+      <tspan fill="#ff1133" font-weight="bold">AMBXST PROJECT</tspan>
     </text>
-    <text class="text" style="animation: fade-in-out 10s infinite 5s;">
-      Structural and declarative inspiration sourced from <tspan class="highlight">ZANEYOS</tspan>
+    
+    <!-- Message 3: ZaneyOS -->
+    <text class="text-msg" x="400" style="animation-delay: -12s;">
+      <tspan fill="#39ff14" font-weight="bold">[  OK  ]</tspan> 
+      <tspan fill="#00F5FF" font-weight="bold">NIX_REPRO</tspan>
+      <tspan fill="#ffffff"> :: Structural/declarative patterns from </tspan>
+      <tspan fill="#ff1133" font-weight="bold">ZANEYOS</tspan>
     </text>
-    <text class="text" style="animation: fade-in-out 10s infinite 7.5s;">
-      Innovation driven by the global <tspan class="highlight">OPEN SOURCE VLSI</tspan> community
+    
+    <!-- Message 4: VLSI Community -->
+    <text class="text-msg" x="400" style="animation-delay: -8s;">
+      <tspan fill="#39ff14" font-weight="bold">[  OK  ]</tspan> 
+      <tspan fill="#00F5FF" font-weight="bold">VLSI_FLOW</tspan>
+      <tspan fill="#ffffff"> :: Powered by the open-source </tspan>
+      <tspan fill="#ff1133" font-weight="bold">SILICON COMMUNITY</tspan>
+    </text>
+
+    <!-- Message 5: Omarchy Linux -->
+    <text class="text-msg" x="400" style="animation-delay: -4s;">
+      <tspan fill="#39ff14" font-weight="bold">[  OK  ]</tspan> 
+      <tspan fill="#00F5FF" font-weight="bold">OMARCHY_OS</tspan>
+      <tspan fill="#ffffff"> :: Screensaver inspired by </tspan>
+      <tspan fill="#ff1133" font-weight="bold">OMARCHY LINUX</tspan>
+      <tspan fill="#ffffff"> (DHH)</tspan>
+    </text>
+    
+    <!-- Terminal Prompt Line -->
+    <text x="175" y="24" font-family="'Fira Code', monospace" font-size="8.5" fill="rgba(255,255,255,0.4)">
+      <tspan fill="#39ff14">manx-os ~</tspan> guest$ <tspan fill="#ffffff">sys.rebuild()</tspan><tspan fill="#39ff14" class="cursor">█</tspan>
     </text>
   </g>
-  
-  <path d="M 50,130 L 750,130" stroke="#39ff14" stroke-width="0.5" stroke-dasharray="4, 10" opacity="0.3" />
+
+  <!-- Bottom Accent / Status Line -->
+  <path d="M 160,170 L 640,170" stroke="#39ff14" stroke-width="0.75" stroke-dasharray="2, 6" opacity="0.3" />
+  <circle cx="400" cy="170" r="1.5" fill="#39ff14" />
 </svg>
