@@ -488,13 +488,27 @@
                                                  --anchor-canvas c --anchor-text c \
                                                  --no-eol \
                                                  "$effect" &
-                         TTE_PID=$!
-                         # Interaction loop
-                         while kill -0 "$TTE_PID" 2>/dev/null; do
-                             if read -n 1 -t 0.1 || ! screensaver_in_focus || cursor_moved; then
-                                 exit_screensaver
-                             fi
-                         done
+                          # Flush any initial startup query escape sequences sent by Alacritty
+                          while read -r -t 0.01; do :; done
+                          
+                          # Interaction loop
+                          while kill -0 "$TTE_PID" 2>/dev/null; do
+                              local current_uptime=$(awk '{print int($1)}' /proc/uptime)
+                              local elapsed_s=$((current_uptime - START_TIME))
+                              if [[ $elapsed_s -ge 2 ]]; then
+                                  if read -n 1 -t 0.1; then
+                                      echo "$(date): Exit: Key pressed" >> "/tmp/manx-screensaver.log"
+                                      exit_screensaver
+                                  elif ! screensaver_in_focus; then
+                                      exit_screensaver
+                                  elif cursor_moved; then
+                                      exit_screensaver
+                                  fi
+                              else
+                                  # Empty standard input during grace period to discard initial queries
+                                  read -r -t 0.1 -n 10000 2>/dev/null || true
+                              fi
+                          done
 
                          sleep 1
                          clear
