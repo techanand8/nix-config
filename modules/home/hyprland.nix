@@ -124,6 +124,7 @@
       hl.on("hyprland.start", function()
           hl.exec_cmd("dbus-update-activation-environment --all")
           hl.exec_cmd("sleep 1 && dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
+          hl.exec_cmd("systemctl --user start graphical-session.target")
           hl.exec_cmd("systemctl --user start hyprpolkitagent")
           hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
           hl.exec_cmd("bash $HOME/.local/bin/sync_ghostty.sh")
@@ -269,7 +270,7 @@
     settings = {
       general = {
         # Secure direct lock with cool effects
-        lock_cmd = "pkill -f 'alacritty --class manx-screensaver' || true; ambxst lock";
+        lock_cmd = "ambxst lock";
         before_sleep_cmd = "loginctl lock-session";
         after_sleep_cmd = "ambxst screen on";
       };
@@ -284,7 +285,7 @@
         {
           # 2. Launch Visual Screensaver (4 mins)
           timeout = 240;
-          on-timeout = "pkill -f 'alacritty --class manx-screensaver' || true; ${config.home.homeDirectory}/.local/bin/manx-screensaver";
+          on-timeout = "${config.home.homeDirectory}/.local/bin/manx-screensaver";
           on-resume = "pkill -f 'alacritty --class manx-screensaver' || true";
         }
         {
@@ -319,15 +320,9 @@
       export PATH="$PATH:/run/current-system/sw/bin:/etc/profiles/per-user/$USER/bin:$HOME/.nix-profile/bin"
 
       # 0. PRE-FLIGHT CHECKS
-      if ! ${pkgs.procps}/bin/pgrep -f "tte" >/dev/null && ! command -v tte &>/dev/null; then
+      if ! command -v tte &>/dev/null && ! [ -x ${pkgs.terminaltexteffects}/bin/tte ]; then
           echo "$(date): ERROR: tte not found" >> "$LOG_FILE"
           exit 1
-      fi
-
-      # Prevent multiple instances
-      if ${pkgs.procps}/bin/pgrep -f "alacritty --class manx-screensaver" >/dev/null; then
-          echo "$(date): Screensaver already running, exiting" >> "$LOG_FILE"
-          exit 0
       fi
 
       # 1. CHECK TOGGLE STATE
@@ -360,6 +355,10 @@
           fi
       fi
 
+      # Prevent multiple instances and kill any hanging ones
+      ${pkgs.procps}/bin/pkill -f "alacritty --class manx-screensaver" || true
+      sleep 0.2
+
       echo "$(date): Launching Alacritty for screensaver" >> "$LOG_FILE"
       # 4. LAUNCH (Elite Mode)
       # We force LC_ALL=C for clean XKB handling
@@ -370,7 +369,7 @@
                 -o "colors.primary.background='#000000'" \
                 -o "window.padding={x=0,y=0}" \
                 -o "window.dynamic_padding=false" \
-                -e "$HOME/.local/bin/manx-screensaver-run"
+                --command "$HOME/.local/bin/manx-screensaver-run"
     '';
   };
 
