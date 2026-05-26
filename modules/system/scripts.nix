@@ -110,6 +110,7 @@ let
         echo -e ""
         echo -e "  ''${C_PRIMARY}󰪢  BRANDING & AESTHETICS''${NC}"
         echo -e "    ''${C_WHITE}screensaver''${NC} ''${C_MUTED}❯''${NC} Orchestrate immersive workstation branding"
+        echo -e "    ''${C_WHITE}showcase''${NC}    ''${C_MUTED}❯''${NC} Launch the secure static Workstation Showcase website"
         echo -e ""
         echo -e "  ''${C_MUTED}──────────────────────────────────────────────────────────────────────''${NC}"
         echo -e "  ''${C_HIGHLIGHT}󰌢  Type 'man manx' to access the system documentation.''${NC}"
@@ -584,6 +585,29 @@ let
         success "Routine Workspace successfully engaged."
         ;;
 
+      showcase|site|web)
+        log "Launching secure MANX OS Workstation Showcase website..."
+        
+        WEBSITE_DIR="$HOME/website"
+        PORT=8050
+
+        # Check if local server is already running on PORT
+        if ${pkgs.curl}/bin/curl -s -o /dev/null -w "%{http_code}" "http://localhost:$PORT" &>/dev/null; then
+            info "Showcase website server is already active. Launching interface..."
+        else
+            info "Initializing secure background static web server on port $PORT..."
+            # Launch Python's lightweight standard HTTP server inside website directory
+            cd "$WEBSITE_DIR"
+            ${pkgs.python3}/bin/python3 -m http.server $PORT &>/dev/null &
+            sleep 0.8
+            cd "$CONFIG_DIR"
+        fi
+
+        # Open web browser securely
+        ${pkgs.xdg-utils}/bin/xdg-open "http://localhost:$PORT" &>/dev/null &
+        success "Showcase site interface engaged successfully!"
+        ;;
+
       *)
         error "Unknown command: $1. Type 'manx' for help."
         ;;
@@ -652,6 +676,9 @@ let
     .TP
     .B screensaver
     Manages custom branding (ASCII/Image) and the master toggle for the Omarchy-style screensaver.
+    .TP
+    .B showcase
+    Launches the secure static Workstation Portfolio Showcase page locally.
     .SH AUTHOR
     MANX Engineering.
     EOF
