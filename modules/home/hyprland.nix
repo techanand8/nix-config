@@ -376,6 +376,10 @@
       trap "exit_screensaver 'Signal'" SIGINT SIGTERM EXIT
       $HYPRCTL keyword cursor:invisible true >/dev/null 2>&1
 
+      # WAIT FOR FULLSCREEN SETTLE (Prevents cropping)
+      # Alacritty takes a moment to map the true fullscreen resolution.
+      sleep 0.5
+
       echo "$(date): [Core] Started at $INITIAL_CURSOR" >> "$LOG_FILE"
 
       # Branding
@@ -383,9 +387,16 @@
       TEXT_PATH="$HOME/.config/omarchy/branding/screensaver.txt"
 
       while true; do
+          # Re-detect dimensions every loop for safety
           cols=$($TPUT cols)
           rows=$($TPUT lines)
 
+          # Force a minimum settle for first launch
+          if [[ $cols -le 80 ]]; then
+             sleep 0.3
+             cols=$($TPUT cols)
+             rows=$($TPUT lines)
+          fi
           if [[ -f "$LOGO_PATH" ]]; then
               target_cols=$((cols * 8 / 10))
               target_rows=$((rows * 7 / 10))
