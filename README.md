@@ -340,7 +340,8 @@ On every successful `manx rebuild` run, the workstation will compile and automat
 The **MANX OS** environment is a culmination of exceptional open-source contributions. We extend our deepest gratitude to the following visionaries whose work forms the backbone of this workstation:
 
 ### Core Frameworks & Logic
-*   **[Illogical Impulse](https://github.com/Illogical-Impulse)**: For the foundational keybindings, meticulous window rules, and the visionary **Omarchy Linux** screensaver logic I taken from here.
+*   **[Illogical Impulse](https://github.com/Illogical-Impulse)**: For the foundational keybindings, meticulous window rules.
+*   **[Omarchy Linux](https://github.com/basecamp/omarchy)**: And the visionary screensaver logic I taken from here.
 *   **[Ambxst Project](https://github.com/Axenide/Ambxst)**: For the sophisticated **Hyprland** shell framework and the aesthetic direction that defines the Ambxst experience.
 *   **[ZaneyOS](https://github.com/Zaney/ZaneyOS)**: For the declarative structural inspiration and the clean organizational patterns that make this system mathematically reproducible.
 
