@@ -411,29 +411,30 @@
 
           # Interaction Loop
           while kill -0 "$TTE_PID" 2>/dev/null; do
-              # 1. Keypress check
-              if read -n 1 -t 0.1; then
+              # 1. Keypress check (High-speed)
+              if read -n 1 -t 0.05; then
                   exit_screensaver "Keypress"
               fi
 
-              # Grace period for focus/cursor
+              # Snappy grace period (2s instead of 5s)
               uptime_s=$(awk '{print int($1)}' /proc/uptime)
-              if [[ $((uptime_s - START_TIME)) -gt 5 ]]; then
+              if [[ $((uptime_s - START_TIME)) -gt 2 ]]; then
                   # 2. Focus check
                   active=$($HYPRCTL activewindow -j | $JQ -r '.class' 2>/dev/null)
                   if [[ "$active" != "manx-screensaver" ]]; then
-                      exit_screensaver "Focus Lost (Active: $active)"
+                      exit_screensaver "Focus Lost"
                   fi
                   # 3. Cursor check
                   current=$($HYPRCTL cursorpos 2>/dev/null || echo "0, 0")
                   if [[ "$current" != "$INITIAL_CURSOR" ]]; then
-                      exit_screensaver "Cursor Move ($current)"
+                      exit_screensaver "Movement"
                   fi
               fi
           done
 
-          sleep 0.5
+          sleep 0.1
           clear
+
       done
     '';
   };
