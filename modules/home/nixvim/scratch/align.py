@@ -15,14 +15,8 @@ lines_content = [
 ]
 
 def visual_len(s):
-    nerd_fonts = ["󱄅", "", ""]
-    length = 0
-    for char in s:
-        if char in nerd_fonts:
-            length += 2
-        else:
-            length += 1
-    return length
+    nerd_fonts = {"󱄅", "", ""}
+    return sum(2 if char in nerd_fonts else 1 for char in s)
 
 print("          header = [")
 print('            " "')
