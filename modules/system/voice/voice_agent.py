@@ -222,42 +222,57 @@ def extract_mfcc(audio, sample_rate=16000, num_mfcc=13, num_filters=26, fft_len=
 def enroll():
     os.makedirs(CONFIG_DIR, exist_ok=True)
     print("\n" + "="*60)
-    print(f" {C_PRIMARY}󰏆  MANX HYPR-GATE BIOMETRIC ENROLLMENT{NC} ")
+    print(f" {C_PRIMARY}󰏆  MANX HYPR-GATE BIOMETRIC MULTI-TEMPLATE ENROLLMENT{NC} ")
     print("="*60)
-    log("We are going to record a 5-second sample of your voice.")
-    log("When the countdown finishes, speak clearly into your mic:")
-    print(f"\n   👉 {C_HIGHLIGHT}\"MANX secure voice authorization system engaged.\" {NC}\n")
-    speak("Please prepare to record your voice signature. Speak clearly when the countdown finishes: MANX secure voice authorization system engaged.")
+    speak("Please prepare to enroll your multi template voice print. We will record three short samples to handle noise and sore throat variation.")
     
-    for i in range(3, 0, -1):
-        log(f"Starting in {i}...", C_MUTED)
-        time.sleep(1)
+    templates = []
+    
+    prompts = [
+        ("Normal Tone", "Say: 'MANX secure voice authorization system engaged.' clearly in your standard tone.", "First recording. Please speak in your normal, standard tone: MANX secure voice authorization system engaged."),
+        ("Soft/Hoarse Tone", "Say: 'MANX secure voice authorization system engaged.' softly (simulating a cold or sore throat).", "Second recording. Please speak in a soft or hoarse tone, simulating a sore throat or cold: MANX secure voice authorization system engaged."),
+        ("Loud/High-Energy Tone", "Say: 'MANX secure voice authorization system engaged.' loudly and with high energy.", "Third recording. Please speak loudly and with high energy: MANX secure voice authorization system engaged.")
+    ]
+    
+    for i, (name, prompt_desc, speak_prompt) in enumerate(prompts):
+        print(f"\n   [Sample {i+1}/3] {C_HIGHLIGHT}{name}{NC}")
+        print(f"   👉 {C_PRIMARY}{prompt_desc}{NC}")
+        speak(speak_prompt)
         
-    log("🎤 RECORDING ACTIVE... SPEAK NOW!", C_HIGHLIGHT)
-    audio = sd.rec(int(DURATION * SAMPLE_RATE), samplerate=SAMPLE_RATE, channels=1, dtype='float32')
-    sd.wait()
-    log("✅ RECORDING COMPLETE! Processing signature...", C_SUCCESS)
-    
-    # Extract MFCC
-    mfcc = extract_mfcc(audio, SAMPLE_RATE)
-    mean_profile = np.mean(mfcc, axis=0).tolist()
-    std_profile = np.std(mfcc, axis=0).tolist()
-    
-    # Save voice print
+        for count in range(3, 0, -1):
+            log(f"Recording starts in {count}...", C_MUTED)
+            time.sleep(1)
+            
+        log("🎤 RECORDING ACTIVE... SPEAK NOW!", C_HIGHLIGHT)
+        audio = sd.rec(int(4 * SAMPLE_RATE), samplerate=SAMPLE_RATE, channels=1, dtype='float32')
+        sd.wait()
+        log("✅ Recording complete! Processing...", C_SUCCESS)
+        
+        mfcc = extract_mfcc(audio, SAMPLE_RATE)
+        mean_profile = np.mean(mfcc, axis=0).tolist()
+        std_profile = np.std(mfcc, axis=0).tolist()
+        
+        templates.append({
+            "name": name,
+            "mean": mean_profile,
+            "std": std_profile
+        })
+        time.sleep(0.5)
+        
     profile = {
         "speaker": "mayank-anand",
-        "mean": mean_profile,
-        "std": std_profile,
+        "templates": templates,
         "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
     }
+    
     with open(PROFILE_PATH, "w") as f:
         json.dump(profile, f, indent=4)
         
     print("\n" + "="*60)
-    log("VOICE ID BIOMETRIC ENROLLED SUCCESSFULLY!", C_SUCCESS)
-    log(f"Biometric Voice Signature stored at: {C_HIGHLIGHT}{PROFILE_PATH}{NC}")
+    log("MULTI-TEMPLATE VOICE ID ENROLLED SUCCESSFULLY!", C_SUCCESS)
+    log(f"All 3 states registered in biometric database: {C_HIGHLIGHT}{PROFILE_PATH}{NC}")
     print("="*60 + "\n")
-    speak("Voice ID enrollment successful. Welcome to the MANX Hypr-Gate biometric database.")
+    speak("Voice ID enrollment successful. All three templates registered, securing your system against illness and noise.")
 
 def verify_speaker(audio_data):
     if not os.path.exists(PROFILE_PATH):
@@ -266,28 +281,39 @@ def verify_speaker(audio_data):
     with open(PROFILE_PATH, "r") as f:
         profile = json.load(f)
         
-    enrolled_mean = np.array(profile["mean"])
-    enrolled_std = np.array(profile["std"])
-    
     # Extract features from new audio
     mfcc = extract_mfcc(audio_data, SAMPLE_RATE)
     new_mean = np.mean(mfcc, axis=0)
     new_std = np.std(mfcc, axis=0)
     
-    # Calculate Cosine Similarity on vocal tract shapes (timbre)
-    cosine_sim = np.dot(enrolled_mean, new_mean) / (np.linalg.norm(enrolled_mean) * np.linalg.norm(new_mean) + 1e-8)
+    best_score = 0
     
-    # Calculate Pearson Correlation on energy dynamics
-    correlation = np.corrcoef(enrolled_std, new_std)[0, 1]
-    if np.isnan(correlation):
-        correlation = 0
+    # Compatibility with single-template profiles
+    if "templates" not in profile:
+        enrolled_mean = np.array(profile["mean"])
+        enrolled_std = np.array(profile["std"])
+        cosine_sim = np.dot(enrolled_mean, new_mean) / (np.linalg.norm(enrolled_mean) * np.linalg.norm(new_mean) + 1e-8)
+        correlation = np.corrcoef(enrolled_std, new_std)[0, 1]
+        if np.isnan(correlation): correlation = 0
+        confidence = (cosine_sim * 0.7) + (correlation * 0.3)
+        return max(0, min(100, int((confidence + 1) / 2 * 100)))
         
-    # Combine similarities
-    confidence = (cosine_sim * 0.7) + (correlation * 0.3)
-    
-    # Scale to 0-100 range
-    score = max(0, min(100, int((confidence + 1) / 2 * 100)))
-    return score
+    # Check against all registered templates and take the best match!
+    for t in profile["templates"]:
+        enrolled_mean = np.array(t["mean"])
+        enrolled_std = np.array(t["std"])
+        
+        cosine_sim = np.dot(enrolled_mean, new_mean) / (np.linalg.norm(enrolled_mean) * np.linalg.norm(new_mean) + 1e-8)
+        correlation = np.corrcoef(enrolled_std, new_std)[0, 1]
+        if np.isnan(correlation):
+            correlation = 0
+            
+        confidence = (cosine_sim * 0.7) + (correlation * 0.3)
+        score = max(0, min(100, int((confidence + 1) / 2 * 100)))
+        if score > best_score:
+            best_score = score
+            
+    return best_score
 
 def listen_and_execute():
     if not os.path.exists(PROFILE_PATH):
