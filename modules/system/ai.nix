@@ -39,6 +39,7 @@
   services.open-webui = {
     enable = true;
     port = 8081;
+    environmentFile = "/var/lib/open-webui/open-webui.env";
     # Connect to the local Ollama instance
     environment = {
       OLLAMA_API_BASE_URL = "http://127.0.0.1:11434";
