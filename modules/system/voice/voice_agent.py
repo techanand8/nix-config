@@ -15,6 +15,7 @@ PROFILE_PATH = os.path.join(CONFIG_DIR, "voice_profile.json")
 SAMPLE_RATE = 16000
 DURATION = 5  # seconds for enrollment
 PERSONALITY_MODE = "normal"
+SILENT_MODE = False
 
 # Standard HSL Hues for Premium CLI Styling
 C_PRIMARY = "\033[38;5;75m"
@@ -61,6 +62,10 @@ def prewarm_tts_cache():
     threading.Thread(target=warm, daemon=True).start()
 
 def speak(text):
+    global SILENT_MODE
+    if SILENT_MODE:
+        log(f"🔇 [SILENT MODE] Nixi would say: \"{text}\"", C_MUTED)
+        return
     log(f"🔊 Speaking: \"{text}\"", C_MUTED)
     import subprocess
     import hashlib
@@ -564,7 +569,17 @@ def execute_command_intent(command_text, r):
         speak("Returning to standard workstation assistant mode, Mayank.")
         return True
         
-    if "open browser" in cmd_lower or "open the browser" in cmd_lower or "launch browser" in cmd_lower:
+    global SILENT_MODE
+    
+    if "silent" in cmd_lower or "be quiet" in cmd_lower or "go silent" in cmd_lower:
+        speak("Switching to silent mode. I will no longer speak, but I am still listening to you.")
+        SILENT_MODE = True
+        log("Nixi switched to Silent Mode 🔇 (Actions will run silently!)", C_SUCCESS)
+    elif "response" in cmd_lower or "speaking mode" in cmd_lower or "talk to me" in cmd_lower or "speak" in cmd_lower:
+        SILENT_MODE = False
+        log("Nixi switched to Speaking Mode 🔊", C_SUCCESS)
+        speak("Switching to speaking mode. I am ready to talk to you again, Mayank!")
+    elif "open browser" in cmd_lower or "open the browser" in cmd_lower or "launch browser" in cmd_lower:
         log("Executing: Launching default browser...", C_SUCCESS)
         speak("Launching browser now.")
         os.system("hyprctl dispatch exec firefox &>/dev/null || xdg-open 'https://google.com' &>/dev/null &")
@@ -729,7 +744,7 @@ def listen_and_execute():
                                 print(f"\n   💬 Spoken Intent: {C_PRIMARY}\"{command_text}\"{NC}\n")
                                 
                                 cmd_lower = command_text.lower()
-                                if any(w in cmd_lower for w in ["go to sleep", "goodbye", "bye", "stop listening", "exit assistant", "chup", "silent"]):
+                                if any(w in cmd_lower for w in ["go to sleep", "goodbye", "bye", "stop listening", "exit assistant", "chup", "silent", "stop", "exit", "shut up", "sleep"]):
                                     speak("Alright, going to sleep. Call me if you need me!")
                                     conversation_active = False
                                     break

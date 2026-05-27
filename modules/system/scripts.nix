@@ -587,8 +587,19 @@ let
                       ${voicePython}/bin/python3 "''$VOICE_SCRIPT" enroll
                   elif [[ "''${1:-}" == "listen" ]]; then
                       ${voicePython}/bin/python3 "''$VOICE_SCRIPT" listen
+                  elif [[ "''${1:-}" == "background" ]]; then
+                      log "Spawning Headless Nixi Background Daemon (Immune to Terminal Closure)..."
+                      pkill -f voice_agent.py 2>/dev/null || true
+                      nohup setsid ${voicePython}/bin/python3 "''$VOICE_SCRIPT" listen &>/dev/null &
+                      success "Headless Nixi background daemon spawned successfully! Closing terminal will not stop her."
+                  elif [[ "''${1:-}" == "stop" ]]; then
+                      log "Terminating Headless Nixi Background Daemon..."
+                      # Gracefully say goodbye using Neerja voice before killing!
+                      ${voicePython}/bin/python3 -c "import sys, os; sys.path.append(os.path.join('''$CONFIG_DIR', 'modules/system/voice')); from voice_agent import speak; speak('Powering down Nixi biometric assistant. Goodbye Mayank.')" 2>/dev/null || true
+                      pkill -f voice_agent.py 2>/dev/null || true
+                      success "Nixi background daemon has been shut down gracefully."
                   else
-                      error "Usage: manx voice [enroll | listen]"
+                      error "Usage: manx voice [enroll | listen | background | stop]"
                   fi
                   ;;
 
