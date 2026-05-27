@@ -16,6 +16,7 @@ SAMPLE_RATE = 16000
 DURATION = 5  # seconds for enrollment
 PERSONALITY_MODE = "normal"
 SILENT_MODE = False
+CURRENT_VOICE = os.environ.get("EDGE_TTS_VOICE", "en-IN-NeerjaNeural")
 
 # Standard HSL Hues for Premium CLI Styling
 C_PRIMARY = "\033[38;5;75m"
@@ -49,20 +50,21 @@ def prewarm_tts_cache():
         import subprocess
         cache_dir = os.path.expanduser("~/.cache/manx_voice")
         os.makedirs(cache_dir, exist_ok=True)
-        voice = os.environ.get("EDGE_TTS_VOICE", "en-IN-NeerjaNeural")
         
-        for p in phrases:
-            text_hash = hashlib.md5(p.lower().strip().encode("utf-8")).hexdigest()
-            cached_path = os.path.join(cache_dir, f"{text_hash}.mp3")
-            if not os.path.exists(cached_path):
-                subprocess.run(
-                    ["edge-tts", "--voice", voice, "--text", p, "--write-media", cached_path],
-                    capture_output=True
-                )
+        voices = ["en-IN-NeerjaNeural", "en-US-AvaNeural"]
+        for voice in voices:
+            for p in phrases:
+                text_hash = hashlib.md5(f"{p.lower().strip()}_{voice}".encode("utf-8")).hexdigest()
+                cached_path = os.path.join(cache_dir, f"{text_hash}.mp3")
+                if not os.path.exists(cached_path):
+                    subprocess.run(
+                        ["edge-tts", "--voice", voice, "--text", p, "--write-media", cached_path],
+                        capture_output=True
+                    )
     threading.Thread(target=warm, daemon=True).start()
 
 def speak(text):
-    global SILENT_MODE
+    global SILENT_MODE, CURRENT_VOICE
     if SILENT_MODE:
         log(f"🔇 [SILENT MODE] Nixi would say: \"{text}\"", C_MUTED)
         return
@@ -74,9 +76,10 @@ def speak(text):
     cache_dir = os.path.expanduser("~/.cache/manx_voice")
     os.makedirs(cache_dir, exist_ok=True)
     
-    # Hash the text to get unique filename
+    # Hash the text and the voice dynamically to prevent cache collisions!
     clean_text = text.lower().strip()
-    text_hash = hashlib.md5(clean_text.encode("utf-8")).hexdigest()
+    voice = CURRENT_VOICE
+    text_hash = hashlib.md5(f"{clean_text}_{voice}".encode("utf-8")).hexdigest()
     cached_path = os.path.join(cache_dir, f"{text_hash}.mp3")
     
     # If already cached, play instantly!
@@ -91,7 +94,6 @@ def speak(text):
         except Exception as e:
             log(f"Cached audio playback failed: {e}. Falling back to dynamic synthesis...", C_ERROR)
             
-    voice = os.environ.get("EDGE_TTS_VOICE", "en-IN-NeerjaNeural")
     try:
         # Generate Speech using edge-tts
         res_tts = subprocess.run(
@@ -569,7 +571,7 @@ def execute_command_intent(command_text, r):
         speak("Returning to standard workstation assistant mode, Mayank.")
         return True
         
-    global SILENT_MODE
+    global SILENT_MODE, CURRENT_VOICE
     
     if "silent" in cmd_lower or "be quiet" in cmd_lower or "go silent" in cmd_lower:
         speak("Switching to silent mode. I will no longer speak, but I am still listening to you.")
@@ -579,6 +581,14 @@ def execute_command_intent(command_text, r):
         SILENT_MODE = False
         log("Nixi switched to Speaking Mode 🔊", C_SUCCESS)
         speak("Switching to speaking mode. I am ready to talk to you again, Mayank!")
+    elif "american voice" in cmd_lower or "us voice" in cmd_lower or "american accent" in cmd_lower:
+        CURRENT_VOICE = "en-US-AvaNeural"
+        log("Nixi switched to Premium US Voice 🇺🇸 (AvaNeural)", C_SUCCESS)
+        speak("Switching to American English voice. How do I sound, Mayank?")
+    elif "indian voice" in cmd_lower or "indian accent" in cmd_lower or "standard voice" in cmd_lower:
+        CURRENT_VOICE = "en-IN-NeerjaNeural"
+        log("Nixi switched to Standard IN Voice 🇮🇳 (NeerjaNeural)", C_SUCCESS)
+        speak("Switching back to Indian English voice. Ready to assist you, Mayank!")
     elif "open browser" in cmd_lower or "open the browser" in cmd_lower or "launch browser" in cmd_lower:
         log("Executing: Launching default browser...", C_SUCCESS)
         speak("Launching browser now.")
