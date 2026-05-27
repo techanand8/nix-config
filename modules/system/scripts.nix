@@ -451,7 +451,7 @@ let
               export GEMINI_API_KEY; GEMINI_API_KEY=$(cat "$HOME/.config/manx/gemini_token" 2>/dev/null || echo "''${GOOGLE_API_KEY:-}")
               if [ -z "''$GEMINI_API_KEY" ]; then echo -ne "  ''${C_HIGHLIGHT}❯ Enter your Google AI Studio API Key:''${NC} "; read -s -r USER_TOKEN; echo ""; export GEMINI_API_KEY="''$USER_TOKEN"; fi
               [ -z "''$GEMINI_API_KEY" ] && error "A Gemini API Key is required."
-              log "Launching Free Gemini Agent (Aider + ''$MODEL)..."; aider --model "google_ai_studio/''$MODEL" --no-browser --map-tokens 1024 --edit-format whole --watch-files "$@"
+              log "Launching Free Gemini Agent (Aider + ''$MODEL)..."; aider --model "gemini/''$MODEL" --no-browser --map-tokens 1024 --edit-format whole --watch-files "$@"
           elif [[ "''$MODEL" == anthropic/* ]]; then
               export ANTHROPIC_API_KEY; ANTHROPIC_API_KEY=$(cat "$HOME/.config/manx/anthropic_token" 2>/dev/null || echo "''${ANTHROPIC_API_KEY:-}")
               if [ -z "''$ANTHROPIC_API_KEY" ]; then echo -ne "  ''${C_HIGHLIGHT}❯ Enter your Anthropic API Key:''${NC} "; read -s -r USER_TOKEN; echo ""; export ANTHROPIC_API_KEY="''$USER_TOKEN"; fi
@@ -491,7 +491,7 @@ let
               
               if [[ "''$MODEL" == gemini-* ]]; then
                   export GEMINI_API_KEY; GEMINI_API_KEY=$(cat "$HOME/.config/manx/gemini_token" 2>/dev/null || echo "''${GOOGLE_API_KEY:-}")
-                  log "Launching Free Gemini Agent (Open-Interpreter + ''$MODEL)..."; interpreter --model "google_ai_studio/''$MODEL" "$@"
+                  log "Launching Free Gemini Agent (Open-Interpreter + ''$MODEL)..."; interpreter --model "gemini/''$MODEL" "$@"
               elif [[ "''$MODEL" == anthropic/* ]]; then
                   export ANTHROPIC_API_KEY; ANTHROPIC_API_KEY=$(cat "$HOME/.config/manx/anthropic_token" 2>/dev/null || echo "''${ANTHROPIC_API_KEY:-}")
                   log "Launching Elite Claude Agent (Open-Interpreter + ''$MODEL)..."; interpreter --model "''$MODEL" "$@"
