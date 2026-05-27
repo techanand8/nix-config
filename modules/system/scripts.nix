@@ -235,6 +235,14 @@ let
             error "System rebuild failed."
         fi
         
+        # Enforce file ownership for the static user AFTER the configuration is successfully activated!
+        log "Applying final filesystem permissions for Open-WebUI..."
+        sudo chown -R open-webui:open-webui /var/lib/open-webui 2>/dev/null || true
+        sudo chmod -R u+rX /var/lib/open-webui 2>/dev/null || true
+        
+        log "Restarting Open-WebUI service to activate static storage..."
+        sudo systemctl restart open-webui || true
+        
         # MANDATORY SECURITY: Unstage secrets immediately after a successful build
         cleanup_secrets
         
