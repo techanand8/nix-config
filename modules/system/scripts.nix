@@ -182,33 +182,35 @@ let
         GEMINI_TOKEN=""
         [ -f "$HOME/.config/manx/gemini_token" ] && GEMINI_TOKEN=$(cat "$HOME/.config/manx/gemini_token")
 
-        # Dynamically construct OpenAI-compatible endpoints for Open-WebUI
-        BASE_URLS=""
-        API_KEYS=""
-        if [ -n "$GH_TOKEN" ]; then
-            BASE_URLS="https://models.github.ai/inference/v1"
-            API_KEYS="$GH_TOKEN"
-        fi
-        if [ -n "$GEMINI_TOKEN" ]; then
-            if [ -n "$BASE_URLS" ]; then
-                BASE_URLS="$BASE_URLS;https://generativelanguage.googleapis.com/v1beta/openai"
-                API_KEYS="$API_KEYS;$GEMINI_TOKEN"
-            else
-                BASE_URLS="https://generativelanguage.googleapis.com/v1beta/openai"
-                API_KEYS="$GEMINI_TOKEN"
-            fi
-        fi
-
+        # Dynamically construct OpenAI-compatible endpoint and Google AI Studio endpoint for Open-WebUI
         log "Synchronizing secure AI API keys with Open-WebUI..."
-        echo "OPENAI_API_BASE_URLS=$BASE_URLS" | sudo tee /var/lib/open-webui/open-webui.env > /dev/null
-        echo "OPENAI_API_KEYS=$API_KEYS" | sudo tee -a /var/lib/open-webui/open-webui.env > /dev/null
-        echo "GOOGLE_API_KEY=$GEMINI_TOKEN" | sudo tee -a /var/lib/open-webui/open-webui.env > /dev/null
+        
+        # Start fresh with secure permissions
+        sudo rm -f /var/lib/open-webui/open-webui.env
+        sudo touch /var/lib/open-webui/open-webui.env
+        sudo chmod 600 /var/lib/open-webui/open-webui.env
+
+        # 1. Ollama Configuration (Always On)
         echo "OLLAMA_BASE_URL=http://127.0.0.1:11434" | sudo tee -a /var/lib/open-webui/open-webui.env > /dev/null
         echo "OLLAMA_API_BASE_URL=http://127.0.0.1:11434" | sudo tee -a /var/lib/open-webui/open-webui.env > /dev/null
-        echo "ENABLE_OPENAI_API=True" | sudo tee -a /var/lib/open-webui/open-webui.env > /dev/null
         echo "ENABLE_OLLAMA_API=True" | sudo tee -a /var/lib/open-webui/open-webui.env > /dev/null
-        echo "ENABLE_GOOGLE_API=True" | sudo tee -a /var/lib/open-webui/open-webui.env > /dev/null
-        sudo chmod 600 /var/lib/open-webui/open-webui.env
+
+        # 2. OpenAI-compatible GitHub Models Configuration
+        if [ -n "$GH_TOKEN" ]; then
+            echo "OPENAI_API_BASE_URL=https://models.github.ai/inference/v1" | sudo tee -a /var/lib/open-webui/open-webui.env > /dev/null
+            echo "OPENAI_API_KEY=$GH_TOKEN" | sudo tee -a /var/lib/open-webui/open-webui.env > /dev/null
+            echo "ENABLE_OPENAI_API=True" | sudo tee -a /var/lib/open-webui/open-webui.env > /dev/null
+        else
+            echo "ENABLE_OPENAI_API=False" | sudo tee -a /var/lib/open-webui/open-webui.env > /dev/null
+        fi
+
+        # 3. Native Google Gemini Configuration
+        if [ -n "$GEMINI_TOKEN" ]; then
+            echo "GOOGLE_API_KEY=$GEMINI_TOKEN" | sudo tee -a /var/lib/open-webui/open-webui.env > /dev/null
+            echo "ENABLE_GOOGLE_API=True" | sudo tee -a /var/lib/open-webui/open-webui.env > /dev/null
+        else
+            echo "ENABLE_GOOGLE_API=False" | sudo tee -a /var/lib/open-webui/open-webui.env > /dev/null
+        fi
      sudo chown -R open-webui:open-webui /var/lib/open-webui 2>/dev/null || true
      log "Restarting Open-WebUI service to load new API keys..."
      sudo systemctl restart open-webui || true
@@ -1081,70 +1083,70 @@ let
 
   # Custom Manual Page
   man-page = pkgs.runCommand "manx-man" { } ''
-                mkdir -p $out/share/man/man1
-                cat <<EOF > $out/share/man/man1/manx.1
-            .TH MANX 1 "May 2026" "v1.3" "MANX OS System Manual"
-            .SH NAME
-            manx \- Advanced NixOS Management Utility & AI Workspace Orchestrator
-            .SH SYNOPSIS
-            .B manx
-            [\fIcommand\fR] [\fIarguments...\fR]
-            .SH DESCRIPTION
-            .B manx
-            is the primary systems orchestrator for the MANX Workstation environment.
-            It provides unified commands for declarative package administration, state verification, technical design software, and advanced AI agents.
-            .SH COMMANDS
-            .TP
-            .B rebuild
-            Synchronizes active files with Nix Flakes, formats code via rfc-166 standards, validates Flake integrity, regenerates Open-WebUI API connections, and applies system configuration. Outputs a granular package change diff report via NVD.
-            .TP
-            .B update
-            Performs a comprehensive flake input pull and rebuilds the NixOS environment against the latest channels.
-            .TP
-            .B clean
-            Executes a three-layer deep storage maintenance sweep (Prunes generations down to 3, runs Nix Garbage Collection, and optimizes the Nix store by hard-linking identical packages).
-            .TP
-            .B check
-            Runs static auditing checks on the local Flake configuration using nix flake check to catch bugs before building.
-            .TP
-            .B doctor
-            Launches the interactive borderless system diagnostic suite, showing visual indicators for NixOS, core package status, services (Ollama/WebUI), and secure keypaths.
-            .TP
-            .B bootstrap
-            Initializes blank Btrfs subvolumes for stateless rollbacks, generates machine-id mappings, and checks sops secrets decryption keypaths.
-            .TP
-            .B aider
-            Launches the High-Fidelity Engineering Coding Agent in the current directory. Supports selecting local Ollama models (Qwen2.5-Coder) or native cloud models (Claude 3.5 Sonnet, Gemini Pro, Llama-3.3-70B, Cohere Command-R+) with automatic workspace file indexing.
-            .TP
-            .B agent [\fI-y\fR]
-            Launches the Local System Execution Agent (Open-Interpreter). Supports interactive approval mode by default. Pass the \fB-y\fR flag to run in fully autonomous, hands-free mode.
-            .TP
-            .B webui
-            Spins up the professional local web interface (Open-WebUI) mapping all offline Ollama engines and online cloud endpoints (GitHub Inference + Google Gemini) simultaneously.
-            .TP
-            .B routine
-            Engages the Silicon self-improvement routine logging dashboard on a secure local port.
-            .TP
-            .B showcase
-            Launches the static workstation design and engineering portfolio local showcase.
-            .TP
-            .B screensaver [\fIascii|image|toggle|reset\fR]
-            Manages ASCII/Image art screensaver layouts. Toggle enables or disables workstation screensaver protocols.
-            .TP
-            .B vivado
-            Enters the high-performance containerized AMD Vivado/Vitis design environment.
-            .SH AI CONFIGURATION & SECURITY
-            All secure key files must be created in the local home folder:
-            .IP \(bu 2
-            GitHub Models Token: \fB~/.config/manx/github_token\fR
-            .IP \(bu 2
-            Gemini AI Studio Token: \fB~/.config/manx/gemini_token\fR
-            .IP \(bu 2
-            Anthropic API Token: \fB~/.config/manx/anthropic_token\fR
-            .PP
-            Running \fBmanx rebuild\fR automatically synchronizes these tokens into the Open-WebUI service environment and reloads the server instantly.
-            .SH AUTHOR
-            MANX Engineering Workstation Group.
+        mkdir -p $out/share/man/man1
+        cat <<EOF > $out/share/man/man1/manx.1
+    .TH MANX 1 "May 2026" "v1.3" "MANX OS System Manual"
+    .SH NAME
+    manx \- Advanced NixOS Management Utility & AI Workspace Orchestrator
+    .SH SYNOPSIS
+    .B manx
+    [\fIcommand\fR] [\fIarguments...\fR]
+    .SH DESCRIPTION
+    .B manx
+    is the primary systems orchestrator for the MANX Workstation environment.
+    It provides unified commands for declarative package administration, state verification, technical design software, and advanced AI agents.
+    .SH COMMANDS
+    .TP
+    .B rebuild
+    Synchronizes active files with Nix Flakes, formats code via rfc-166 standards, validates Flake integrity, regenerates Open-WebUI API connections, and applies system configuration. Outputs a granular package change diff report via NVD.
+    .TP
+    .B update
+    Performs a comprehensive flake input pull and rebuilds the NixOS environment against the latest channels.
+    .TP
+    .B clean
+    Executes a three-layer deep storage maintenance sweep (Prunes generations down to 3, runs Nix Garbage Collection, and optimizes the Nix store by hard-linking identical packages).
+    .TP
+    .B check
+    Runs static auditing checks on the local Flake configuration using nix flake check to catch bugs before building.
+    .TP
+    .B doctor
+    Launches the interactive borderless system diagnostic suite, showing visual indicators for NixOS, core package status, services (Ollama/WebUI), and secure keypaths.
+    .TP
+    .B bootstrap
+    Initializes blank Btrfs subvolumes for stateless rollbacks, generates machine-id mappings, and checks sops secrets decryption keypaths.
+    .TP
+    .B aider
+    Launches the High-Fidelity Engineering Coding Agent in the current directory. Supports selecting local Ollama models (Qwen2.5-Coder) or native cloud models (Claude 3.5 Sonnet, Gemini Pro, Llama-3.3-70B, Cohere Command-R+) with automatic workspace file indexing.
+    .TP
+    .B agent [\fI-y\fR]
+    Launches the Local System Execution Agent (Open-Interpreter). Supports interactive approval mode by default. Pass the \fB-y\fR flag to run in fully autonomous, hands-free mode.
+    .TP
+    .B webui
+    Spins up the professional local web interface (Open-WebUI) mapping all offline Ollama engines and online cloud endpoints (GitHub Inference + Google Gemini) simultaneously.
+    .TP
+    .B routine
+    Engages the Silicon self-improvement routine logging dashboard on a secure local port.
+    .TP
+    .B showcase
+    Launches the static workstation design and engineering portfolio local showcase.
+    .TP
+    .B screensaver [\fIascii|image|toggle|reset\fR]
+    Manages ASCII/Image art screensaver layouts. Toggle enables or disables workstation screensaver protocols.
+    .TP
+    .B vivado
+    Enters the high-performance containerized AMD Vivado/Vitis design environment.
+    .SH AI CONFIGURATION & SECURITY
+    All secure key files must be created in the local home folder:
+    .IP \(bu 2
+    GitHub Models Token: \fB~/.config/manx/github_token\fR
+    .IP \(bu 2
+    Gemini AI Studio Token: \fB~/.config/manx/gemini_token\fR
+    .IP \(bu 2
+    Anthropic API Token: \fB~/.config/manx/anthropic_token\fR
+    .PP
+    Running \fBmanx rebuild\fR automatically synchronizes these tokens into the Open-WebUI service environment and reloads the server instantly.
+    .SH AUTHOR
+    MANX Engineering Workstation Group.
     EOF
   '';
 in
