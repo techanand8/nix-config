@@ -29,8 +29,20 @@
         serviceConfig.Type = "oneshot";
         script = ''
           mkdir -p /mnt
-          mount -t btrfs -o subvolid=5 /dev/mapper/luks-${vars.luksSystemUUID} /mnt
+          mount -t btrfs -o subvolid=5,noatime,compress=zstd,ssd /dev/mapper/luks-${vars.luksSystemUUID} /mnt
 
+          # 1. Self-healing check: If blank snapshot is missing, capture current root first
+          if [ ! -e /mnt/blank ]; then
+            if [ -e /mnt/root ]; then
+              echo "WARNING: /mnt/blank snapshot not found! Capturing current root as blank snapshot..."
+              btrfs subvolume snapshot /mnt/root /mnt/blank
+            else
+              echo "ERROR: Both /mnt/root and /mnt/blank are missing! Creating a new blank subvolume..."
+              btrfs subvolume create /mnt/blank
+            fi
+          fi
+
+          # 2. Perform the cleaning of root
           if [ -e /mnt/root ]; then
             echo "Cleaning root subvolume..."
             # Delete any nested subvolumes (like snapper snapshots) recursively
@@ -41,13 +53,9 @@
             btrfs subvolume delete /mnt/root
           fi
 
-          if [ -e /mnt/blank ]; then
-            echo "Restoring blank root snapshot..."
-            btrfs subvolume snapshot /mnt/blank /mnt/root
-          else
-            echo "ERROR: /mnt/blank not found! Cannot restore root."
-            exit 1
-          fi
+          # 3. Restore root
+          echo "Restoring blank root snapshot..."
+          btrfs subvolume snapshot /mnt/blank /mnt/root
 
           umount /mnt
         '';

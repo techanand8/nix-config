@@ -34,7 +34,12 @@
     # --- SECRET MAPPINGS ---
     # These secrets are decrypted from secrets.yaml and placed in /run/secrets/
     secrets = {
-      # 1. User Password (Used in users.nix)
+      # 1. Root Password (Used in users.nix)
+      "users/root/password" = {
+        neededForUsers = true;
+      };
+
+      # 2. User Password (Used in users.nix)
       "users/primary-user/password" = {
         neededForUsers = true;
       };

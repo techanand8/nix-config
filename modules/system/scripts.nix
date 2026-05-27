@@ -311,6 +311,26 @@ let
             else
                 info "/persist directory not found. Skipping secrets keypath checks."
             fi
+
+            # 3. Persistent machine-id setup
+            if [ -d "/persist" ]; then
+                log "Verifying persistent machine-id..."
+                if [ ! -f "/persist/etc/machine-id" ]; then
+                    info "Stateless machine-id '/persist/etc/machine-id' is missing. Generating..."
+                    sudo mkdir -p /persist/etc
+                    if command -v systemd-machine-id-setup &>/dev/null; then
+                        systemd-machine-id-setup | sudo tee /persist/etc/machine-id > /dev/null
+                        success "Persistent machine-id generated successfully."
+                    else
+                        dbus-uuidgen | sudo tee /persist/etc/machine-id > /dev/null
+                        success "Persistent machine-id generated via dbus-uuidgen."
+                    fi
+                else
+                    success "Persistent machine-id is present."
+                fi
+            else
+                info "/persist directory not found. Skipping machine-id bootstrapping."
+            fi
             
             success "Bootstrap process completed."
             ;;

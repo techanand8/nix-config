@@ -7,7 +7,7 @@
 }:
 
 {
-  users.mutableUsers = true;
+  users.mutableUsers = false;
   security.sudo.enable = true;
   security.sudo.wheelNeedsPassword = true;
 
@@ -19,7 +19,7 @@
   # --- DECLARATIVE SYSTEM WORKSTATION USER ---
   users.users.root = {
     # Ensure root has a password for emergency recovery
-    hashedPasswordFile = config.sops.secrets."users/primary-user/password".path;
+    hashedPasswordFile = config.sops.secrets."users/root/password".path;
   };
 
   users.users."${vars.username}" = {
