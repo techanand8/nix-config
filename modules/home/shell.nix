@@ -7,7 +7,16 @@
 
 {
   # Basic programs
-  programs.bash.enable = true;
+  programs.bash = {
+    enable = true;
+    initExtra = ''
+      # Load Gemini API Key automatically
+      if [ -f "$HOME/.config/manx/gemini_token" ]; then
+          export GOOGLE_API_KEY=$(cat "$HOME/.config/manx/gemini_token")
+          export GEMINI_API_KEY="$GOOGLE_API_KEY"
+      fi
+    '';
+  };
   programs.fish.enable = true;
   programs.home-manager.enable = true;
 
@@ -51,6 +60,12 @@
 
     # Smart completion and CD functions
     initContent = ''
+      # Load Gemini API Key automatically
+      if [ -f "$HOME/.config/manx/gemini_token" ]; then
+          export GOOGLE_API_KEY=$(cat "$HOME/.config/manx/gemini_token")
+          export GEMINI_API_KEY="$GOOGLE_API_KEY"
+      fi
+
       # Dynamically inject local bin and Cargo bin into shell path
       export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
 
