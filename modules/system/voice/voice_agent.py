@@ -112,14 +112,15 @@ def speak(text):
 
 def chat_with_gpt_fallback(prompt, system_instruction):
     token_path = os.path.expanduser("~/.config/manx/github_token")
+    
+    import urllib.request
+    import urllib.error
+    import json
+    
     if os.path.exists(token_path):
         with open(token_path, "r") as f:
             github_token = f.read().strip()
             
-        import urllib.request
-        import urllib.error
-        import json
-        
         url = "https://models.inference.ai.azure.com/chat/completions"
         headers = {
             "Authorization": f"Bearer {github_token}",
@@ -161,6 +162,55 @@ def chat_with_gpt_fallback(prompt, system_instruction):
             return res.stdout.strip()
     except Exception as se:
         log(f"CLI SGPT fallback failed: {se}", C_ERROR)
+        
+    # Local Offline Ollama Fallback (Ultimate Offline Safety!)
+    try:
+        log("Attempting local offline Ollama fallback (fully local!)...", C_HIGHLIGHT)
+        ollama_url = "http://localhost:11434/v1/chat/completions"
+        ollama_data = {
+            "model": "llama3",
+            "messages": [
+                {"role": "system", "content": system_instruction},
+                {"role": "user", "content": prompt}
+            ],
+            "max_tokens": 100,
+            "temperature": 0.6
+        }
+        ollama_req = urllib.request.Request(
+            ollama_url, 
+            data=json.dumps(ollama_data).encode("utf-8"), 
+            headers={"Content-Type": "application/json"}, 
+            method="POST"
+        )
+        with urllib.request.urlopen(ollama_req, timeout=5) as response:
+            res_data = json.loads(response.read().decode("utf-8"))
+            reply = res_data["choices"][0]["message"]["content"].strip()
+            log("Resilient Local Ollama connection successful! 🚀", C_SUCCESS)
+            return reply
+    except Exception as oe:
+        try:
+            # Dynamic check for first active local model
+            tags_url = "http://localhost:11434/api/tags"
+            with urllib.request.urlopen(tags_url, timeout=2) as response:
+                models_list = json.loads(response.read().decode("utf-8"))
+                if models_list.get("models"):
+                    active_model = models_list["models"][0]["name"]
+                    log(f"Dynamic local model found: {active_model}. Querying...", C_HIGHLIGHT)
+                    ollama_data["model"] = active_model
+                    ollama_req = urllib.request.Request(
+                        ollama_url, 
+                        data=json.dumps(ollama_data).encode("utf-8"), 
+                        headers={"Content-Type": "application/json"}, 
+                        method="POST"
+                    )
+                    with urllib.request.urlopen(ollama_req, timeout=5) as response2:
+                        res_data = json.loads(response2.read().decode("utf-8"))
+                        reply = res_data["choices"][0]["message"]["content"].strip()
+                        log(f"Resilient Local Ollama ({active_model}) connection successful! 🚀", C_SUCCESS)
+                        return reply
+        except Exception:
+            pass
+        log(f"Local Ollama fallback skipped/failed: {oe}", C_MUTED)
         
     return "I'm having a little trouble connecting to my brain right now, Mayank."
 
@@ -619,8 +669,8 @@ def listen_and_execute():
     
     log("✅ Microphone initialized. Jarvis-level sensitivity active! ⚡", C_SUCCESS)
     
-    while True:
-        with sr.Microphone() as source:
+    with sr.Microphone() as source:
+        while True:
             log("💤 Waiting for wake word 'Nixi'...", C_MUTED)
             try:
                 audio = r.listen(source, timeout=None, phrase_time_limit=4)
@@ -628,21 +678,20 @@ def listen_and_execute():
                 time.sleep(0.2)
                 continue
 
-        try:
-            wake_text = r.recognize_google(audio).lower().strip()
-            log(f"🎙️ Heard audio: \"{wake_text}\"", C_MUTED)
-            
-            # Match Nixi or common phonetic variations (Google API often writes these for Hinglish speakers)
-            if any(w in wake_text for w in ["nixi", "nixy", "nixie", "nix", "nikki", "nicky", "pixie", "lexi", "mixie", "mixi", "nexa", "texa", "nexi", "nex", "maxa", "nexia", "mixa", "neerja", "neetu", "neeta", "nikshay", "nikshae", "nikie", "niki", "nik","nifty"]):
-                print(f"\n{C_HIGHLIGHT}✨ WAKE WORD DETECTED!{NC}")
-                speak("Yes, Mayank? I am listening.")
+            try:
+                wake_text = r.recognize_google(audio).lower().strip()
+                log(f"🎙️ Heard audio: \"{wake_text}\"", C_MUTED)
                 
-                # Continuous follow-up conversational loop!
-                conversation_active = True
-                first_turn = True
-                
-                while conversation_active:
-                    with sr.Microphone() as source:
+                # Match Nixi or common phonetic variations (Google API often writes these for Hinglish speakers)
+                if any(w in wake_text for w in ["nixi", "nixy", "nixie", "nix", "nikki", "nicky", "pixie", "lexi", "mixie", "mixi", "nexa", "texa", "nexi", "nex", "maxa", "nexia", "mixa", "neerja", "neetu", "neeta", "nikshay", "nikshae", "nikie", "niki", "nik","nifty"]):
+                    print(f"\n{C_HIGHLIGHT}✨ WAKE WORD DETECTED!{NC}")
+                    speak("Yes, Mayank? I am listening.")
+                    
+                    # Continuous follow-up conversational loop!
+                    conversation_active = True
+                    first_turn = True
+                    
+                    while conversation_active:
                         log("🎤 Listening for command...", C_PRIMARY)
                         try:
                             # 6 seconds timeout, 8 seconds maximum sentence length
@@ -655,46 +704,52 @@ def listen_and_execute():
                             log(f"Microphone error: {e}", C_ERROR)
                             conversation_active = False
                             break
-                    
-                    wav_data = audio_cmd.get_wav_data(convert_rate=SAMPLE_RATE, convert_width=2)
-                    audio_np = np.frombuffer(wav_data, dtype=np.int16).astype(np.float32) / 32768.0
-                    
-                    log("🔒 Checking Voice ID Biometrics...")
-                    match_score = verify_speaker(audio_np)
-                    
-                    THRESHOLD = 62
-                    
-                    if match_score >= THRESHOLD:
-                        # Print confirmation to screen
-                        print(f"{C_SUCCESS}🔓 VOICE ID MATCH CONFIRMED ({match_score}%)!{NC}")
-                        # Audio alert only on the first turn of a conversation to keep it natural!
-                        if first_turn:
-                            speak("Access granted.")
-                            first_turn = False
                         
-                        # Continuously self-train and adapt the voice profile from successful matches!
-                        adapt_voice_profile(audio_np)
+                        wav_data = audio_cmd.get_wav_data(convert_rate=SAMPLE_RATE, convert_width=2)
+                        audio_np = np.frombuffer(wav_data, dtype=np.int16).astype(np.float32) / 32768.0
                         
-                        try:
-                            command_text = r.recognize_google(audio_cmd)
-                            print(f"\n   💬 Spoken Intent: {C_PRIMARY}\"{command_text}\"{NC}\n")
+                        log("🔒 Checking Voice ID Biometrics...")
+                        match_score = verify_speaker(audio_np)
+                        
+                        THRESHOLD = 62
+                        
+                        if match_score >= THRESHOLD:
+                            # Print confirmation to screen
+                            print(f"{C_SUCCESS}🔓 VOICE ID MATCH CONFIRMED ({match_score}%)!{NC}")
+                            # Audio alert only on the first turn of a conversation to keep it natural!
+                            if first_turn:
+                                speak("Access granted.")
+                                first_turn = False
                             
-                            cmd_lower = command_text.lower()
-                            if any(w in cmd_lower for w in ["go to sleep", "goodbye", "bye", "stop listening", "exit assistant", "chup", "silent"]):
-                                speak("Alright, going to sleep. Call me if you need me!")
-                                conversation_active = False
-                                break
+                            # Continuously self-train and adapt the voice profile from successful matches!
+                            adapt_voice_profile(audio_np)
+                            
+                            try:
+                                command_text = r.recognize_google(audio_cmd)
+                                print(f"\n   💬 Spoken Intent: {C_PRIMARY}\"{command_text}\"{NC}\n")
                                 
-                            execute_command_intent(command_text, r)
-                            log("✨ Continued conversation active. Keep talking naturally without the wake word!", C_HIGHLIGHT)
-                        except Exception as e:
-                            log(f"Could not understand audio: {e}", C_MUTED)
-                            # Give one more try if it's just silence/noise
-                            continue
-                    else:
-                        print(f"{C_ERROR}🚫 ACCESS DENIED ({match_score}% Confidence)!{NC}")
-                        speak("Access denied. Voice print mismatch.")
-                        conversation_active = False
+                                cmd_lower = command_text.lower()
+                                if any(w in cmd_lower for w in ["go to sleep", "goodbye", "bye", "stop listening", "exit assistant", "chup", "silent"]):
+                                    speak("Alright, going to sleep. Call me if you need me!")
+                                    conversation_active = False
+                                    break
+                                    
+                                execute_command_intent(command_text, r)
+                                log("✨ Continued conversation active. Keep talking naturally without the wake word!", C_HIGHLIGHT)
+                            except Exception as e:
+                                log(f"Could not understand audio: {e}", C_MUTED)
+                                # Give one more try if it's just silence/noise
+                                continue
+                        else:
+                            print(f"{C_ERROR}🚫 ACCESS DENIED ({match_score}% Confidence)!{NC}")
+                            speak("Access denied. Voice print mismatch.")
+                            conversation_active = False
+                            
+            except (sr.UnknownValueError, sr.RequestError):
+                continue
+            except Exception as e:
+                time.sleep(1)
+                continue
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
