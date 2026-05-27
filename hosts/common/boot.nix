@@ -50,7 +50,7 @@
   # Centralized boot configurations for performance, silent boot, and early graphics handoff
   boot.kernelParams = [
     # System Performance & Hardware Tweaks
-    "transparent_hugepage=never"
+    "transparent_hugepage=madvise"
     "btusb.enable_autosuspend=0"
 
     # Fast & Silent Boot (Optimized for Early KMS)
