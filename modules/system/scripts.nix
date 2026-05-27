@@ -431,18 +431,44 @@ let
                 ;;
 
               aider)
-                log "Launching High-Fidelity Engineering Agent (DeepSeek-Coder:6.7b Stable)..."
+                log "Initializing Aider Coding Workspace..."
+
                 # Verify Ollama service is active
                 if ! curl -s http://127.0.0.1:11434 &>/dev/null; then
                     error "Ollama service is not running! Start it via 'sudo systemctl start ollama'."
                 fi
-                
-                # Allow custom model as 2nd arg, default to deepseek-coder:6.7b
-                MODEL=''${2:-"deepseek-coder:6.7b"}
+
+                # Interactive Model Selection if no model is passed as argument (or if a flag is passed)
+                if [ -z "$2" ] || [[ "$2" == -* ]]; then
+                    if command -v fzf &> /dev/null; then
+                        log "Select an optimized coding model for Aider:"
+                        CHOICE=$(echo -e "qwen2.5-coder:7b (Recommended - State-of-the-Art)\ndeepseek-coder:6.7b (Stable & Fast)\nqwen2.5-coder:1.5b (Lightweight - Fast execution)\nllama3.1:8b (General Purpose)\nEnter Custom Model..." | fzf --height 40% --layout=reverse --border --prompt="󰏆 Select Coding Model ❯ ")
+                        
+                        if [ -z "$CHOICE" ]; then
+                            info "No model selected. Exiting."
+                            exit 0
+                        fi
+                        
+                        if [[ "$CHOICE" == "Enter Custom Model..." ]]; then
+                            echo -ne "  ''${C_HIGHLIGHT}❯ Enter Ollama model name:''${NC} "
+                            read -r CUSTOM_MODEL
+                            if [ -z "$CUSTOM_MODEL" ]; then
+                                error "No model name entered."
+                            fi
+                            MODEL="$CUSTOM_MODEL"
+                        else
+                            MODEL=$(echo "$CHOICE" | cut -d' ' -f1)
+                        fi
+                    else
+                        MODEL="qwen2.5-coder:7b"
+                    fi
+                else
+                    MODEL="$2"
+                fi
 
                 # Check if the model is locally pulled; download with progress if missing
                 if ! ollama list 2>/dev/null | grep -q "$MODEL"; then
-                    info "Model '$MODEL' not found locally. Downloading (visible progress)..."
+                    info "Model '$MODEL' not found locally. Downloading '$MODEL' (visible progress)..."
                     ollama pull "$MODEL"
                 fi
                 export OLLAMA_API_BASE="http://127.0.0.1:11434"
@@ -454,6 +480,7 @@ let
                 # Professional Aider Flags: 
                 # --map-tokens 1024: Keeps the repo-map small and fast
                 # --edit-format whole: Best for local models
+                log "Launching High-Fidelity Engineering Agent (Aider + $MODEL)..."
                 aider --model "ollama/$MODEL" --no-browser --map-tokens 1024 --edit-format whole --watch-files "$@"
                 ;;
 
@@ -497,7 +524,7 @@ let
                   *)
                     # Run the Native Agent (Connected to Local Ollama)
                     log "Agent is active. Type 'exit' to return to MANX shell."
-                    interpreter --local --model ollama/llama3.1 --api_base http://127.0.0.1:11434 "$@"
+                    interpreter --local --model ollama/llama3.1 --no-llm_supports_functions --api_base http://127.0.0.1:11434 "$@"
                     ;;
                 esac
                 ;;
