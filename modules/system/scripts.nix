@@ -27,6 +27,21 @@ let
       cachix
       distrobox
       dbus # for machine-id
+      fabric-ai
+      shell-gpt
+      mpv
+      portaudio # Required for sounddevice
+      (python3.withPackages (
+        ps: with ps; [
+          numpy
+          scipy
+          sounddevice
+          soundfile
+          speechrecognition
+          edge-tts
+        ]
+      ))
+
     ];
     text = ''
       # Advanced NixOS Management Utility
@@ -124,8 +139,11 @@ let
           echo -e "    ''${C_WHITE}shell''${NC}     ''${C_MUTED}❯''${NC} Initialize isolated package environments"
           echo -e "    ''${C_WHITE}aider''${NC}     ''${C_MUTED}❯''${NC} High-Fidelity Engineering Agent (DeepSeek-16B)"
           echo -e "    ''${C_WHITE}agent''${NC}     ''${C_MUTED}❯''${NC} Local Execution Agent (Does computer tasks for you)"
+          echo -e "    ''${C_WHITE}goose''${NC}     ''${C_MUTED}❯''${NC} Advanced Autonomous Agent (MCP Extensible Tasks)"
           echo -e "    ''${C_WHITE}webui''${NC}     ''${C_MUTED}❯''${NC} Local Intelligence Interface (Professional Web-UI)"
           echo -e "    ''${C_WHITE}vivado''${NC}    ''${C_MUTED}❯''${NC} Enter the AMD Vivado design environment"
+          echo -e "    ''${C_WHITE}fabric''${NC}    ''${C_MUTED}❯''${NC} Advanced Daily Task Patterns & Intelligence"
+          echo -e "    ''${C_WHITE}voice''${NC}     ''${C_MUTED}❯''${NC} Secure Speaker-Locked Voice ID Agent Engine"
           echo -e "    ''${C_WHITE}routine''${NC}   ''${C_MUTED}❯''${NC} Launch Silicon Routine & Self-Improvement Dashboard"
                   echo -e ""
                   echo -e "  ''${C_PRIMARY}󰪢  BRANDING & AESTHETICS''${NC}"
@@ -346,7 +364,7 @@ let
                   if [ -z "''${2:-}" ] || [[ "$2" == -* ]]; then
                       if command -v fzf &> /dev/null; then
                           log "Select a coding model for Aider (Local or Free Cloud):"
-                          CHOICE=$(echo -e "qwen2.5-coder:7b (Recommended Local)\ndeepseek-coder:6.7b (Stable Local)\nanthropic/claude-3-5-sonnet (Elite Cloud Claude)\ngithub/gpt-4o (Free Cloud GPT-4o)\ngithub/gpt-4o-mini (Fast Cloud GPT-4o)\ngemini/gemini-1.5-pro (Elite Free Gemini)\ngemini/gemini-1.5-flash (Fast Free Gemini)\ngithub/Llama-3.3-70B-Instruct (Powerful Free Llama)\ngithub/Cohere-command-r-plus (Elite Agent Model)\nEnter Custom Ollama..." | fzf --height 45% --layout=reverse --border --prompt="󰏆 Select Coding Model ❯ ")
+                          CHOICE=$(echo -e "qwen2.5-coder:7b (Recommended Local)\ndeepseek-coder:6.7b (Stable Local)\nanthropic/claude-3-5-sonnet (Elite Cloud Claude)\ngithub/gpt-4o (Free Cloud GPT-4o)\ngithub/gpt-4o-mini (Fast Cloud GPT-4o)\ngemini/gemini-1.5-pro (Elite Free Gemini)\ngemini/gemini-1.5-flash (Fast Free Gemini)\ngithub/Llama-3.3-70B-Instruct (Powerful Free Llama)\ngithub/Cohere-command-r-plus-08-2024 (Elite Agent Model)\nEnter Custom Ollama..." | fzf --height 45% --layout=reverse --border --prompt="󰏆 Select Coding Model ❯ ")
                           if [ -z "''$CHOICE" ]; then exit 0; fi
                           if [[ "''$CHOICE" == "Enter Custom Ollama..." ]]; then
                               echo -ne "  ''${C_HIGHLIGHT}❯ Enter Ollama model name:''${NC} "; read -r MODEL
@@ -360,7 +378,7 @@ let
                       export GEMINI_API_KEY; GEMINI_API_KEY=$(cat "$HOME/.config/manx/gemini_token" 2>/dev/null || echo "''${GOOGLE_API_KEY:-}")
                       if [ -z "''$GEMINI_API_KEY" ]; then echo -ne "  ''${C_HIGHLIGHT}❯ Enter your Google AI Studio API Key:''${NC} "; read -s -r USER_TOKEN; echo ""; export GEMINI_API_KEY="''$USER_TOKEN"; fi
                       [ -z "''$GEMINI_API_KEY" ] && error "A Gemini API Key is required."
-                      log "Launching Free Gemini Agent (Aider + ''$MODEL)..."; aider --model "google_ai_studio/''${MODEL#gemini/}" --no-browser --map-tokens 1024 --edit-format whole --watch-files "$@"
+                      log "Launching Free Gemini Agent (Aider + ''$MODEL)..."; aider --model "''$MODEL" --no-browser --map-tokens 1024 --edit-format whole --watch-files "$@"
                   elif [[ "''$MODEL" == anthropic/* ]]; then
                       export ANTHROPIC_API_KEY; ANTHROPIC_API_KEY=$(cat "$HOME/.config/manx/anthropic_token" 2>/dev/null || echo "''${ANTHROPIC_API_KEY:-}")
                       if [ -z "''$ANTHROPIC_API_KEY" ]; then echo -ne "  ''${C_HIGHLIGHT}❯ Enter your Anthropic API Key:''${NC} "; read -s -r USER_TOKEN; echo ""; export ANTHROPIC_API_KEY="''$USER_TOKEN"; fi
@@ -370,8 +388,8 @@ let
                       RAW_MODEL=$(echo "''$MODEL" | cut -d'/' -f2); export GITHUB_TOKEN; GITHUB_TOKEN=$(cat "$HOME/.config/manx/github_token" 2>/dev/null || echo "''${GITHUB_TOKEN:-}")
                       if [ -z "''$GITHUB_TOKEN" ]; then echo -ne "  ''${C_HIGHLIGHT}❯ Enter your GitHub PAT:''${NC} "; read -s -r USER_TOKEN; echo ""; export GITHUB_TOKEN="''$USER_TOKEN"; fi
                       [ -z "''$GITHUB_TOKEN" ] && error "A GitHub Token is required."
-                      export OPENAI_API_KEY="''$GITHUB_TOKEN"; export OPENAI_API_BASE="https://models.github.ai/inference/v1"
-                      log "Launching Free Cloud Agent (Aider + ''$RAW_MODEL)..."; aider --model "openai/''$RAW_MODEL" --no-browser --map-tokens 1024 --edit-format whole --watch-files "$@"
+                      export GITHUB_API_KEY="''$GITHUB_TOKEN"
+                      log "Launching Free Cloud Agent (Aider + ''$RAW_MODEL)..."; aider --model "litellm/github/''$RAW_MODEL" --no-browser --map-tokens 1024 --edit-format whole --watch-files "$@"
                   else
                       check_ollama; if ! ollama list 2>/dev/null | grep -q "''$MODEL"; then info "Model '''$MODEL' not found. Downloading..."; ollama pull "''$MODEL"; fi
                       export OLLAMA_API_BASE="http://127.0.0.1:11434"
@@ -392,22 +410,24 @@ let
                       if [ -z "''${1:-}" ] || [[ "$1" == -* ]]; then
                           if command -v fzf &> /dev/null; then
                               log "Select a model for Agent (Local or Free Cloud):"
-                              CHOICE=$(echo -e "llama3.1:8b (Local Ollama Llama)\nqwen2.5-coder:7b (Local Ollama Qwen)\nanthropic/claude-3-5-sonnet (Elite Cloud Claude)\ngithub/gpt-4o (Free Cloud GPT-4o)\ngithub/gpt-4o-mini (Fast Cloud GPT-4o)\ngemini/gemini-1.5-pro (Elite Free Gemini)\ngemini/gemini-1.5-flash (Fast Free Gemini)\ngithub/Llama-3.3-70B-Instruct (Powerful Free Llama)\ngithub/Cohere-command-r-plus (Elite Agent Model)\nEnter Custom Ollama..." | fzf --height 45% --layout=reverse --border --prompt="󰏆 Select Agent Model ❯ ")
+                              CHOICE=$(echo -e "llama3.1:8b (Local Ollama Llama)\nqwen2.5-coder:7b (Local Ollama Qwen)\nanthropic/claude-3-5-sonnet (Elite Cloud Claude)\ngithub/gpt-4o (Free Cloud GPT-4o)\ngithub/gpt-4o-mini (Fast Cloud GPT-4o)\ngemini/gemini-1.5-pro (Elite Free Gemini)\ngemini/gemini-1.5-flash (Fast Free Gemini)\ngithub/Llama-3.3-70B-Instruct (Powerful Free Llama)\ngithub/Cohere-command-r-plus-08-2024 (Elite Agent Model)\nEnter Custom Ollama..." | fzf --height 45% --layout=reverse --border --prompt="󰏆 Select Agent Model ❯ ")
                               if [ -z "''$CHOICE" ]; then exit 0; fi
                               if [[ "''$CHOICE" == "Enter Custom Ollama..." ]]; then echo -ne "  ❯ Enter Ollama model name: "; read -r MODEL; else MODEL=$(echo "''$CHOICE" | cut -d' ' -f1); fi
                           else MODEL="llama3.1"; fi
                       else MODEL="$1"; shift; fi
                       
+                      WAYLAND_PROMPT="You are operating on NixOS under the Hyprland Wayland compositor. Standard X11 desktop automation libraries (like pyautogui, pynput, xdotool, xrectsel, pillow-based grab) WILL CRASH OR FAIL. Instead, you MUST use these native Wayland utilities: 1. SCREENSHOTS: Use 'grim /tmp/screenshot.png' (full screen) or 'grim -g \"\$(slurp)\" /tmp/screenshot.png' (region selection). 2. WINDOW CONTROL: Use 'hyprctl clients -j' to list open windows, and 'hyprctl dispatch focuswindow <class>' or 'hyprctl dispatch closewindow <class>' to manage windows. 3. INPUT: Use 'wlrctl keyboard type <text>' to inject keyboard inputs and typing. 4. CLIPBOARD: Use 'wl-copy' and 'wl-paste'. Do not attempt to import pyautogui. Use bash command execution with these tools instead!"
+
                       if [[ "''$MODEL" == gemini/* ]]; then
                           export GEMINI_API_KEY; GEMINI_API_KEY=$(cat "$HOME/.config/manx/gemini_token" 2>/dev/null || echo "''${GOOGLE_API_KEY:-}")
-                          log "Launching Free Gemini Agent (Open-Interpreter + ''$MODEL)..."; interpreter --model "google_ai_studio/''${MODEL#gemini/}" "$@"
+                          log "Launching Free Gemini Agent (Open-Interpreter + ''$MODEL)..."; interpreter --model "''$MODEL" --custom_instructions "''$WAYLAND_PROMPT" "$@"
                       elif [[ "''$MODEL" == anthropic/* ]]; then
                           export ANTHROPIC_API_KEY; ANTHROPIC_API_KEY=$(cat "$HOME/.config/manx/anthropic_token" 2>/dev/null || echo "''${ANTHROPIC_API_KEY:-}")
-                          log "Launching Elite Claude Agent (Open-Interpreter + ''$MODEL)..."; interpreter --model "''$MODEL" "$@"
+                          log "Launching Elite Claude Agent (Open-Interpreter + ''$MODEL)..."; interpreter --model "''$MODEL" --custom_instructions "''$WAYLAND_PROMPT" "$@"
                       elif [[ "''$MODEL" == github/* ]]; then
                           RAW_MODEL=$(echo "''$MODEL" | cut -d'/' -f2); export GITHUB_TOKEN; GITHUB_TOKEN=$(cat "$HOME/.config/manx/github_token" 2>/dev/null || echo "''${GITHUB_TOKEN:-}")
-                          export OPENAI_API_KEY="''$GITHUB_TOKEN"; export OPENAI_API_BASE="https://models.github.ai/inference/v1"
-                          log "Launching Free Cloud Agent (Open-Interpreter + ''$RAW_MODEL)..."; interpreter --model "openai/''$RAW_MODEL" --api_base "''$OPENAI_API_BASE" "$@"
+                          export GITHUB_API_KEY="''$GITHUB_TOKEN"
+                          log "Launching Free Cloud Agent (Open-Interpreter + ''$RAW_MODEL)..."; interpreter --model "github/''$RAW_MODEL" --custom_instructions "''$WAYLAND_PROMPT" "$@"
                       else
                           check_ollama; export OLLAMA_API_BASE="http://127.0.0.1:11434"
                           log "Launching Local Agent (Open-Interpreter + ''$MODEL)..."; interpreter --local --model "ollama/''$MODEL" --no-llm_supports_functions --api_base http://127.0.0.1:11434 "$@"
@@ -521,9 +541,63 @@ let
                   fi
                   ;;
 
+                goose)
+                  log "Initializing Goose Autonomous Agent Workspace..."
+                  export GEMINI_API_KEY; GEMINI_API_KEY=$(cat "$HOME/.config/manx/gemini_token" 2>/dev/null || echo "''${GOOGLE_API_KEY:-}")
+                  export GITHUB_TOKEN; GITHUB_TOKEN=$(cat "$HOME/.config/manx/github_token" 2>/dev/null || echo "''${GITHUB_TOKEN:-}")
+                  
+                  if command -v fzf &> /dev/null; then
+                      CHOICE=$(echo -e "gemini (Free Gemini 2.0/1.5 Pro)\ngithub (Free GitHub Models)" | fzf --height 30% --layout=reverse --border --prompt="󰏆 Select Goose Agent Model ❯ ")
+                      if [ -z "''$CHOICE" ]; then exit 0; fi
+                      PROVIDER=$(echo "''$CHOICE" | cut -d' ' -f1)
+                  else PROVIDER="gemini"; fi
+
+                  if [[ "''$PROVIDER" == "gemini" ]]; then
+                      [ -z "''$GEMINI_API_KEY" ] && error "A Gemini API Key is required. Run 'manx agent' or put it in ~/.config/manx/gemini_token"
+                      export GOOSE_PROVIDER="gemini_oauth"
+                      export GOOSE_MODEL="gemini-2.0-flash"
+                      export GEMINI_API_KEY
+                  elif [[ "''$PROVIDER" == "github" ]]; then
+                      [ -z "''$GITHUB_TOKEN" ] && error "A GitHub PAT is required. Run 'manx agent' or put it in ~/.config/manx/github_token"
+                      export GOOSE_PROVIDER="openai"
+                      export GOOSE_MODEL="Cohere-command-r-plus-08-2024"
+                      export OPENAI_API_BASE="https://models.github.ai/inference/v1"
+                      export OPENAI_API_KEY="''$GITHUB_TOKEN"
+                  fi
+
+                  log "Launching Goose Agent via Nix..."
+                  nix run github:numtide/llm-agents.nix#goose-cli -- session
+                  ;;
+
                 webui) log "Launching Professional AI Interface (Open-WebUI)..."; if ! curl -s http://127.0.0.1:8081 &>/dev/null; then info "Service is waking up... please wait a few seconds."; fi; xdg-open "http://localhost:8081" &>/dev/null & ;;
-                routine|tracker) log "Starting MANX Self-Improvement & Daily Routine Tracker..."; TRACKER_DIR="$CONFIG_DIR/modules/system/tracker"; mkdir -p "$HOME/daily-routine-data"; if ! curl -s "http://localhost:8090" &>/dev/null; then python3 "''$TRACKER_DIR/server.py" &>/dev/null & sleep 0.8; fi; xdg-open "http://localhost:8090" &>/dev/null & success "Workspace successfully engaged." ;;
-                showcase|site|web) log "Launching secure MANX OS Workstation Showcase website..."; WEBSITE_DIR="$HOME/website"; if ! curl -s "http://localhost:8050" &>/dev/null; then cd "''$WEBSITE_DIR" && python3 -m http.server 8050 &>/dev/null & sleep 0.8; fi; xdg-open "http://localhost:8050" &>/dev/null & success "Showcase site interface engaged." ;;
+
+                voice)
+                  log "Initializing MANX Voice ID Biometrics..."
+                  VOICE_SCRIPT="''$CONFIG_DIR/modules/system/voice/voice_agent.py"
+                  chmod +x "''$VOICE_SCRIPT" 2>/dev/null || true
+                  shift
+                  if [[ "''${1:-}" == "enroll" ]]; then
+                      python3 "''$VOICE_SCRIPT" enroll
+                  elif [[ "''${1:-}" == "listen" ]]; then
+                      python3 "''$VOICE_SCRIPT" listen
+                  else
+                      error "Usage: manx voice [enroll | listen]"
+                  fi
+                  ;;
+
+                fabric)
+                  log "Initializing Fabric AI Workspace..."
+                  if ! command -v fabric &>/dev/null; then error "Fabric is not installed!"; fi
+                  # Ensure setup has run
+                  if [[ ! -d "$HOME/.config/fabric" ]]; then
+                      info "First-time Fabric setup required."
+                      fabric --setup
+                  fi
+                  shift
+                  if [[ $# -gt 0 ]]; then fabric "$@"; else log "Fabric patterns active. Use 'fabric -l' to list."; fi
+                  ;;
+
+                routine|tracker) log "Starting MANX Self-Improvement & Daily Routine Tracker..."; TRACKER_DIR="$CONFIG_DIR/modules/system/tracker"; mkdir -p "$HOME/daily-routine-data"; if ! curl -s "http://localhost:8090" &>/dev/null; then python3 "''$TRACKER_DIR/server.py" &>/dev/null & sleep 0.8; fi; xdg-open "http://localhost:8090" &>/dev/null & success "Workspace successfully engaged." ;;                showcase|site|web) log "Launching secure MANX OS Workstation Showcase website..."; WEBSITE_DIR="$HOME/website"; if ! curl -s "http://localhost:8050" &>/dev/null; then cd "''$WEBSITE_DIR" && python3 -m http.server 8050 &>/dev/null & sleep 0.8; fi; xdg-open "http://localhost:8050" &>/dev/null & success "Showcase site interface engaged." ;;
                 *) error "Unknown command: $1. Type 'manx' for help." ;;
               esac
     '';
@@ -563,6 +637,9 @@ let
     .B bootstrap
     Initializes blank Btrfs subvolumes for stateless rollbacks, generates machine-id mappings, and checks sops secrets decryption keypaths.
     .TP
+    .B goose
+    Launches the modern, autonomous Goose agent. Extensible via the Model Context Protocol (MCP) and integrated with your free Gemini/GitHub tokens.
+    .TP
     .B aider
     Launches the High-Fidelity Engineering Coding Agent in the current directory. Supports selecting local Ollama models (Qwen2.5-Coder) or native cloud models (Claude 3.5 Sonnet, Gemini Pro, Llama-3.3-70B, Cohere Command-R+) with automatic workspace file indexing.
     .TP
@@ -577,6 +654,9 @@ let
     .TP
     .B showcase
     Launches the static workstation design and engineering portfolio local showcase.
+    .TP
+    .B voice [\fIenroll|listen\fR]
+    Launches the secure, speaker-locked biometric Voice ID engine. Use \fBenroll\fR to register your Voice print signature, and \fBlisten\fR to run vocal commands.
     .TP
     .B screensaver [\fIascii|image|toggle|reset\fR]
     Manages ASCII/Image art screensaver layouts. Toggle enables or disables workstation screensaver protocols.

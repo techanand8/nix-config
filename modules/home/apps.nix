@@ -34,5 +34,7 @@
     windsurf
     codex
     codex-acp
+    fabric-ai # Advanced modular AI framework for daily tasks
+    shell-gpt # Command-line productivity tool powered by AI
   ];
 }
