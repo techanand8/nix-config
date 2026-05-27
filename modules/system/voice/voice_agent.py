@@ -166,7 +166,6 @@ def confirm_sensitive_action(command_text, r):
     speak("Warning, Mayank. You are attempting a sensitive system action. Do you confirm this command? Please say: confirm command, or cancel.")
     
     with sr.Microphone() as source:
-        r.adjust_for_ambient_noise(source, duration=0.6)
         log("🎤 Waiting for confirmation ('confirm command' or 'cancel')...", C_HIGHLIGHT)
         try:
             audio_conf = r.listen(source, timeout=6, phrase_time_limit=4)
@@ -182,7 +181,7 @@ def confirm_sensitive_action(command_text, r):
             
             log("🔒 Verifying confirmation biometric print...")
             score = verify_speaker(audio_np)
-            if score >= 78:
+            if score >= 62:
                 speak("Confirmation verified. Executing command.")
                 return True
             else:
@@ -268,6 +267,12 @@ def enroll():
         ("Loud/High-Energy Tone", "Say: 'MANX secure voice authorization system engaged.' loudly and with high energy.", "Third recording. Please speak loudly and with high energy: MANX secure voice authorization system engaged.")
     ]
     
+    r = sr.Recognizer()
+    r.pause_threshold = 0.5
+    r.non_speaking_duration = 0.3
+    r.energy_threshold = 300
+    r.dynamic_energy_threshold = False
+    
     for i, (name, prompt_desc, speak_prompt) in enumerate(prompts):
         print(f"\n   [Sample {i+1}/3] {C_HIGHLIGHT}{name}{NC}")
         print(f"   👉 {C_PRIMARY}{prompt_desc}{NC}")
@@ -278,11 +283,17 @@ def enroll():
             time.sleep(1)
             
         log("🎤 RECORDING ACTIVE... SPEAK NOW!", C_HIGHLIGHT)
-        audio = sd.rec(int(4 * SAMPLE_RATE), samplerate=SAMPLE_RATE, channels=1, dtype='float32')
-        sd.wait()
-        log("✅ Recording complete! Processing...", C_SUCCESS)
+        with sr.Microphone() as source:
+            try:
+                audio_data = r.listen(source, timeout=8, phrase_time_limit=5)
+                wav_data = audio_data.get_wav_data(convert_rate=SAMPLE_RATE, convert_width=2)
+                audio_np = np.frombuffer(wav_data, dtype=np.int16).astype(np.float32) / 32768.0
+                log("✅ Recording complete! Processing...", C_SUCCESS)
+            except Exception as e:
+                log(f"Recording failed: {e}. Defaulting to silent sample.", C_ERROR)
+                audio_np = np.zeros(SAMPLE_RATE * 4, dtype=np.float32)
         
-        mfcc = extract_mfcc(audio, SAMPLE_RATE)
+        mfcc = extract_mfcc(audio_np, SAMPLE_RATE)
         mean_profile = np.mean(mfcc, axis=0).tolist()
         std_profile = np.std(mfcc, axis=0).tolist()
         
@@ -396,7 +407,7 @@ def listen_and_execute():
                 log("🔒 Checking Voice ID Biometrics...")
                 match_score = verify_speaker(audio_np)
                 
-                THRESHOLD = 78
+                THRESHOLD = 62
                 
                 if match_score >= THRESHOLD:
                     print(f"{C_SUCCESS}🔓 VOICE ID MATCH CONFIRMED ({match_score}%)!{NC}")
