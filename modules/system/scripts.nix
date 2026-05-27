@@ -292,12 +292,14 @@ let
                   success "GitHub synchronization complete. All changes are backed up!"
               else
                   info "GitHub synchronization completed or skipped."
+                  # shellcheck disable=SC2001
                   echo "$PUSH_OUTPUT" | sed 's/^/  /' # Indent output for cleaner display
               fi
           fi
 
           # 9. Push to binary cache (Cachix)
           # Nix will inject the value of cachixName at build time
+          # shellcheck disable=SC2050
           if [ "${vars.cachixName}" != "your-cachix-subdomain" ]; then
               log "Pushing system build to Cachix (${vars.cachixName})..."
               cachix push "${vars.cachixName}" "$NEW_GEN" &> /dev/null || true

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,19 +8,24 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Outfit:wght@100..900&display=swap"
+        rel="stylesheet">
     <!-- Google Material Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        rel="stylesheet" />
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <!-- Immersive Background Gradients & Glow Effects -->
     <div class="bg-glow bg-glow-orange"></div>
     <div class="bg-glow bg-glow-purple"></div>
     <div class="bg-glow bg-glow-teal"></div>
-    
+
     <div class="app-container">
         <!-- HEADER -->
         <header class="app-header">
@@ -30,7 +36,7 @@
                     <p>Silicon Operations Control Plane</p>
                 </div>
             </div>
-            
+
             <div class="date-navigator">
                 <button class="nav-btn btn-prev" id="btnPrevDay" title="Previous Day">
                     <span class="material-symbols-outlined">chevron_left</span>
@@ -44,7 +50,7 @@
                 </button>
                 <button class="nav-btn btn-today" id="btnGoToday">TODAY</button>
             </div>
-            
+
             <div class="header-status">
                 <button class="eye-saver-btn" id="btnWarmToggle" title="Eye Saver Temperature Mode">
                     <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span> Eye Saver
@@ -56,7 +62,7 @@
 
         <!-- MAIN LAYOUT -->
         <div class="dashboard-grid">
-            
+
             <!-- LEFT SIDEBAR: Calendar Logs & Quick Stats -->
             <aside class="sidebar">
                 <div class="sidebar-card history-card">
@@ -68,7 +74,7 @@
                         <div class="history-placeholder">No logged data yet. Start tracking today!</div>
                     </div>
                 </div>
-                
+
                 <div class="sidebar-card quick-stats-card">
                     <div class="card-header">
                         <span class="material-symbols-outlined">analytics</span>
@@ -99,7 +105,7 @@
 
             <!-- MAIN WORKSPACE -->
             <main class="main-content">
-                
+
                 <!-- TOP METRICS ROW -->
                 <section class="metrics-row">
                     <div class="metric-card focus-metric">
@@ -111,7 +117,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="metric-card reflection-metric">
                         <div class="metric-icon">🥗</div>
                         <div class="metric-info">
@@ -121,17 +127,18 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="metric-card tasks-metric">
                         <div class="metric-icon">🎓</div>
                         <div class="metric-info">
                             <h3>Academic Studies</h3>
                             <div class="metric-val-container">
-                                <span class="metric-value" id="valAcademicHours">0</span><span class="metric-max">hrs</span>
+                                <span class="metric-value" id="valAcademicHours">0</span><span
+                                    class="metric-max">hrs</span>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="metric-card vlsi-metric">
                         <div class="metric-icon">⚡</div>
                         <div class="metric-info">
@@ -163,11 +170,12 @@
 
                     <!-- TAB CONTENTS -->
                     <div class="tab-container">
-                        
+
                         <!-- TAB: DAILY REFLECTION -->
                         <div id="tabDaily" class="tab-content active">
                             <div class="form-grid">
-                                <div class="form-section full-width sliders-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;">
+                                <div class="form-section full-width sliders-container"
+                                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;">
                                     <div class="slider-group">
                                         <div class="slider-header">
                                             <label for="inputFocus">🎯 Focus & Productivity</label>
@@ -180,7 +188,7 @@
                                             <span>Deep Flow</span>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="slider-group">
                                         <div class="slider-header">
                                             <label for="inputReflection">🌱 Reflection & Growth</label>
@@ -206,7 +214,7 @@
                                             <span>Oversleep</span>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="slider-group">
                                         <div class="slider-header">
                                             <label for="inputScreen">📵 Screen Time Control</label>
@@ -228,7 +236,8 @@
                                         <h3>Habit Correctness Matrix</h3>
                                         <span class="slider-badge green" id="badgeHabits">0% Complete</span>
                                     </div>
-                                    <p class="field-desc">Toggle healthy daily habits. Small continuous gains shape elite outcomes.</p>
+                                    <p class="field-desc">Toggle healthy daily habits. Small continuous gains shape
+                                        elite outcomes.</p>
                                     <div class="habit-chips-grid">
                                         <label class="habit-chip" data-habit="water">
                                             <input type="checkbox" id="habitWater">
@@ -279,7 +288,7 @@
                                                 <span class="habit-text">Mindfulness</span>
                                             </span>
                                         </label>
-                                        <label class="habit-chip" data-habit="screen">
+                                        <label class="habit-chip" data-habit="bad-habits">
                                             <input type="checkbox" id="habitBadHabitsAvoided">
                                             <span class="habit-content">
                                                 <span class="habit-icon">🚫</span>
@@ -296,8 +305,9 @@
                                         <h3>Daily Routine Chrono-Waveform</h3>
                                         <span class="slider-badge orange" id="badgeRoutine">0% Routine Match</span>
                                     </div>
-                                    <p class="field-desc">Check off routine slots as you complete them. Active blocks construct a solid chronogram waveform of your day!</p>
-                                    
+                                    <p class="field-desc">Check off routine slots as you complete them. Active blocks
+                                        construct a solid chronogram waveform of your day!</p>
+
                                     <div class="routine-timeline-grid">
                                         <label class="routine-slot-card" data-slot="0">
                                             <input type="checkbox" name="routineSlots" value="0">
@@ -363,11 +373,13 @@
                                     </div>
                                     <div class="input-group">
                                         <label for="inputYesterdayDone">What I accomplished yesterday</label>
-                                        <textarea id="inputYesterdayDone" placeholder="Describe highlights, milestones, and challenges conquered yesterday..."></textarea>
+                                        <textarea id="inputYesterdayDone"
+                                            placeholder="Describe highlights, milestones, and challenges conquered yesterday..."></textarea>
                                     </div>
                                     <div class="input-group">
                                         <label for="inputYesterdayImprove">What I could have improved yesterday</label>
-                                        <textarea id="inputYesterdayImprove" placeholder="Where did I waste time? How can I correct it?"></textarea>
+                                        <textarea id="inputYesterdayImprove"
+                                            placeholder="Where did I waste time? How can I correct it?"></textarea>
                                     </div>
                                 </div>
 
@@ -378,11 +390,13 @@
                                     </div>
                                     <div class="input-group">
                                         <label for="inputTodayDone">What I did today</label>
-                                        <textarea id="inputTodayDone" placeholder="Outline active tasks accomplished, systems designed, documents finalized..."></textarea>
+                                        <textarea id="inputTodayDone"
+                                            placeholder="Outline active tasks accomplished, systems designed, documents finalized..."></textarea>
                                     </div>
                                     <div class="input-group">
                                         <label for="inputTodayDoingNow">What I am doing right NOW</label>
-                                        <textarea id="inputTodayDoingNow" placeholder="Describe the current immediate task or flow state..."></textarea>
+                                        <textarea id="inputTodayDoingNow"
+                                            placeholder="Describe the current immediate task or flow state..."></textarea>
                                     </div>
                                 </div>
 
@@ -393,7 +407,8 @@
                                     </div>
                                     <div class="input-group">
                                         <label for="inputTomorrowDone">What I will do tomorrow</label>
-                                        <textarea id="inputTomorrowDone" placeholder="List crucial high-priority items that must be executed tomorrow..."></textarea>
+                                        <textarea id="inputTomorrowDone"
+                                            placeholder="List crucial high-priority items that must be executed tomorrow..."></textarea>
                                     </div>
                                 </div>
 
@@ -404,7 +419,8 @@
                                     </div>
                                     <div class="input-group">
                                         <label for="inputTodayImprove">Self-Correction Plan</label>
-                                        <textarea id="inputTodayImprove" placeholder="What actions will I take to optimize focus and improve moving forward?"></textarea>
+                                        <textarea id="inputTodayImprove"
+                                            placeholder="What actions will I take to optimize focus and improve moving forward?"></textarea>
                                     </div>
                                 </div>
 
@@ -414,7 +430,8 @@
                                         <h3>Action Item Checklist</h3>
                                     </div>
                                     <div class="todo-input-row">
-                                        <input type="text" id="todoInput" placeholder="Enter high-impact action item...">
+                                        <input type="text" id="todoInput"
+                                            placeholder="Enter high-impact action item...">
                                         <button class="btn btn-secondary" id="btnAddTodo">
                                             <span class="material-symbols-outlined">add</span> ADD
                                         </button>
@@ -433,7 +450,8 @@
                                     <div class="banner-icon"><span class="material-symbols-outlined">memory</span></div>
                                     <div class="banner-text">
                                         <h2>Silicon Engineering Workflow Tracker</h2>
-                                        <p>Record hardware synthesis, block simulation, design verification (DV), and physical design (PD) metrics.</p>
+                                        <p>Record hardware synthesis, block simulation, design verification (DV), and
+                                            physical design (PD) metrics.</p>
                                     </div>
                                 </div>
 
@@ -446,7 +464,8 @@
                                                 <div class="disc-content">
                                                     <span class="material-symbols-outlined">bug_report</span>
                                                     <h4>Design Verification (DV)</h4>
-                                                    <p>Simulation, assertion, coverage, testbenches, HDL logic validation</p>
+                                                    <p>Simulation, assertion, coverage, testbenches, HDL logic
+                                                        validation</p>
                                                 </div>
                                             </label>
                                             <label class="discipline-card">
@@ -454,7 +473,8 @@
                                                 <div class="disc-content">
                                                     <span class="material-symbols-outlined">grid_view</span>
                                                     <h4>Physical Design (PD)</h4>
-                                                    <p>Synthesis, floorplanning, placement, CTS, routing, STA, timing closure</p>
+                                                    <p>Synthesis, floorplanning, placement, CTS, routing, STA, timing
+                                                        closure</p>
                                                 </div>
                                             </label>
                                             <label class="discipline-card">
@@ -481,7 +501,8 @@
                                                 <span>VLSI & CAD/EDA</span>
                                             </label>
                                             <label class="checkbox-tag academic">
-                                                <input type="checkbox" name="academicFocus" value="Computer Architecture">
+                                                <input type="checkbox" name="academicFocus"
+                                                    value="Computer Architecture">
                                                 <span>Computer Architecture</span>
                                             </label>
                                             <label class="checkbox-tag academic">
@@ -489,11 +510,13 @@
                                                 <span>DSP & Signals</span>
                                             </label>
                                             <label class="checkbox-tag academic">
-                                                <input type="checkbox" name="academicFocus" value="Algorithms & Data Structures">
+                                                <input type="checkbox" name="academicFocus"
+                                                    value="Algorithms & Data Structures">
                                                 <span>Algorithms & DS</span>
                                             </label>
                                             <label class="checkbox-tag academic">
-                                                <input type="checkbox" name="academicFocus" value="Analog/Digital IC Design">
+                                                <input type="checkbox" name="academicFocus"
+                                                    value="Analog/Digital IC Design">
                                                 <span>IC Design</span>
                                             </label>
                                             <label class="checkbox-tag academic">
@@ -511,16 +534,22 @@
                                         </div>
                                         <div class="input-row">
                                             <div class="input-group flex-3">
-                                                <label for="inputAcademicTasks">Academic prep, homework, or exam notes</label>
-                                                <textarea id="inputAcademicTasks" placeholder="Document textbooks read, lab problems solved, syllabus milestones reached..."></textarea>
+                                                <label for="inputAcademicTasks">Academic prep, homework, or exam
+                                                    notes</label>
+                                                <textarea id="inputAcademicTasks"
+                                                    placeholder="Document textbooks read, lab problems solved, syllabus milestones reached..."></textarea>
                                             </div>
                                             <div class="input-group flex-1">
                                                 <label for="inputAcademicHours">⏱️ Academic Hours</label>
-                                                <input type="number" id="inputAcademicHours" min="0" max="24" step="0.5" value="0">
+                                                <input type="number" id="inputAcademicHours" min="0" max="24" step="0.5"
+                                                    value="0">
                                                 <div class="academic-quick-toggles">
-                                                    <button type="button" class="btn-academic-toggle" data-val="1">1h</button>
-                                                    <button type="button" class="btn-academic-toggle" data-val="2">2h</button>
-                                                    <button type="button" class="btn-academic-toggle" data-val="4">4h</button>
+                                                    <button type="button" class="btn-academic-toggle"
+                                                        data-val="1">1h</button>
+                                                    <button type="button" class="btn-academic-toggle"
+                                                        data-val="2">2h</button>
+                                                    <button type="button" class="btn-academic-toggle"
+                                                        data-val="4">4h</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -572,7 +601,8 @@
                                                 <span>UVM / OVM</span>
                                             </label>
                                             <label class="checkbox-tag">
-                                                <input type="checkbox" name="vlsiMethodologies" value="Formal Verification">
+                                                <input type="checkbox" name="vlsiMethodologies"
+                                                    value="Formal Verification">
                                                 <span>Formal Verification</span>
                                             </label>
                                             <label class="checkbox-tag">
@@ -605,17 +635,24 @@
                                         </div>
                                         <div class="input-row">
                                             <div class="input-group flex-3">
-                                                <label for="inputVlsiTasks">Verification/Physical Design Activity Notes</label>
-                                                <textarea id="inputVlsiTasks" placeholder="Document bugs found, assertions added, simulation logs analyzed, timing path slacks resolved, clock trees configured..."></textarea>
+                                                <label for="inputVlsiTasks">Verification/Physical Design Activity
+                                                    Notes</label>
+                                                <textarea id="inputVlsiTasks"
+                                                    placeholder="Document bugs found, assertions added, simulation logs analyzed, timing path slacks resolved, clock trees configured..."></textarea>
                                             </div>
                                             <div class="input-group flex-1">
                                                 <label for="inputVlsiHours">⏱️ Focus Hours</label>
-                                                <input type="number" id="inputVlsiHours" min="0" max="24" step="0.5" value="0">
+                                                <input type="number" id="inputVlsiHours" min="0" max="24" step="0.5"
+                                                    value="0">
                                                 <div class="hours-quick-toggles">
-                                                    <button type="button" class="btn-hour-toggle" data-val="1">1h</button>
-                                                    <button type="button" class="btn-hour-toggle" data-val="2">2h</button>
-                                                    <button type="button" class="btn-hour-toggle" data-val="4">4h</button>
-                                                    <button type="button" class="btn-hour-toggle" data-val="8">8h</button>
+                                                    <button type="button" class="btn-hour-toggle"
+                                                        data-val="1">1h</button>
+                                                    <button type="button" class="btn-hour-toggle"
+                                                        data-val="2">2h</button>
+                                                    <button type="button" class="btn-hour-toggle"
+                                                        data-val="4">4h</button>
+                                                    <button type="button" class="btn-hour-toggle"
+                                                        data-val="8">8h</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -629,7 +666,8 @@
                             <div class="analytics-container">
                                 <div class="analytics-header">
                                     <h2>Advance Metric Analysis Control</h2>
-                                    <p>Comprehensive visualizations showing self-improvement metrics and VLSI engineering output trends.</p>
+                                    <p>Comprehensive visualizations showing self-improvement metrics and VLSI
+                                        engineering output trends.</p>
                                 </div>
                                 <div class="charts-grid">
                                     <div class="chart-card">
@@ -648,7 +686,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- FOOTER ACTIONS -->
                     <div class="workspace-footer">
                         <button class="btn btn-danger" id="btnReset" title="Reset this form back to defaults">
@@ -663,10 +701,11 @@
             </main>
         </div>
     </div>
-    
+
     <!-- Toast notifications system -->
     <div id="toastContainer" class="toast-container"></div>
-    
+
     <script src="app.js"></script>
 </body>
+
 </html>
