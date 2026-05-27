@@ -96,6 +96,7 @@
       "/var/lib/containerd"
       "/var/lib/containers" # Podman system containers
       "/var/lib/ollama" # Persistent AI models
+      "/var/lib/open-webui" # Persistent AI chats and settings
       "/tools" # Global Engineering Tools (Xilinx, etc.)
     ];
     files = [
@@ -123,6 +124,8 @@
     "d /persist/var/lib/ollama 0700 ollama ollama -"
     "d /persist/var/lib/ollama/.ollama 0700 ollama ollama -"
     "Z /persist/var/lib/ollama - ollama ollama -"
+    "d /persist/var/lib/open-webui 0700 open-webui open-webui -"
+    "Z /persist/var/lib/open-webui - open-webui open-webui -"
   ];
 
   # Allow non-root users to browse the persistence bind mounts if needed
