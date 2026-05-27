@@ -31,18 +31,66 @@ def error(msg):
     print(f"{C_ERROR}󰚌 ERROR:{NC} {msg}")
     sys.exit(1)
 
+def prewarm_tts_cache():
+    import threading
+    def warm():
+        phrases = [
+            "Yes, Mayank? I am listening.",
+            "Access granted.",
+            "Access denied. Voice print mismatch.",
+            "Listening timed out.",
+            "Alright, going to sleep. Call me if you need me!",
+            "Securing workstation.",
+            "Closing active window.",
+            "Capturing screen region."
+        ]
+        import hashlib
+        import subprocess
+        cache_dir = os.path.expanduser("~/.cache/manx_voice")
+        os.makedirs(cache_dir, exist_ok=True)
+        voice = os.environ.get("EDGE_TTS_VOICE", "en-IN-NeerjaNeural")
+        
+        for p in phrases:
+            text_hash = hashlib.md5(p.lower().strip().encode("utf-8")).hexdigest()
+            cached_path = os.path.join(cache_dir, f"{text_hash}.mp3")
+            if not os.path.exists(cached_path):
+                subprocess.run(
+                    ["edge-tts", "--voice", voice, "--text", p, "--write-media", cached_path],
+                    capture_output=True
+                )
+    threading.Thread(target=warm, daemon=True).start()
+
 def speak(text):
     log(f"🔊 Speaking: \"{text}\"", C_MUTED)
     import subprocess
-    import tempfile
+    import hashlib
     
+    # Secure cache directory
+    cache_dir = os.path.expanduser("~/.cache/manx_voice")
+    os.makedirs(cache_dir, exist_ok=True)
+    
+    # Hash the text to get unique filename
+    clean_text = text.lower().strip()
+    text_hash = hashlib.md5(clean_text.encode("utf-8")).hexdigest()
+    cached_path = os.path.join(cache_dir, f"{text_hash}.mp3")
+    
+    # If already cached, play instantly!
+    if os.path.exists(cached_path) and os.path.getsize(cached_path) > 0:
+        try:
+            res_play = subprocess.run(
+                ["mpv", "--no-video", "--volume=90", cached_path],
+                capture_output=True,
+                text=True
+            )
+            return
+        except Exception as e:
+            log(f"Cached audio playback failed: {e}. Falling back to dynamic synthesis...", C_ERROR)
+            
     voice = os.environ.get("EDGE_TTS_VOICE", "en-IN-NeerjaNeural")
-    temp_mp3 = os.path.join(tempfile.gettempdir(), f"manx_speech_{int(time.time())}.mp3")
-    
     try:
         # Generate Speech using edge-tts
         res_tts = subprocess.run(
-            ["edge-tts", "--voice", voice, "--text", text, "--write-media", temp_mp3],
+            ["edge-tts", "--voice", voice, "--text", text, "--write-media", cached_path],
             capture_output=True,
             text=True
         )
@@ -52,62 +100,69 @@ def speak(text):
             
         # Play Audio using mpv
         res_play = subprocess.run(
-            ["mpv", "--no-video", "--volume=90", temp_mp3],
+            ["mpv", "--no-video", "--volume=90", cached_path],
             capture_output=True,
             text=True
         )
-        if res_play.returncode != 0:
-            log(f"Audio playback warning: mpv failed with error: {res_play.stderr.strip()}", C_ERROR)
             
     except FileNotFoundError as e:
         log(f"Missing audio dependency: edge-tts or mpv is not installed in the path. Details: {e}", C_ERROR)
     except Exception as e:
         log(f"Unexpected TTS speech error: {e}", C_ERROR)
-    finally:
-        if os.path.exists(temp_mp3):
-            try:
-                os.remove(temp_mp3)
-            except Exception:
-                pass
 
 def chat_with_gpt_fallback(prompt, system_instruction):
     token_path = os.path.expanduser("~/.config/manx/github_token")
-    if not os.path.exists(token_path):
-        log("No GitHub token found for GPT-4o backup fallback.", C_ERROR)
-        return "I couldn't connect to my Gemini brain, and I have no backup token configured."
+    if os.path.exists(token_path):
+        with open(token_path, "r") as f:
+            github_token = f.read().strip()
+            
+        import urllib.request
+        import urllib.error
+        import json
         
-    with open(token_path, "r") as f:
-        github_token = f.read().strip()
+        url = "https://models.inference.ai.azure.com/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {github_token}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "messages": [
+                {"role": "system", "content": system_instruction},
+                {"role": "user", "content": prompt}
+            ],
+            "model": "gpt-4o",
+            "max_tokens": 100,
+            "temperature": 0.6
+        }
         
-    import urllib.request
-    import urllib.error
-    import json
-    
-    url = "https://models.inference.ai.azure.com/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {github_token}",
-        "Content-Type": "application/json"
-    }
-    data = {
-        "messages": [
-            {"role": "system", "content": system_instruction},
-            {"role": "user", "content": prompt}
-        ],
-        "model": "gpt-4o",
-        "max_tokens": 100,
-        "temperature": 0.6
-    }
-    
+        try:
+            req = urllib.request.Request(url, data=json.dumps(data).encode("utf-8"), headers=headers, method="POST")
+            with urllib.request.urlopen(req, timeout=10) as response:
+                res_data = json.loads(response.read().decode("utf-8"))
+                reply = res_data["choices"][0]["message"]["content"].strip()
+                log("Resilient GPT-4o fallback connection successful! 🚀", C_SUCCESS)
+                return reply
+        except Exception as e:
+            log(f"Resilient GPT-4o fallback API failed: {e}. Trying CLI SGPT...", C_HIGHLIGHT)
+    else:
+        log("No GitHub token found. Attempting CLI SGPT direct fallback...", C_HIGHLIGHT)
+        
+    # Ultimate CLI SGPT fallback (uses terminal configuration)
     try:
-        req = urllib.request.Request(url, data=json.dumps(data).encode("utf-8"), headers=headers, method="POST")
-        with urllib.request.urlopen(req, timeout=10) as response:
-            res_data = json.loads(response.read().decode("utf-8"))
-            reply = res_data["choices"][0]["message"]["content"].strip()
-            log("Resilient GPT-4o fallback connection successful! 🚀", C_SUCCESS)
-            return reply
-    except Exception as e:
-        log(f"Resilient GPT-4o fallback also failed: {e}", C_ERROR)
-        return "I'm having a little trouble connecting to my brain right now, Mayank."
+        import subprocess
+        res = subprocess.run(
+            ["sgpt", prompt],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        if res.returncode == 0 and res.stdout.strip():
+            log("Resilient CLI SGPT fallback successful! 🚀", C_SUCCESS)
+            return res.stdout.strip()
+    except Exception as se:
+        log(f"CLI SGPT fallback failed: {se}", C_ERROR)
+        
+    return "I'm having a little trouble connecting to my brain right now, Mayank."
 
 def chat_with_nixi(prompt):
     token_path = os.path.expanduser("~/.config/manx/gemini_token")
@@ -126,17 +181,24 @@ def chat_with_nixi(prompt):
     
     # List of models to try in descending order of availability/features
     custom_model = os.environ.get("GEMINI_MODEL", "")
-    models_to_try = []
+    raw_models = []
     if custom_model:
-        models_to_try.append(custom_model)
-    models_to_try.extend([
-        "gemini-1.5-flash",
+        raw_models.append(custom_model)
+    # Prioritize highly supported 2.5-flash first to avoid 404 warnings on standard accounts!
+    raw_models.extend([
         "gemini-2.5-flash",
         "gemini-1.5-flash-latest",
+        "gemini-1.5-flash",
         "gemini-2.0-flash",
         "gemini-2.0-flash-exp",
         "gemini-pro"
     ])
+    
+    # Filter duplicates while maintaining order
+    models_to_try = []
+    for m in raw_models:
+        if m not in models_to_try:
+            models_to_try.append(m)
     
     global PERSONALITY_MODE
     
@@ -185,15 +247,12 @@ def chat_with_nixi(prompt):
         except urllib.error.HTTPError as e:
             error_body = e.read().decode("utf-8") if e else ""
             last_error = f"HTTP {e.code}: {error_body}"
-            log(f"Gemini API request failed for model '{model}' ({last_error}). Retrying next model...", C_MUTED)
             continue
         except urllib.error.URLError as e:
             last_error = f"URL Error: {e.reason}"
-            log(f"Connection failed for model '{model}' ({last_error}). Retrying next model...", C_MUTED)
             continue
         except Exception as e:
             last_error = str(e)
-            log(f"Unexpected error for model '{model}' ({last_error}). Retrying next model...", C_MUTED)
             continue
             
     log(f"All Gemini models exhausted. Final error: {last_error}", C_ERROR)
@@ -364,6 +423,37 @@ def enroll():
     print("="*60 + "\n")
     speak("Voice ID enrollment successful. All three templates registered, securing your system against illness and noise.")
 
+def adapt_voice_profile(audio_data):
+    try:
+        mfcc = extract_mfcc(audio_data, SAMPLE_RATE)
+        new_mean = np.mean(mfcc, axis=0).tolist()
+        new_std = np.std(mfcc, axis=0).tolist()
+        
+        if not os.path.exists(PROFILE_PATH):
+            return
+            
+        with open(PROFILE_PATH, "r") as f:
+            profile = json.load(f)
+            
+        if "templates" not in profile:
+            profile["templates"] = []
+            
+        # Limit templates to 5 max to keep search speed fast
+        if len(profile["templates"]) >= 5:
+            profile["templates"].pop(0)  # Remove oldest template to keep latest calibrated voice!
+            
+        profile["templates"].append({
+            "name": f"auto_adaptive_{int(time.time())}",
+            "mean": new_mean,
+            "std": new_std
+        })
+        
+        with open(PROFILE_PATH, "w") as f:
+            json.dump(profile, f, indent=4)
+        log("✨ Voice profile automatically calibrated and updated!", C_MUTED)
+    except Exception as e:
+        log(f"Voice auto-adaptation failed: {e}", C_MUTED)
+
 def verify_speaker(audio_data):
     if not os.path.exists(PROFILE_PATH):
         error("No Voice ID Profile found. Please run 'manx voice enroll' first.")
@@ -405,7 +495,116 @@ def verify_speaker(audio_data):
             
     return best_score
 
+def execute_command_intent(command_text, r):
+    cmd_lower = command_text.lower()
+    global PERSONALITY_MODE
+    if "talk like a girlfriend" in cmd_lower or "be my girlfriend" in cmd_lower or "girlfriend mode" in cmd_lower:
+        PERSONALITY_MODE = "girlfriend"
+        log("Nixi switched to Girlfriend Mode ❤️", C_SUCCESS)
+        speak("Aww, sure Mayank! From now on, I am your sweet girlfriend. How can I pamper my love today?")
+        return True
+    elif "talk like a tapori" in cmd_lower or "be a tapori" in cmd_lower or "tapori mode" in cmd_lower:
+        PERSONALITY_MODE = "tapori"
+        log("Nixi switched to Tapori Mode 😎", C_SUCCESS)
+        speak("Kya bolta hai Mayank bhai! Abhi ekdum jhakaas tapori style me baatein karenge, apun haazir hai!")
+        return True
+    elif "talk normal" in cmd_lower or "be normal" in cmd_lower or "normal mode" in cmd_lower:
+        PERSONALITY_MODE = "normal"
+        log("Nixi returned to Normal Mode ⚙️", C_SUCCESS)
+        speak("Returning to standard workstation assistant mode, Mayank.")
+        return True
+        
+    if "open browser" in cmd_lower or "open the browser" in cmd_lower or "launch browser" in cmd_lower:
+        log("Executing: Launching default browser...", C_SUCCESS)
+        speak("Launching browser now.")
+        os.system("hyprctl dispatch exec firefox &>/dev/null || xdg-open 'https://google.com' &>/dev/null &")
+    elif "lock system" in cmd_lower or "lock screen" in cmd_lower:
+        log("Executing: Securing Workstation...", C_SUCCESS)
+        speak("Securing workstation.")
+        os.system("hyprlock &")
+    elif "close window" in cmd_lower or "close active window" in cmd_lower:
+        log("Executing: Closing active window...", C_SUCCESS)
+        speak("Closing active window.")
+        os.system("hyprctl dispatch closewindow active")
+    elif "take screenshot" in cmd_lower or "screenshot" in cmd_lower:
+        log("Executing: Capture Region...", C_SUCCESS)
+        speak("Capturing screen region.")
+        os.system("grim -g \"$(slurp)\" /tmp/screenshot.png && wl-copy < /tmp/screenshot.png")
+    elif "shutdown" in cmd_lower or "power off" in cmd_lower:
+        if confirm_sensitive_action(command_text, r):
+            log("Executing: Shutting down laptop...", C_SUCCESS)
+            speak("Shutting down the laptop now. Goodbye.")
+            os.system("systemctl poweroff")
+    elif "reboot" in cmd_lower or "restart" in cmd_lower:
+        if confirm_sensitive_action(command_text, r):
+            log("Executing: Rebooting laptop...", C_SUCCESS)
+            speak("Restarting the laptop now.")
+            os.system("systemctl reboot")
+    elif "volume up" in cmd_lower or "increase volume" in cmd_lower:
+        log("Executing: Increasing volume...", C_SUCCESS)
+        speak("Increasing volume.")
+        os.system("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+")
+    elif "volume down" in cmd_lower or "decrease volume" in cmd_lower:
+        log("Executing: Decreasing volume...", C_SUCCESS)
+        speak("Decreasing volume.")
+        os.system("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-")
+    elif "mute" in cmd_lower:
+        log("Executing: Toggling mute state...", C_SUCCESS)
+        speak("Toggling mute.")
+        os.system("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle")
+    elif "brightness up" in cmd_lower or "increase brightness" in cmd_lower:
+        log("Executing: Increasing brightness...", C_SUCCESS)
+        speak("Increasing brightness.")
+        os.system("brightnessctl set 10%+")
+    elif "brightness down" in cmd_lower or "decrease brightness" in cmd_lower:
+        log("Executing: Decreasing brightness...", C_SUCCESS)
+        speak("Decreasing brightness.")
+        os.system("brightnessctl set 10%-")
+    elif "stop listening" in cmd_lower or "exit assistant" in cmd_lower or "goodbye nixi" in cmd_lower or "goodbye nixie" in cmd_lower:
+        log("Shutting down voice listener...", C_HIGHLIGHT)
+        speak("Goodbye, Mayank. Powering down.")
+        sys.exit(0)
+    elif "run command" in cmd_lower or "shell" in cmd_lower or "terminal" in cmd_lower:
+        clean_cmd = command_text
+        for phrase in ["run command", "shell", "terminal"]:
+            clean_cmd = clean_cmd.replace(phrase, "")
+        clean_cmd = clean_cmd.strip()
+        
+        if is_command_sensitive(clean_cmd.lower()):
+            if not confirm_sensitive_action(clean_cmd, r):
+                return False
+                
+        # Retrieve GitHub token to power Shell-GPT with Premium GPT-4o
+        token_path = os.path.expanduser("~/.config/manx/github_token")
+        env_override = os.environ.copy()
+        model_flag = []
+        
+        if os.path.exists(token_path):
+            with open(token_path, "r") as f:
+                github_token = f.read().strip()
+            if github_token:
+                env_override["OPENAI_API_KEY"] = github_token
+                env_override["OPENAI_API_BASE"] = "https://models.github.ai/inference/v1"
+                model_flag = ["--model", "gpt-4o"]
+                log("Shell-GPT connected to Elite GPT-4o GitHub Models! 🚀", C_SUCCESS)
+                
+        log(f"Passing to secure local shell-gpt resolver: \"{clean_cmd}\"...", C_HIGHLIGHT)
+        speak("Generating system command resolver.")
+        import subprocess
+        subprocess.run(["sgpt"] + model_flag + ["--shell", clean_cmd], env=env_override)
+    else:
+        # If it's a general query containing sensitive keywords, double check!
+        if is_command_sensitive(cmd_lower):
+            if not confirm_sensitive_action(command_text, r):
+                return False
+        log(f"Chatting with Nixi: \"{command_text}\"...", C_HIGHLIGHT)
+        reply = chat_with_nixi(command_text)
+        speak(reply)
+        
+    return True
+
 def listen_and_execute():
+    prewarm_tts_cache()
     if not os.path.exists(PROFILE_PATH):
         error("No voice profile found. Run enrollment first!")
         
@@ -434,153 +633,68 @@ def listen_and_execute():
             log(f"🎙️ Heard audio: \"{wake_text}\"", C_MUTED)
             
             # Match Nixi or common phonetic variations (Google API often writes these for Hinglish speakers)
-            if any(w in wake_text for w in ["nixi", "nixy", "nixie", "nix", "nikki", "nicky", "pixie", "lexi", "mixie", "mixi", "nexa", "texa", "nexi", "nex", "maxa", "nexia", "mixa", "neerja", "neetu", "neeta", "nikshay", "nikshae","nikie","niki","nik","mixie","mixi"]):
+            if any(w in wake_text for w in ["nixi", "nixy", "nixie", "nix", "nikki", "nicky", "pixie", "lexi", "mixie", "mixi", "nexa", "texa", "nexi", "nex", "maxa", "nexia", "mixa", "neerja", "neetu", "neeta", "nikshay", "nikshae", "nikie", "niki", "nik","nifty"]):
                 print(f"\n{C_HIGHLIGHT}✨ WAKE WORD DETECTED!{NC}")
                 speak("Yes, Mayank? I am listening.")
                 
-                with sr.Microphone() as source:
-                    log("🎤 Listening for command...", C_PRIMARY)
-                    try:
-                        audio_cmd = r.listen(source, timeout=6, phrase_time_limit=6)
-                    except sr.WaitTimeoutError:
-                        speak("Listening timed out.")
-                        continue
+                # Continuous follow-up conversational loop!
+                conversation_active = True
+                first_turn = True
                 
-                wav_data = audio_cmd.get_wav_data(convert_rate=SAMPLE_RATE, convert_width=2)
-                audio_np = np.frombuffer(wav_data, dtype=np.int16).astype(np.float32) / 32768.0
-                
-                log("🔒 Checking Voice ID Biometrics...")
-                match_score = verify_speaker(audio_np)
-                
-                THRESHOLD = 62
-                
-                if match_score >= THRESHOLD:
-                    print(f"{C_SUCCESS}🔓 VOICE ID MATCH CONFIRMED ({match_score}%)!{NC}")
-                    speak("Access granted.")
+                while conversation_active:
+                    with sr.Microphone() as source:
+                        log("🎤 Listening for command...", C_PRIMARY)
+                        try:
+                            # 6 seconds timeout, 8 seconds maximum sentence length
+                            audio_cmd = r.listen(source, timeout=6, phrase_time_limit=8)
+                        except sr.WaitTimeoutError:
+                            log("💤 Conversation timed out. Going back to sleep...", C_MUTED)
+                            conversation_active = False
+                            break
+                        except Exception as e:
+                            log(f"Microphone error: {e}", C_ERROR)
+                            conversation_active = False
+                            break
                     
-                    try:
-                        command_text = r.recognize_google(audio_cmd)
-                        print(f"\n   💬 Spoken Intent: {C_PRIMARY}\"{command_text}\"{NC}\n")
+                    wav_data = audio_cmd.get_wav_data(convert_rate=SAMPLE_RATE, convert_width=2)
+                    audio_np = np.frombuffer(wav_data, dtype=np.int16).astype(np.float32) / 32768.0
+                    
+                    log("🔒 Checking Voice ID Biometrics...")
+                    match_score = verify_speaker(audio_np)
+                    
+                    THRESHOLD = 62
+                    
+                    if match_score >= THRESHOLD:
+                        # Print confirmation to screen
+                        print(f"{C_SUCCESS}🔓 VOICE ID MATCH CONFIRMED ({match_score}%)!{NC}")
+                        # Audio alert only on the first turn of a conversation to keep it natural!
+                        if first_turn:
+                            speak("Access granted.")
+                            first_turn = False
                         
-                        cmd_lower = command_text.lower()
-                        global PERSONALITY_MODE
-                        if "talk like a girlfriend" in cmd_lower or "be my girlfriend" in cmd_lower or "girlfriend mode" in cmd_lower:
-                            PERSONALITY_MODE = "girlfriend"
-                            log("Nixi switched to Girlfriend Mode ❤️", C_SUCCESS)
-                            speak("Aww, sure Mayank! From now on, I am your sweet girlfriend. How can I pamper my love today?")
+                        # Continuously self-train and adapt the voice profile from successful matches!
+                        adapt_voice_profile(audio_np)
+                        
+                        try:
+                            command_text = r.recognize_google(audio_cmd)
+                            print(f"\n   💬 Spoken Intent: {C_PRIMARY}\"{command_text}\"{NC}\n")
+                            
+                            cmd_lower = command_text.lower()
+                            if any(w in cmd_lower for w in ["go to sleep", "goodbye", "bye", "stop listening", "exit assistant", "chup", "silent"]):
+                                speak("Alright, going to sleep. Call me if you need me!")
+                                conversation_active = False
+                                break
+                                
+                            execute_command_intent(command_text, r)
+                            log("✨ Continued conversation active. Keep talking naturally without the wake word!", C_HIGHLIGHT)
+                        except Exception as e:
+                            log(f"Could not understand audio: {e}", C_MUTED)
+                            # Give one more try if it's just silence/noise
                             continue
-                        elif "talk like a tapori" in cmd_lower or "be a tapori" in cmd_lower or "tapori mode" in cmd_lower:
-                            PERSONALITY_MODE = "tapori"
-                            log("Nixi switched to Tapori Mode 😎", C_SUCCESS)
-                            speak("Kya bolta hai Mayank bhai! Abhi ekdum jhakaas tapori style me baatein karenge, apun haazir hai!")
-                            continue
-                        elif "talk normal" in cmd_lower or "be normal" in cmd_lower or "normal mode" in cmd_lower:
-                            PERSONALITY_MODE = "normal"
-                            log("Nixi returned to Normal Mode ⚙️", C_SUCCESS)
-                            speak("Returning to standard workstation assistant mode, Mayank.")
-                            continue
-                            
-                        if "open browser" in cmd_lower or "open the browser" in cmd_lower or "launch browser" in cmd_lower:
-                            log("Executing: Launching default browser...", C_SUCCESS)
-                            speak("Launching browser now.")
-                            os.system("hyprctl dispatch exec firefox &>/dev/null || xdg-open 'https://google.com' &>/dev/null &")
-                        elif "lock system" in cmd_lower or "lock screen" in cmd_lower:
-                            log("Executing: Securing Workstation...", C_SUCCESS)
-                            speak("Securing workstation.")
-                            os.system("hyprlock &")
-                        elif "close window" in cmd_lower or "close active window" in cmd_lower:
-                            log("Executing: Closing active window...", C_SUCCESS)
-                            speak("Closing active window.")
-                            os.system("hyprctl dispatch closewindow active")
-                        elif "take screenshot" in cmd_lower or "screenshot" in cmd_lower:
-                            log("Executing: Capture Region...", C_SUCCESS)
-                            speak("Capturing screen region.")
-                            os.system("grim -g \"$(slurp)\" /tmp/screenshot.png && wl-copy < /tmp/screenshot.png")
-                        elif "shutdown" in cmd_lower or "power off" in cmd_lower:
-                            if confirm_sensitive_action(command_text, r):
-                                log("Executing: Shutting down laptop...", C_SUCCESS)
-                                speak("Shutting down the laptop now. Goodbye.")
-                                os.system("systemctl poweroff")
-                        elif "reboot" in cmd_lower or "restart" in cmd_lower:
-                            if confirm_sensitive_action(command_text, r):
-                                log("Executing: Rebooting laptop...", C_SUCCESS)
-                                speak("Restarting the laptop now.")
-                                os.system("systemctl reboot")
-                        elif "volume up" in cmd_lower or "increase volume" in cmd_lower:
-                            log("Executing: Increasing volume...", C_SUCCESS)
-                            speak("Increasing volume.")
-                            os.system("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+")
-                        elif "volume down" in cmd_lower or "decrease volume" in cmd_lower:
-                            log("Executing: Decreasing volume...", C_SUCCESS)
-                            speak("Decreasing volume.")
-                            os.system("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-")
-                        elif "mute" in cmd_lower:
-                            log("Executing: Toggling mute state...", C_SUCCESS)
-                            speak("Toggling mute.")
-                            os.system("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle")
-                        elif "brightness up" in cmd_lower or "increase brightness" in cmd_lower:
-                            log("Executing: Increasing brightness...", C_SUCCESS)
-                            speak("Increasing brightness.")
-                            os.system("brightnessctl set 10%+")
-                        elif "brightness down" in cmd_lower or "decrease brightness" in cmd_lower:
-                            log("Executing: Decreasing brightness...", C_SUCCESS)
-                            speak("Decreasing brightness.")
-                            os.system("brightnessctl set 10%-")
-                        elif "stop listening" in cmd_lower or "exit assistant" in cmd_lower or "goodbye nixi" in cmd_lower or "goodbye nixie" in cmd_lower:
-                            log("Shutting down voice listener...", C_HIGHLIGHT)
-                            speak("Goodbye, Mayank. Powering down.")
-                            sys.exit(0)
-                        elif "run command" in cmd_lower or "shell" in cmd_lower or "terminal" in cmd_lower:
-                            clean_cmd = command_text
-                            for phrase in ["run command", "shell", "terminal"]:
-                                clean_cmd = clean_cmd.replace(phrase, "")
-                            clean_cmd = clean_cmd.strip()
-                            
-                            if is_command_sensitive(clean_cmd.lower()):
-                                if not confirm_sensitive_action(clean_cmd, r):
-                                    continue
-                                    
-                            # Retrieve GitHub token to power Shell-GPT with Premium GPT-4o
-                            token_path = os.path.expanduser("~/.config/manx/github_token")
-                            env_override = os.environ.copy()
-                            model_flag = []
-                            
-                            if os.path.exists(token_path):
-                                with open(token_path, "r") as f:
-                                    github_token = f.read().strip()
-                                if github_token:
-                                    env_override["OPENAI_API_KEY"] = github_token
-                                    env_override["OPENAI_API_BASE"] = "https://models.github.ai/inference/v1"
-                                    model_flag = ["--model", "gpt-4o"]
-                                    log("Shell-GPT connected to Elite GPT-4o GitHub Models! 🚀", C_SUCCESS)
-                                    
-                            log(f"Passing to secure local shell-gpt resolver: \"{clean_cmd}\"...", C_HIGHLIGHT)
-                            speak("Generating system command resolver.")
-                            import subprocess
-                            subprocess.run(["sgpt"] + model_flag + ["--shell", clean_cmd], env=env_override)
-                        else:
-                            # If it's a general query containing sensitive keywords, double check!
-                            if is_command_sensitive(cmd_lower):
-                                if not confirm_sensitive_action(command_text, r):
-                                    continue
-                            log(f"Chatting with Nixi: \"{command_text}\"...", C_HIGHLIGHT)
-                            reply = chat_with_nixi(command_text)
-                            speak(reply)
-                            
-                    except sr.UnknownValueError:
-                        speak("Sorry, I could not understand that command.")
-                    except sr.RequestError as e:
-                        speak("Speech recognition service failed.")
-                else:
-                    print(f"{C_ERROR}🚫 ACCESS DENIED ({match_score}% Confidence)!{NC}")
-                    speak("Access denied. Voice print mismatch. System locked.")
-                    print(f"{C_MUTED}Voice signature mismatch. Intruding commands blocked.{NC}\n")
-                    
-        except (sr.UnknownValueError, sr.RequestError):
-            continue
-        except Exception as e:
-            time.sleep(1)
-            continue
+                    else:
+                        print(f"{C_ERROR}🚫 ACCESS DENIED ({match_score}% Confidence)!{NC}")
+                        speak("Access denied. Voice print mismatch.")
+                        conversation_active = False
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
