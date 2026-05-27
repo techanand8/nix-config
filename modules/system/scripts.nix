@@ -575,6 +575,11 @@ let
                   log "Initializing MANX Voice ID Biometrics..."
                   VOICE_SCRIPT="''$CONFIG_DIR/modules/system/voice/voice_agent.py"
                   chmod +x "''$VOICE_SCRIPT" 2>/dev/null || true
+                  
+                  # Set default environment variables for model and TTS fallback consistency
+                  export GEMINI_MODEL="''${GEMINI_MODEL:-gemini-1.5-flash}"
+                  export EDGE_TTS_VOICE="''${EDGE_TTS_VOICE:-en-IN-NeerjaNeural}"
+                  
                   shift
                   if [[ "''${1:-}" == "enroll" ]]; then
                       python3 "''$VOICE_SCRIPT" enroll

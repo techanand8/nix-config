@@ -36,7 +36,7 @@ def speak(text):
     import subprocess
     import tempfile
     
-    voice = "en-IN-NeerjaNeural"
+    voice = os.environ.get("EDGE_TTS_VOICE", "en-IN-NeerjaNeural")
     temp_mp3 = os.path.join(tempfile.gettempdir(), f"manx_speech_{int(time.time())}.mp3")
     
     try:
@@ -82,6 +82,7 @@ def chat_with_nixi(prompt):
             api_key = f.read().strip()
             
     import urllib.request
+    import urllib.error
     import json
     
     # Future-proof model ID selection via environment variable override
@@ -129,7 +130,29 @@ def chat_with_nixi(prompt):
             res_data = json.loads(response.read().decode("utf-8"))
             reply = res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
             return reply
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode("utf-8") if e else ""
+        log(f"Gemini API request failed (HTTP {e.code}): {error_body}", C_ERROR)
+        
+        # Trigger automatic fallback if using a non-default model
+        if gemini_model != "gemini-1.5-flash":
+            log("Attempting automatic fallback to stable 'gemini-1.5-flash'...", C_HIGHLIGHT)
+            fallback_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+            try:
+                fallback_req = urllib.request.Request(fallback_url, data=json.dumps(data).encode("utf-8"), headers=headers, method="POST")
+                with urllib.request.urlopen(fallback_req, timeout=8) as response:
+                    res_data = json.loads(response.read().decode("utf-8"))
+                    reply = res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
+                    log("Fallback connection successful! 🧠", C_SUCCESS)
+                    return reply
+            except Exception as fe:
+                log(f"Gemini Fallback API failed: {fe}", C_ERROR)
+        return "I'm having a little trouble connecting to my brain right now, Mayank."
+    except urllib.error.URLError as e:
+        log(f"Gemini connection error: {e.reason}", C_ERROR)
+        return "I'm having a little trouble connecting to my brain right now, Mayank."
     except Exception as e:
+        log(f"Unexpected Gemini API error: {e}", C_ERROR)
         return "I'm having a little trouble connecting to my brain right now, Mayank."
 
 def is_command_sensitive(cmd_lower):
