@@ -54,6 +54,7 @@
 
     # --- ELITE DEVELOPER UTILS ---
     xdotool # Command-line X11 automation tool
+    wlrctl # Wayland-native automation tool
     nix-index # File-to-package indexer
     comma # Run any nix command without installing (usage: , <cmd>)
   ];

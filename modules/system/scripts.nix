@@ -33,7 +33,6 @@ let
       # Custom-built for the MANX Engineering Workstation
 
       # --- DYNAMIC PORTABILITY ---
-      # Automatically detect the configuration directory
       if git rev-parse --is-inside-work-tree &>/dev/null; then
           CONFIG_DIR=$(git rev-parse --show-toplevel)
       else
@@ -44,7 +43,7 @@ let
       export NH_FLAKE="$CONFIG_DIR"
       export NIXPKGS_ALLOW_UNFREE=1
 
-      # Smart Host Detection: Normalize hostname to match Flake targets (MANX or LAPTOP)
+      # Smart Host Detection
       RAW_HOSTNAME=$(hostname)
       UPPER_HOST=$(echo "$RAW_HOSTNAME" | tr '[:lower:]' '[:upper:]' || echo "MANX")
 
@@ -55,18 +54,15 @@ let
           HOSTNAME="MANX"
           HOST_DIR="manx"
       else
-          # Fallback to MANX as default workstation
           HOSTNAME="MANX"
           HOST_DIR="manx"
       fi
 
-      # UI Branding (Always MANX for the workstation family)
       BRAND_NAME="MANX"
-
       EDITOR="nvim"
       VIVADO_VERSION="${vars.vivadoVersion}"
 
-      # --- COLOR PALETTE (Optimized for Ghostty/Kitty) ---
+      # --- COLOR PALETTE ---
       C_PRIMARY='\033[38;5;208m'   # Coral Orange
       C_SECONDARY='\033[38;5;99m'  # Royal Soft Purple
       C_HIGHLIGHT='\033[38;5;43m'  # Vibrant Teal
@@ -82,16 +78,14 @@ let
       function success() { echo -e "''${C_SUCCESS}󰄬  [SUCCESS]''${NC} $1"; }
       function info() { echo -e "''${C_HIGHLIGHT}󰌢  [INFO]''${NC} $1"; }
 
-      # Help Menu Function
       function show_help() {
-          # Calculate uptime reliably
-          local uptime_all
+          local uptime_all uptime_seconds days hours mins uptime_str
           uptime_all=$(cat /proc/uptime)
-          local uptime_seconds=''${uptime_all%%.*}
-          local days=$((uptime_seconds / 86400))
-          local hours=$(( (uptime_seconds % 86400) / 3600 ))
-          local mins=$(( (uptime_seconds % 3600) / 60 ))
-          local uptime_str=""
+          uptime_seconds=''${uptime_all%%.*}
+          days=$((uptime_seconds / 86400))
+          hours=$(( (uptime_seconds % 86400) / 3600 ))
+          mins=$(( (uptime_seconds % 3600) / 60 ))
+          uptime_str=""
           if [ "$days" -gt 0 ]; then uptime_str+="$days""d "; fi
           if [ "$hours" -gt 0 ]; then uptime_str+="$hours""h "; fi
           uptime_str+="$mins""m"
@@ -143,7 +137,6 @@ let
           echo -e ""
       }
 
-      # Initialize Git tracking if it's missing
       if [ ! -d "$CONFIG_DIR/.git" ]; then
           info "Initializing configuration tracking repository..."
           git init "$CONFIG_DIR" > /dev/null
@@ -154,76 +147,54 @@ let
           exit 0
       fi
 
-      # Jump to the config directory for all operations
       cd "$CONFIG_DIR"
 
       case $1 in
         rebuild)
           log "Executing system synchronization..."
-
-          # --- SECURITY SHIELD: Automated Cleanup Trap ---
           cleanup_secrets() {
               git reset -- hosts/manx/variables.nix hosts/laptop/variables.nix secrets/secrets.yaml &> /dev/null || true
           }
           trap cleanup_secrets EXIT SIGINT SIGTERM
-
-          # 0. Create pre-rebuild Btrfs snapshots for safety
           if command -v snapper &> /dev/null; then
               log "Creating pre-rebuild snapshots (Time Machine)..."
               sudo snapper -c home create --description "Pre-rebuild home snapshot" || true
           fi
-
-          # 1. Enforce code style standards (RFC-166) BEFORE staging
           nix fmt
-          
-          # 2. Stage changes so Nix Flakes can see the configuration
           git add -f -- hosts/manx/variables.nix hosts/laptop/variables.nix secrets/secrets.yaml &> /dev/null || true
           git add . &> /dev/null || true
-          
-          # 3. Validate configuration integrity before applying
           log "Validating configuration health..."
           CHECK_ERR=$(mktemp)
           if ! nix flake check . 2>"$CHECK_ERR"; then
               grep -v -E "incompatible systems|all-systems" "$CHECK_ERR" >&2 || true
               rm -f "$CHECK_ERR"
-              # Unstage on failure for safety
               cleanup_secrets
               error "Configuration audit failed. Please resolve errors before rebuilding."
           else
               grep -v -E "incompatible systems|all-systems" "$CHECK_ERR" >&2 || true
               rm -f "$CHECK_ERR"
           fi
-          
-          # AI Portal Preparation
           sudo mkdir -p /var/lib/open-webui
           sudo chown open-webui:open-webui /var/lib/open-webui 2>/dev/null || true
-
-          # Load Keys
           GH_TOKEN=""
           [ -f "$HOME/.config/manx/github_token" ] && GH_TOKEN=$(cat "$HOME/.config/manx/github_token")
           GEMINI_TOKEN=""
           [ -f "$HOME/.config/manx/gemini_token" ] && GEMINI_TOKEN=$(cat "$HOME/.config/manx/gemini_token")
-
-          # Dynamically construct OpenAI-compatible endpoint and Google AI Studio endpoint for Open-WebUI
           log "Synchronizing secure AI API keys with Open-WebUI..."
-          
           sudo mkdir -p /var/lib/open-webui
           sudo chown open-webui:open-webui /var/lib/open-webui
           sudo chmod 755 /var/lib/open-webui
-
           {
               echo "OLLAMA_BASE_URL=http://127.0.0.1:11434"
               echo "OLLAMA_API_BASE_URL=http://127.0.0.1:11434"
               echo "ENABLE_OLLAMA_API=True"
-
               if [ -n "$GH_TOKEN" ]; then
-                  echo "OPENAI_API_BASE_URL=https://models.github.ai/inference"
+                  echo "OPENAI_API_BASE_URL=https://models.github.ai/inference/v1"
                   echo "OPENAI_API_KEY=$GH_TOKEN"
                   echo "ENABLE_OPENAI_API=True"
               else
                   echo "ENABLE_OPENAI_API=False"
               fi
-
               if [ -n "$GEMINI_TOKEN" ]; then
                   echo "GOOGLE_API_KEY=$GEMINI_TOKEN"
                   echo "ENABLE_GOOGLE_API=True"
@@ -231,80 +202,53 @@ let
                   echo "ENABLE_GOOGLE_API=False"
               fi
           } | sudo tee /var/lib/open-webui/open-webui.env > /dev/null
-
           sudo chown open-webui:open-webui /var/lib/open-webui/open-webui.env
           sudo chmod 600 /var/lib/open-webui/open-webui.env
           sudo systemctl restart open-webui || true
-
-          # 5. Apply system configuration via NH
           log "Applying system updates..."
-          # Capture current generation before switch
           OLD_GEN=$(readlink -f /nix/var/nix/profiles/system 2>/dev/null || echo "/run/current-system")
           if ! nh os switch path:. --hostname "$HOSTNAME" -- --accept-flake-config; then
-              # Unstage on failure for safety
               cleanup_secrets
               error "System rebuild failed."
           fi
-          
-          # Enforce file ownership for the static user AFTER the configuration is successfully activated!
           log "Applying final filesystem permissions for Open-WebUI..."
           sudo chown -R open-webui:open-webui /var/lib/open-webui 2>/dev/null || true
           sudo chmod -R 755 /var/lib/open-webui 2>/dev/null || true
-          # Keep the secrets file private
           sudo chmod 600 /var/lib/open-webui/open-webui.env 2>/dev/null || true
-          
-          log "Restarting Open-WebUI service to activate static storage..."
           sudo systemctl restart open-webui || true
-          
-          # MANDATORY SECURITY: Unstage secrets immediately after a successful build
           cleanup_secrets
-          
-          # 6. SDDM Maintenance: Clear persistent cache to force theme update
           if [ -d "/persist/var/lib/sddm" ]; then
               log "Clearing SDDM persistent cache for theme synchronization..."
               sudo rm -rf /persist/var/lib/sddm/* &> /dev/null || true
           fi
-          
-          # 7. Generate package change report
           NEW_GEN=$(readlink -f /nix/var/nix/profiles/system 2>/dev/null || echo "/run/current-system")
           echo -e "\n''${C_HIGHLIGHT}  Package Changes:''${NC}"
-          # Use a subshell to prevent nvd failures from crashing the script
           ( nvd diff "$OLD_GEN" "$NEW_GEN" || true )
-          
-          # Double-check secrets are removed from index before checking commit status
           cleanup_secrets
-          
           if git status --porcelain | grep -q '^[ MADRCU]'; then
               log "Recording system state to Git history..."
               echo -e "\n''${C_MUTED}Change Summary:''${NC}"
               git diff --stat --staged
               git commit -m "System Update: $(date '+%Y-%m-%d %H:%M')" &> /dev/null || true
           fi
-
-          # 8. Synchronize with remote repository (Optional)
           if git remote | grep -q "origin"; then
               log "Synchronizing configuration with GitHub..."
-              # Capture stdout and stderr to handle feedback accurately
               PUSH_OUTPUT=$(git push origin main 2>&1) || true
               if [ -z "$PUSH_OUTPUT" ] || echo "$PUSH_OUTPUT" | grep -q "Everything up-to-date"; then
-                  info "GitHub is already up-to-date (no new changes to push)."
+                  info "GitHub already up-to-date."
               elif echo "$PUSH_OUTPUT" | grep -q -E "To |Update|master ->|main ->"; then
-                  success "GitHub synchronization complete. All changes are backed up!"
+                  success "GitHub synchronization complete."
               else
                   info "GitHub synchronization completed or skipped."
                   # shellcheck disable=SC2001
-                  echo "$PUSH_OUTPUT" | sed 's/^/  /' # Indent output for cleaner display
+                  echo "$PUSH_OUTPUT" | sed 's/^/  /'
               fi
           fi
-
-          # 9. Push to binary cache (Cachix)
-          # Nix will inject the value of cachixName at build time
-          # shellcheck disable=SC2050
-          if [ "${vars.cachixName}" != "your-cachix-subdomain" ]; then
-              log "Pushing system build to Cachix (${vars.cachixName})..."
-              cachix push "${vars.cachixName}" "$NEW_GEN" &> /dev/null || true
+          CACHIX_NAME="${vars.cachixName}"
+          if [ "$CACHIX_NAME" != "your-cachix-subdomain" ]; then
+              log "Pushing system build to Cachix ($CACHIX_NAME)..."
+              cachix push "$CACHIX_NAME" "$NEW_GEN" &> /dev/null || true
           fi
-
           success "System configuration applied successfully."
           ;;
 
@@ -324,76 +268,41 @@ let
           ;;
 
         bootstrap)
-          log "Initializing Stateless Btrfs & SOPS Environment Bootstrapping..."
-          # 1. Btrfs subvolume layout setup
+          log "Initializing Stateless Btrfs & SOPS Environment..."
           if findmnt -n -o FSTYPE / 2>/dev/null | grep -q "btrfs" || findmnt -n -o FSTYPE /persist 2>/dev/null | grep -q "btrfs"; then
               log "Btrfs file system verified."
-              # Find physical Btrfs device
               DEV_PATH=$(findmnt -n -o SOURCE /persist 2>/dev/null || findmnt -n -o SOURCE / 2>/dev/null || true)
               if [ -n "$DEV_PATH" ]; then
                   log "Discovered Btrfs device: ''$DEV_PATH"
-                  # Setup Mount and Verify Subvolume Layout
                   mkdir -p /tmp/btrfs-root
                   if sudo mount -t btrfs -o subvolid=5 "''$DEV_PATH" /tmp/btrfs-root &>/dev/null; then
-                      log "Mounted Btrfs root subvolid=5 successfully."
+                      log "Mounted Btrfs root successfully."
                       if [ ! -d "/tmp/btrfs-root/blank" ]; then
-                          info "Stateless rollback snapshot '/blank' not found. Creating it..."
+                          info "Creating pristine '/blank' subvolume..."
                           sudo btrfs subvolume create /tmp/btrfs-root/blank
-                          success "Pristine '/blank' subvolume created."
-                      else
-                          success "Pristine '/blank' subvolume already exists."
                       fi
                       sudo umount /tmp/btrfs-root
                       rm -rf /tmp/btrfs-root
-                  else
-                      info "Unable to mount Btrfs subvolid=5 directly. Ensure you run this with sudo permissions."
                   fi
               fi
-          else
-              info "Root/Persist is not formatted as Btrfs. Skipping subvolume checks."
           fi
-          # 2. SOPS age keyfile directory setup
-          KEY_DIR="/persist/var/lib/sops-nix"
           if [ -d "/persist" ]; then
-              log "Verifying SOPS decryption keypaths..."
-              sudo mkdir -p "''$KEY_DIR"
-              sudo chmod 0755 /persist/var/lib 2>/dev/null || true
-              sudo chmod 0700 "''$KEY_DIR" 2>/dev/null || true
-              if [ ! -f "''$KEY_DIR/key.txt" ]; then
-                  info "SOPS age key missing. Generate using: 'age-keygen -o ''$KEY_DIR/key.txt'"
-              else
-                  success "SOPS decryption age key is present."
-              fi
-          else
-              info "/persist directory not found. Skipping secrets keypath checks."
-          fi
-          # 3. Persistent machine-id setup
-          if [ -d "/persist" ]; then
-              log "Verifying persistent machine-id..."
+              log "Verifying SOPS and machine-id..."
+              sudo mkdir -p "/persist/var/lib/sops-nix"
+              sudo chmod 0700 "/persist/var/lib/sops-nix"
               if [ ! -f "/persist/etc/machine-id" ]; then
-                  info "Stateless machine-id '/persist/etc/machine-id' is missing. Generating..."
                   sudo mkdir -p /persist/etc
-                  if command -v systemd-machine-id-setup &>/dev/null; then
-                      systemd-machine-id-setup | sudo tee /persist/etc/machine-id > /dev/null
-                      success "Persistent machine-id generated successfully."
-                  else
-                      dbus-uuidgen | sudo tee /persist/etc/machine-id > /dev/null
-                      success "Persistent machine-id generated via dbus-uuidgen."
-                  fi
-              else
-                  success "Persistent machine-id is present."
+                  systemd-machine-id-setup | sudo tee /persist/etc/machine-id > /dev/null
               fi
-          else
-              info "/persist directory not found. Skipping machine-id bootstrapping."
           fi
           success "Bootstrap process completed."
           ;;
 
-        word) log "Launching Professional Documentation Suite (OnlyOffice)..."; onlyoffice-desktopeditors &> /dev/null & disown ;;
-        writer) log "Initializing Technical Documentation Engine (LibreOffice Writer)..."; libreoffice --writer &> /dev/null & disown ;;
-        calc) log "Opening Engineering Analysis Environment (LibreOffice Calc)..."; libreoffice --calc &> /dev/null & disown ;;
-        impress) log "Launching Silicon Presentation Suite (LibreOffice Impress)..."; libreoffice --impress &> /dev/null & disown ;;
-        draw) log "Initializing Schematic & Flow Diagram Engine (LibreOffice Draw)..."; libreoffice --draw &> /dev/null & disown ;;
+        word) onlyoffice-desktopeditors &> /dev/null & disown ;;
+        writer) libreoffice --writer &> /dev/null & disown ;;
+        calc) libreoffice --calc &> /dev/null & disown ;;
+        impress) libreoffice --impress &> /dev/null & disown ;;
+        draw) libreoffice --draw &> /dev/null & disown ;;
 
         edit)
           if [ -n "''${2:-}" ]; then
@@ -433,11 +342,11 @@ let
 
         aider)
           log "Initializing Aider Coding Workspace..."
-          check_ollama() { curl -s http://127.0.0.1:11434 &>/dev/null || error "Ollama service is not running!"; }
+          check_ollama() { if ! curl -s http://127.0.0.1:11434 &>/dev/null; then error "Ollama service is not running!"; fi; }
           if [ -z "''${2:-}" ] || [[ "$2" == -* ]]; then
               if command -v fzf &> /dev/null; then
                   log "Select a coding model for Aider (Local or Free Cloud):"
-                  CHOICE=$(echo -e "qwen2.5-coder:7b (Recommended Local)\ndeepseek-coder:6.7b (Stable Local)\nanthropic/claude-3-5-sonnet (Elite Cloud Claude)\ngithub/gpt-4o (Free Cloud GPT-4o)\ngithub/gpt-4o-mini (Fast Cloud GPT-4o)\ngemini-1.5-pro-latest (Elite Free Gemini)\ngemini-1.5-flash-latest (Fast Free Gemini)\ngithub/Llama-3.3-70B-Instruct (Powerful Free Llama)\ngithub/Cohere-command-r-plus (Elite Agent Model)\nEnter Custom Ollama..." | fzf --height 45% --layout=reverse --border --prompt="󰏆 Select Coding Model ❯ ")
+                  CHOICE=$(echo -e "qwen2.5-coder:7b (Recommended Local)\ndeepseek-coder:6.7b (Stable Local)\nanthropic/claude-3-5-sonnet (Elite Cloud Claude)\ngithub/gpt-4o (Free Cloud GPT-4o)\ngemini/gemini-1.5-pro (Elite Free Gemini)\nEnter Custom Ollama..." | fzf --height 45% --layout=reverse --border --prompt="󰏆 Select Coding Model ❯ ")
                   if [ -z "''$CHOICE" ]; then exit 0; fi
                   if [[ "''$CHOICE" == "Enter Custom Ollama..." ]]; then
                       echo -ne "  ''${C_HIGHLIGHT}❯ Enter Ollama model name:''${NC} "; read -r MODEL
@@ -447,11 +356,11 @@ let
           else MODEL="$2"; fi
           shift; [ "''${1:-}" == "''$MODEL" ] && shift
           
-          if [[ "''$MODEL" == gemini-* ]]; then
+          if [[ "''$MODEL" == gemini/* ]]; then
               export GEMINI_API_KEY; GEMINI_API_KEY=$(cat "$HOME/.config/manx/gemini_token" 2>/dev/null || echo "''${GOOGLE_API_KEY:-}")
               if [ -z "''$GEMINI_API_KEY" ]; then echo -ne "  ''${C_HIGHLIGHT}❯ Enter your Google AI Studio API Key:''${NC} "; read -s -r USER_TOKEN; echo ""; export GEMINI_API_KEY="''$USER_TOKEN"; fi
               [ -z "''$GEMINI_API_KEY" ] && error "A Gemini API Key is required."
-              log "Launching Free Gemini Agent (Aider + ''$MODEL)..."; aider --model "gemini/''$MODEL" --no-browser --map-tokens 1024 --edit-format whole --watch-files "$@"
+              log "Launching Free Gemini Agent (Aider + ''$MODEL)..."; aider --model "''$MODEL" --no-browser --map-tokens 1024 --edit-format whole --watch-files "$@"
           elif [[ "''$MODEL" == anthropic/* ]]; then
               export ANTHROPIC_API_KEY; ANTHROPIC_API_KEY=$(cat "$HOME/.config/manx/anthropic_token" 2>/dev/null || echo "''${ANTHROPIC_API_KEY:-}")
               if [ -z "''$ANTHROPIC_API_KEY" ]; then echo -ne "  ''${C_HIGHLIGHT}❯ Enter your Anthropic API Key:''${NC} "; read -s -r USER_TOKEN; echo ""; export ANTHROPIC_API_KEY="''$USER_TOKEN"; fi
@@ -483,15 +392,15 @@ let
               if [ -z "''${1:-}" ] || [[ "$1" == -* ]]; then
                   if command -v fzf &> /dev/null; then
                       log "Select a model for Agent (Local or Free Cloud):"
-                      CHOICE=$(echo -e "llama3.1:8b (Local Ollama Llama)\nqwen2.5-coder:7b (Local Ollama Qwen)\nanthropic/claude-3-5-sonnet (Elite Cloud Claude)\ngithub/gpt-4o (Free Cloud GPT-4o)\ngithub/gpt-4o-mini (Fast Cloud GPT-4o)\ngemini-1.5-pro-latest (Elite Free Gemini)\ngemini-1.5-flash-latest (Fast Free Gemini)\ngithub/Llama-3.3-70B-Instruct (Powerful Free Llama)\ngithub/Cohere-command-r-plus (Elite Agent Model)\nEnter Custom Ollama..." | fzf --height 45% --layout=reverse --border --prompt="󰏆 Select Agent Model ❯ ")
+                      CHOICE=$(echo -e "llama3.1:8b (Local Ollama Llama)\nqwen2.5-coder:7b (Local Ollama Qwen)\nanthropic/claude-3-5-sonnet (Elite Cloud Claude)\ngithub/gpt-4o (Free Cloud GPT-4o)\ngemini/gemini-1.5-pro (Elite Free Gemini)\nEnter Custom Ollama..." | fzf --height 45% --layout=reverse --border --prompt="󰏆 Select Agent Model ❯ ")
                       if [ -z "''$CHOICE" ]; then exit 0; fi
                       if [[ "''$CHOICE" == "Enter Custom Ollama..." ]]; then echo -ne "  ❯ Enter Ollama model name: "; read -r MODEL; else MODEL=$(echo "''$CHOICE" | cut -d' ' -f1); fi
                   else MODEL="llama3.1"; fi
               else MODEL="$1"; shift; fi
               
-              if [[ "''$MODEL" == gemini-* ]]; then
+              if [[ "''$MODEL" == gemini/* ]]; then
                   export GEMINI_API_KEY; GEMINI_API_KEY=$(cat "$HOME/.config/manx/gemini_token" 2>/dev/null || echo "''${GOOGLE_API_KEY:-}")
-                  log "Launching Free Gemini Agent (Open-Interpreter + ''$MODEL)..."; interpreter --model "gemini/''$MODEL" "$@"
+                  log "Launching Free Gemini Agent (Open-Interpreter + ''$MODEL)..."; interpreter --model "''$MODEL" "$@"
               elif [[ "''$MODEL" == anthropic/* ]]; then
                   export ANTHROPIC_API_KEY; ANTHROPIC_API_KEY=$(cat "$HOME/.config/manx/anthropic_token" 2>/dev/null || echo "''${ANTHROPIC_API_KEY:-}")
                   log "Launching Elite Claude Agent (Open-Interpreter + ''$MODEL)..."; interpreter --model "''$MODEL" "$@"
@@ -512,8 +421,6 @@ let
               set +e
               log "Running System Diagnostic Suite..."
               echo ""
-              
-              # Gather Status Data
               FLAKES_VAL=$(nix flake --help &>/dev/null && echo "✔" || echo "✗")
               CHANNELS_VAL=$([ -z "$(nix-channel --list 2>/dev/null)" ] && echo "✔" || echo "⚠")
               NH_VAL=$(command -v nh &>/dev/null && echo "✔" || echo "✗")
@@ -523,34 +430,25 @@ let
               OLLAMA_VAL=$(curl -s http://127.0.0.1:11434 &>/dev/null && echo "✔" || echo "✗")
               WEBUI_VAL=$(curl -s http://127.0.0.1:8081 &>/dev/null && echo "✔" || echo "✗")
               TOKEN_VAL=$([ -s "$HOME/.config/manx/github_token" ] && echo "✔" || echo "✗")
-
               print_diag() {
                   local icon color label info
                   icon="''$1"; color="''$2"; label="''$3"; info="''$4"
                   printf "    [%b%s%b] %-22s %b❯%b  %b%s%b\n" "''$color" "''$icon" "''${NC}" "''$label" "''${C_MUTED}" "''${NC}" "''${C_WHITE}" "''$info" "''${NC}"
               }
-
               echo -e "  ''${C_PRIMARY}󰌢''${NC}  ''${C_WHITE}M A N X   S Y S T E M   D O C T O R''${NC}"
               echo -e "  ''${C_MUTED}────────────────────────────────────────────────────────────────────────''${NC}"
-
-              # Section 1: NixOS Base
               echo -e "\n  ''${C_SECONDARY}  NixOS Base Environment''${NC}"
               print_diag "''$FLAKES_VAL" "''$([ "''$FLAKES_VAL" == "✔" ] && echo "''$C_SUCCESS" || echo "''$RED")" "Flakes Enablement" "''$([ "''$FLAKES_VAL" == "✔" ] && echo "Active (Modern standard)" || echo "Disabled")"
               print_diag "''$CHANNELS_VAL" "''$([ "''$CHANNELS_VAL" == "✔" ] && echo "''$C_SUCCESS" || echo "''$C_GOLD")" "Declarative State" "''$([ "''$CHANNELS_VAL" == "✔" ] && echo "Pure (No channel pollution)" || echo "Legacy (Active)")"
-
-              # Section 2: Core System CLI Packages
               echo -e "\n  ''${C_SECONDARY}  Core System CLI Packages''${NC}"
               print_diag "''$NH_VAL" "''$([ "''$NH_VAL" == "✔" ] && echo "''$C_SUCCESS" || echo "''$RED")" "nh (Nix Helper)" "''$([ "''$NH_VAL" == "✔" ] && echo "Present" || echo "MISSING")"
               print_diag "''$RG_VAL" "''$([ "''$RG_VAL" == "✔" ] && echo "''$C_SUCCESS" || echo "''$RED")" "ripgrep (rg)" "''$([ "''$RG_VAL" == "✔" ] && echo "Present" || echo "MISSING")"
               print_diag "''$FZF_VAL" "''$([ "''$FZF_VAL" == "✔" ] && echo "''$C_SUCCESS" || echo "''$RED")" "fzf finder" "''$([ "''$FZF_VAL" == "✔" ] && echo "Present" || echo "MISSING")"
               print_diag "''$GIT_VAL" "''$([ "''$GIT_VAL" == "✔" ] && echo "''$C_SUCCESS" || echo "''$RED")" "git control" "''$([ "''$GIT_VAL" == "✔" ] && echo "Present" || echo "MISSING")"
-
-              # Section 3: System Services & Keys
               echo -e "\n  ''${C_HIGHLIGHT}󰌢  System Services & Keys''${NC}"
               print_diag "''$OLLAMA_VAL" "''$([ "''$OLLAMA_VAL" == "✔" ] && echo "''$C_SUCCESS" || echo "''$RED")" "Ollama Service" "''$([ "''$OLLAMA_VAL" == "✔" ] && echo "Running on port 11434" || echo "OFFLINE / NOT STARTED")"
               print_diag "''$WEBUI_VAL" "''$([ "''$WEBUI_VAL" == "✔" ] && echo "''$C_SUCCESS" || echo "''$RED")" "Open-WebUI Portal" "''$([ "''$WEBUI_VAL" == "✔" ] && echo "Running on port 8081" || echo "OFFLINE / NOT STARTED")"
               print_diag "''$TOKEN_VAL" "''$([ "''$TOKEN_VAL" == "✔" ] && echo "''$C_SUCCESS" || echo "''$RED")" "Secure GH Token" "''$([ "''$TOKEN_VAL" == "✔" ] && echo "Present & Secure (~/.config/manx/)" || echo "MISSING (No key found)")"
-
               if [ "''$NH_VAL" == "✗" ] || [ "''$OLLAMA_VAL" == "✗" ] || [ "''$TOKEN_VAL" == "✗" ] || [ "''$RG_VAL" == "✗" ] || [ "''$FZF_VAL" == "✗" ] || [ "''$GIT_VAL" == "✗" ]; then
                   echo -e "\n  ''${C_GOLD}󰋗  RECOMMENDED RESOLUTION ACTIONS:''${NC}"
                   echo -e "  ''${C_MUTED}────────────────────────────────────────────────────────────────────────''${NC}"
