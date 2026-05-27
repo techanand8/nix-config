@@ -70,6 +70,45 @@ def speak(text):
             except Exception:
                 pass
 
+def chat_with_gpt_fallback(prompt, system_instruction):
+    token_path = os.path.expanduser("~/.config/manx/github_token")
+    if not os.path.exists(token_path):
+        log("No GitHub token found for GPT-4o backup fallback.", C_ERROR)
+        return "I couldn't connect to my Gemini brain, and I have no backup token configured."
+        
+    with open(token_path, "r") as f:
+        github_token = f.read().strip()
+        
+    import urllib.request
+    import urllib.error
+    import json
+    
+    url = "https://models.inference.ai.azure.com/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {github_token}",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "messages": [
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": prompt}
+        ],
+        "model": "gpt-4o",
+        "max_tokens": 100,
+        "temperature": 0.6
+    }
+    
+    try:
+        req = urllib.request.Request(url, data=json.dumps(data).encode("utf-8"), headers=headers, method="POST")
+        with urllib.request.urlopen(req, timeout=10) as response:
+            res_data = json.loads(response.read().decode("utf-8"))
+            reply = res_data["choices"][0]["message"]["content"].strip()
+            log("Resilient GPT-4o fallback connection successful! 🚀", C_SUCCESS)
+            return reply
+    except Exception as e:
+        log(f"Resilient GPT-4o fallback also failed: {e}", C_ERROR)
+        return "I'm having a little trouble connecting to my brain right now, Mayank."
+
 def chat_with_nixi(prompt):
     token_path = os.path.expanduser("~/.config/manx/gemini_token")
     if not os.path.exists(token_path):
@@ -85,9 +124,19 @@ def chat_with_nixi(prompt):
     import urllib.error
     import json
     
-    # Future-proof model ID selection via environment variable override
-    gemini_model = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{gemini_model}:generateContent?key={api_key}"
+    # List of models to try in descending order of availability/features
+    custom_model = os.environ.get("GEMINI_MODEL", "")
+    models_to_try = []
+    if custom_model:
+        models_to_try.append(custom_model)
+    models_to_try.extend([
+        "gemini-1.5-flash",
+        "gemini-2.5-flash",
+        "gemini-1.5-flash-latest",
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-exp",
+        "gemini-pro"
+    ])
     
     global PERSONALITY_MODE
     
@@ -113,47 +162,43 @@ def chat_with_nixi(prompt):
             "Keep your responses concise (1 to 2 sentences max) so they sound natural when spoken out loud. "
             "Be highly supportive, sweet, and speak as a close, caring friend. Address the user as Mayank."
         )
-    
+        
     headers = {"Content-Type": "application/json"}
     data = {
         "contents": [{"parts": [{"text": prompt}]}],
         "systemInstruction": {"parts": [{"text": system_instruction}]},
         "generationConfig": {
             "maxOutputTokens": 100,
-            "temperature": 0.6  # Lowered temperature to 0.6 for cleaner, more stable assistant behavior
+            "temperature": 0.6  # Stable temperature for natural but command-adjacent answers
         }
     }
     
-    try:
-        req = urllib.request.Request(url, data=json.dumps(data).encode("utf-8"), headers=headers, method="POST")
-        with urllib.request.urlopen(req, timeout=8) as response:
-            res_data = json.loads(response.read().decode("utf-8"))
-            reply = res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
-            return reply
-    except urllib.error.HTTPError as e:
-        error_body = e.read().decode("utf-8") if e else ""
-        log(f"Gemini API request failed (HTTP {e.code}): {error_body}", C_ERROR)
-        
-        # Trigger automatic fallback if using a non-default model
-        if gemini_model != "gemini-1.5-flash":
-            log("Attempting automatic fallback to stable 'gemini-1.5-flash'...", C_HIGHLIGHT)
-            fallback_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-            try:
-                fallback_req = urllib.request.Request(fallback_url, data=json.dumps(data).encode("utf-8"), headers=headers, method="POST")
-                with urllib.request.urlopen(fallback_req, timeout=8) as response:
-                    res_data = json.loads(response.read().decode("utf-8"))
-                    reply = res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
-                    log("Fallback connection successful! 🧠", C_SUCCESS)
-                    return reply
-            except Exception as fe:
-                log(f"Gemini Fallback API failed: {fe}", C_ERROR)
-        return "I'm having a little trouble connecting to my brain right now, Mayank."
-    except urllib.error.URLError as e:
-        log(f"Gemini connection error: {e.reason}", C_ERROR)
-        return "I'm having a little trouble connecting to my brain right now, Mayank."
-    except Exception as e:
-        log(f"Unexpected Gemini API error: {e}", C_ERROR)
-        return "I'm having a little trouble connecting to my brain right now, Mayank."
+    last_error = ""
+    for model in models_to_try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+        try:
+            req = urllib.request.Request(url, data=json.dumps(data).encode("utf-8"), headers=headers, method="POST")
+            with urllib.request.urlopen(req, timeout=8) as response:
+                res_data = json.loads(response.read().decode("utf-8"))
+                reply = res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
+                return reply
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode("utf-8") if e else ""
+            last_error = f"HTTP {e.code}: {error_body}"
+            log(f"Gemini API request failed for model '{model}' ({last_error}). Retrying next model...", C_MUTED)
+            continue
+        except urllib.error.URLError as e:
+            last_error = f"URL Error: {e.reason}"
+            log(f"Connection failed for model '{model}' ({last_error}). Retrying next model...", C_MUTED)
+            continue
+        except Exception as e:
+            last_error = str(e)
+            log(f"Unexpected error for model '{model}' ({last_error}). Retrying next model...", C_MUTED)
+            continue
+            
+    log(f"All Gemini models exhausted. Final error: {last_error}", C_ERROR)
+    log("Attempting ultimate fallback to high-end GPT-4o cloud model...", C_HIGHLIGHT)
+    return chat_with_gpt_fallback(prompt, system_instruction)
 
 def is_command_sensitive(cmd_lower):
     sensitive_keywords = [
@@ -389,7 +434,7 @@ def listen_and_execute():
             log(f"🎙️ Heard audio: \"{wake_text}\"", C_MUTED)
             
             # Match Nixi or common phonetic variations (Google API often writes these for Hinglish speakers)
-            if any(w in wake_text for w in ["nixi", "nixy", "nixie", "nix", "nikki", "nicky", "pixie", "lexi", "mixie"]):
+            if any(w in wake_text for w in ["nixi", "nixy", "nixie", "nix", "nikki", "nicky", "pixie", "lexi", "mixie", "mixi", "nexa", "texa", "nexi", "nex", "maxa", "nexia", "mixa", "neerja", "neetu", "neeta", "nikshay"]):
                 print(f"\n{C_HIGHLIGHT}✨ WAKE WORD DETECTED!{NC}")
                 speak("Yes, Mayank? I am listening.")
                 

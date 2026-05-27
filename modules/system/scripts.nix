@@ -689,6 +689,7 @@ in
   environment.systemPackages = [
     manx-script
     pkgs.nixfmt
+    pkgs.psmisc
     man-page
   ];
 
