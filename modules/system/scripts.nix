@@ -173,6 +173,16 @@ let
         fi
         
         # Synchronize Open-WebUI API keys from secure user files
+        # Migrate/Repair Open-WebUI Directory from DynamicUser to Static User
+        if [ -L /var/lib/open-webui ]; then
+            log "Migrating Open-WebUI from dynamic storage to static storage..."
+            sudo systemctl stop open-webui || true
+            sudo rm -f /var/lib/open-webui
+            sudo mkdir -p /var/lib/open-webui
+            if [ -d /var/lib/private/open-webui ]; then
+                sudo cp -r /var/lib/private/open-webui/* /var/lib/open-webui/ 2>/dev/null || true
+            fi
+        fi
         sudo mkdir -p /var/lib/open-webui
 
         # Load Keys

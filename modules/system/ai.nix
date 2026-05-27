@@ -94,11 +94,25 @@
     Group = "ollama";
   };
 
-  # Create the static user
+  # Force Open-WebUI to use a static user for persistence compatibility
+  systemd.services.open-webui.serviceConfig = {
+    DynamicUser = lib.mkForce false;
+    User = "open-webui";
+    Group = "open-webui";
+  };
+
+  # Create the static users
   users.users.ollama = {
     isSystemUser = true;
     group = "ollama";
     home = "/var/lib/ollama";
   };
   users.groups.ollama = { };
+
+  users.users.open-webui = {
+    isSystemUser = true;
+    group = "open-webui";
+    home = "/var/lib/open-webui";
+  };
+  users.groups.open-webui = { };
 }
