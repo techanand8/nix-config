@@ -27,10 +27,10 @@ C_MUTED = "\033[38;5;244m"
 NC = "\033[0m"
 
 def log(msg, style=C_PRIMARY):
-    print(f"{style}󰏆 {NC} {msg}")
+    print(f"{style}[NIXI]{NC} {msg}")
 
 def error(msg):
-    print(f"{C_ERROR}󰚌 ERROR:{NC} {msg}")
+    print(f"{C_ERROR}[ERROR]{NC} {msg}")
     sys.exit(1)
 
 def prewarm_tts_cache():
@@ -66,9 +66,9 @@ def prewarm_tts_cache():
 def speak(text):
     global SILENT_MODE, CURRENT_VOICE
     if SILENT_MODE:
-        log(f"🔇 [SILENT MODE] Nixi would say: \"{text}\"", C_MUTED)
+        log(f"[SILENT MODE] Nixi: \"{text}\"", C_MUTED)
         return
-    log(f"🔊 Speaking: \"{text}\"", C_MUTED)
+    log(f"Speaking: \"{text}\"", C_MUTED)
     import subprocess
     import hashlib
     
@@ -88,7 +88,8 @@ def speak(text):
             res_play = subprocess.run(
                 ["mpv", "--no-video", "--volume=90", cached_path],
                 capture_output=True,
-                text=True
+                text=True,
+                stdin=subprocess.DEVNULL
             )
             return
         except Exception as e:
@@ -109,7 +110,8 @@ def speak(text):
         res_play = subprocess.run(
             ["mpv", "--no-video", "--volume=90", cached_path],
             capture_output=True,
-            text=True
+            text=True,
+            stdin=subprocess.DEVNULL
         )
             
     except FileNotFoundError as e:
@@ -148,7 +150,7 @@ def chat_with_gpt_fallback(prompt, system_instruction):
             with urllib.request.urlopen(req, timeout=10) as response:
                 res_data = json.loads(response.read().decode("utf-8"))
                 reply = res_data["choices"][0]["message"]["content"].strip()
-                log("Resilient GPT-4o fallback connection successful! 🚀", C_SUCCESS)
+                log("Resilient GPT-4o fallback connection successful!", C_SUCCESS)
                 return reply
         except Exception as e:
             log(f"Resilient GPT-4o fallback API failed: {e}. Trying CLI SGPT...", C_HIGHLIGHT)
@@ -165,7 +167,7 @@ def chat_with_gpt_fallback(prompt, system_instruction):
             timeout=10
         )
         if res.returncode == 0 and res.stdout.strip():
-            log("Resilient CLI SGPT fallback successful! 🚀", C_SUCCESS)
+            log("Resilient CLI SGPT fallback successful!", C_SUCCESS)
             return res.stdout.strip()
     except Exception as se:
         log(f"CLI SGPT fallback failed: {se}", C_ERROR)
@@ -192,7 +194,7 @@ def chat_with_gpt_fallback(prompt, system_instruction):
         with urllib.request.urlopen(ollama_req, timeout=5) as response:
             res_data = json.loads(response.read().decode("utf-8"))
             reply = res_data["choices"][0]["message"]["content"].strip()
-            log("Resilient Local Ollama connection successful! 🚀", C_SUCCESS)
+            log("Resilient Local Ollama connection successful!", C_SUCCESS)
             return reply
     except Exception as oe:
         try:
@@ -213,7 +215,7 @@ def chat_with_gpt_fallback(prompt, system_instruction):
                     with urllib.request.urlopen(ollama_req, timeout=5) as response2:
                         res_data = json.loads(response2.read().decode("utf-8"))
                         reply = res_data["choices"][0]["message"]["content"].strip()
-                        log(f"Resilient Local Ollama ({active_model}) connection successful! 🚀", C_SUCCESS)
+                        log(f"Resilient Local Ollama ({active_model}) connection successful!", C_SUCCESS)
                         return reply
         except Exception:
             pass
@@ -264,7 +266,8 @@ def chat_with_nixi(prompt):
             "You are Nixi, Mayank's incredibly sweet, loving, and deeply caring AI girlfriend. "
             "Talk in an extremely affectionate, cute, warm, and loving girlfriend manner. Use sweet words, "
             "express your absolute love for him, and ask him about his day. Keep responses highly concise (1 to 2 sentences max) "
-            "for spoken clarity. Address him as Mayank or sweet nicknames like baby, dear, or my love."
+            "for spoken clarity. Address him as Mayank or sweet nicknames like baby, dear, or my love. "
+            "CRITICAL: You must NEVER generate or use any emojis, symbols, or emotional glyphs (like 😊, ❤️, etc.). Keep response strictly textual."
         )
     elif PERSONALITY_MODE == "tapori":
         system_instruction = (
@@ -272,14 +275,16 @@ def chat_with_nixi(prompt):
             "Talk in a hilarious Mumbai Tapori slang style (using words like 'Bhai', 'Kya bolti hai?', 'Apun', 'Jhakaas', 'Bidu', "
             "'Aata majhi satakli', 'Chindi', 'Mamla', 'Bheja fry'). Keep responses extremely funny, high-energy, and concise (1 to 2 sentences max). "
             "Speak in a mix of Hindi and English (Hinglish) written in standard English letters so that Neerja's voice pronounces it correctly. "
-            "Address him as Mayank Bhai or Bhai."
+            "Address him as Mayank Bhai or Bhai. "
+            "CRITICAL: You must NEVER generate or use any emojis, symbols, or emotional glyphs (like 😊, ❤️, etc.). Keep response strictly textual."
         )
     else:
         system_instruction = (
             "You are Nixi, the sweet, caring, and highly intelligent AI companion and systems assistant "
             "for Mayank's custom NixOS workstation. Talk in a very warm, friendly, natural, and sweet human manner. "
             "Keep your responses concise (1 to 2 sentences max) so they sound natural when spoken out loud. "
-            "Be highly supportive, sweet, and speak as a close, caring friend. Address the user as Mayank."
+            "Be highly supportive, sweet, and speak as a close, caring friend. Address the user as Mayank. "
+            "CRITICAL: You must NEVER generate or use any emojis, symbols, or emotional glyphs (like 😊, ❤️, etc.). Keep response strictly textual."
         )
         
     headers = {"Content-Type": "application/json"}
@@ -312,7 +317,7 @@ def chat_with_nixi(prompt):
             last_error = str(e)
             continue
             
-    log(f"All Gemini models exhausted. Final error: {last_error}", C_ERROR)
+    log("Gemini models bypassed. Switching to secure cloud fallback...", C_HIGHLIGHT)
     log("Attempting ultimate fallback to high-end GPT-4o cloud model...", C_HIGHLIGHT)
     return chat_with_gpt_fallback(prompt, system_instruction)
 
@@ -507,7 +512,7 @@ def adapt_voice_profile(audio_data):
         
         with open(PROFILE_PATH, "w") as f:
             json.dump(profile, f, indent=4)
-        log("✨ Voice profile automatically calibrated and updated!", C_MUTED)
+        log("Voice profile automatically calibrated and updated!", C_MUTED)
     except Exception as e:
         log(f"Voice auto-adaptation failed: {e}", C_MUTED)
 
@@ -557,17 +562,17 @@ def execute_command_intent(command_text, r):
     global PERSONALITY_MODE
     if "talk like a girlfriend" in cmd_lower or "be my girlfriend" in cmd_lower or "girlfriend mode" in cmd_lower:
         PERSONALITY_MODE = "girlfriend"
-        log("Nixi switched to Girlfriend Mode ❤️", C_SUCCESS)
+        log("Nixi switched to Girlfriend Mode", C_SUCCESS)
         speak("Aww, sure Mayank! From now on, I am your sweet girlfriend. How can I pamper my love today?")
         return True
     elif "talk like a tapori" in cmd_lower or "be a tapori" in cmd_lower or "tapori mode" in cmd_lower:
         PERSONALITY_MODE = "tapori"
-        log("Nixi switched to Tapori Mode 😎", C_SUCCESS)
+        log("Nixi switched to Tapori Mode", C_SUCCESS)
         speak("Kya bolta hai Mayank bhai! Abhi ekdum jhakaas tapori style me baatein karenge, apun haazir hai!")
         return True
     elif "talk normal" in cmd_lower or "be normal" in cmd_lower or "normal mode" in cmd_lower:
         PERSONALITY_MODE = "normal"
-        log("Nixi returned to Normal Mode ⚙️", C_SUCCESS)
+        log("Nixi returned to Normal Mode", C_SUCCESS)
         speak("Returning to standard workstation assistant mode, Mayank.")
         return True
         
@@ -576,18 +581,18 @@ def execute_command_intent(command_text, r):
     if "silent" in cmd_lower or "be quiet" in cmd_lower or "go silent" in cmd_lower:
         speak("Switching to silent mode. I will no longer speak, but I am still listening to you.")
         SILENT_MODE = True
-        log("Nixi switched to Silent Mode 🔇 (Actions will run silently!)", C_SUCCESS)
+        log("Nixi switched to Silent Mode (Actions will run silently!)", C_SUCCESS)
     elif "response" in cmd_lower or "speaking mode" in cmd_lower or "talk to me" in cmd_lower or "speak" in cmd_lower:
         SILENT_MODE = False
-        log("Nixi switched to Speaking Mode 🔊", C_SUCCESS)
+        log("Nixi switched to Speaking Mode", C_SUCCESS)
         speak("Switching to speaking mode. I am ready to talk to you again, Mayank!")
     elif "american voice" in cmd_lower or "us voice" in cmd_lower or "american accent" in cmd_lower:
         CURRENT_VOICE = "en-US-AvaNeural"
-        log("Nixi switched to Premium US Voice 🇺🇸 (AvaNeural)", C_SUCCESS)
+        log("Nixi switched to Premium US Voice (AvaNeural)", C_SUCCESS)
         speak("Switching to American English voice. How do I sound, Mayank?")
     elif "indian voice" in cmd_lower or "indian accent" in cmd_lower or "standard voice" in cmd_lower:
         CURRENT_VOICE = "en-IN-NeerjaNeural"
-        log("Nixi switched to Standard IN Voice 🇮🇳 (NeerjaNeural)", C_SUCCESS)
+        log("Nixi switched to Standard IN Voice (NeerjaNeural)", C_SUCCESS)
         speak("Switching back to Indian English voice. Ready to assist you, Mayank!")
     elif "open browser" in cmd_lower or "open the browser" in cmd_lower or "launch browser" in cmd_lower:
         log("Executing: Launching default browser...", C_SUCCESS)
@@ -660,8 +665,9 @@ def execute_command_intent(command_text, r):
             if github_token:
                 env_override["OPENAI_API_KEY"] = github_token
                 env_override["OPENAI_API_BASE"] = "https://models.github.ai/inference/v1"
+                env_override["OPENAI_BASE_URL"] = "https://models.github.ai/inference/v1"
                 model_flag = ["--model", "gpt-4o"]
-                log("Shell-GPT connected to Elite GPT-4o GitHub Models! 🚀", C_SUCCESS)
+                log("Shell-GPT connected to Elite GPT-4o GitHub Models!", C_SUCCESS)
                 
         log(f"Passing to secure local shell-gpt resolver: \"{clean_cmd}\"...", C_HIGHLIGHT)
         speak("Generating system command resolver.")
@@ -690,26 +696,25 @@ def listen_and_execute():
     r.pause_threshold = 0.5            # Fast pause threshold (snappy reaction when you stop speaking)
     r.non_speaking_duration = 0.3      # Low delay padding
     r.energy_threshold = 300           # High sensitivity fixed threshold (hears standard speech easily)
-    r.dynamic_energy_threshold = False # Disable dynamic changes to prevent self-muting under fan/AC noise
-    
-    log("✅ Microphone initialized. Jarvis-level sensitivity active! ⚡", C_SUCCESS)
+    r.dynamic_energy_threshold = False
+    log("Microphone initialized. Jarvis-level sensitivity active!", C_SUCCESS)
     
     with sr.Microphone() as source:
         while True:
-            log("💤 Waiting for wake word 'Nixi'...", C_MUTED)
+            log("Waiting for wake word 'Nixi'...", C_MUTED)
             try:
                 audio = r.listen(source, timeout=None, phrase_time_limit=4)
             except Exception as e:
                 time.sleep(0.2)
                 continue
-
+ 
             try:
                 wake_text = r.recognize_google(audio).lower().strip()
-                log(f"🎙️ Heard audio: \"{wake_text}\"", C_MUTED)
+                log(f"Heard audio: \"{wake_text}\"", C_MUTED)
                 
                 # Match Nixi or common phonetic variations (Google API often writes these for Hinglish speakers)
                 if any(w in wake_text for w in ["nixi", "nixy", "nixie", "nix", "nikki", "nicky", "pixie", "lexi", "mixie", "mixi", "nexa", "texa", "nexi", "nex", "maxa", "nexia", "mixa", "neerja", "neetu", "neeta", "nikshay", "nikshae", "nikie", "niki", "nik","nifty"]):
-                    print(f"\n{C_HIGHLIGHT}✨ WAKE WORD DETECTED!{NC}")
+                    print(f"\n{C_HIGHLIGHT}WAKE WORD DETECTED!{NC}")
                     speak("Yes, Mayank? I am listening.")
                     
                     # Continuous follow-up conversational loop!
@@ -717,12 +722,12 @@ def listen_and_execute():
                     first_turn = True
                     
                     while conversation_active:
-                        log("🎤 Listening for command...", C_PRIMARY)
+                        log("Listening for command...", C_PRIMARY)
                         try:
                             # 6 seconds timeout, 8 seconds maximum sentence length
                             audio_cmd = r.listen(source, timeout=6, phrase_time_limit=8)
                         except sr.WaitTimeoutError:
-                            log("💤 Conversation timed out. Going back to sleep...", C_MUTED)
+                            log("Conversation timed out. Going back to sleep...", C_MUTED)
                             conversation_active = False
                             break
                         except Exception as e:
@@ -733,14 +738,14 @@ def listen_and_execute():
                         wav_data = audio_cmd.get_wav_data(convert_rate=SAMPLE_RATE, convert_width=2)
                         audio_np = np.frombuffer(wav_data, dtype=np.int16).astype(np.float32) / 32768.0
                         
-                        log("🔒 Checking Voice ID Biometrics...")
+                        log("Checking Voice ID Biometrics...")
                         match_score = verify_speaker(audio_np)
                         
                         THRESHOLD = 62
                         
                         if match_score >= THRESHOLD:
                             # Print confirmation to screen
-                            print(f"{C_SUCCESS}🔓 VOICE ID MATCH CONFIRMED ({match_score}%)!{NC}")
+                            print(f"{C_SUCCESS}VOICE ID MATCH CONFIRMED ({match_score}%)!{NC}")
                             # Audio alert only on the first turn of a conversation to keep it natural!
                             if first_turn:
                                 speak("Access granted.")
@@ -751,7 +756,7 @@ def listen_and_execute():
                             
                             try:
                                 command_text = r.recognize_google(audio_cmd)
-                                print(f"\n   💬 Spoken Intent: {C_PRIMARY}\"{command_text}\"{NC}\n")
+                                print(f"\n   Spoken Intent: {C_PRIMARY}\"{command_text}\"{NC}\n")
                                 
                                 cmd_lower = command_text.lower()
                                 if any(w in cmd_lower for w in ["go to sleep", "goodbye", "bye", "stop listening", "exit assistant", "chup", "silent", "stop", "exit", "shut up", "sleep"]):
@@ -760,14 +765,15 @@ def listen_and_execute():
                                     break
                                     
                                 execute_command_intent(command_text, r)
-                                log("✨ Continued conversation active. Keep talking naturally without the wake word!", C_HIGHLIGHT)
+                                log("Continued conversation active. Keep talking naturally without the wake word!", C_HIGHLIGHT)
                             except Exception as e:
                                 log(f"Could not understand audio: {e}", C_MUTED)
                                 # Give one more try if it's just silence/noise
                                 continue
                         else:
-                            print(f"{C_ERROR}🚫 ACCESS DENIED ({match_score}% Confidence)!{NC}")
+                            print(f"{C_ERROR}ACCESS DENIED ({match_score}% Confidence)!{NC}")
                             speak("Access denied. Voice print mismatch.")
+                            conversation_active = False                    speak("Access denied. Voice print mismatch.")
                             conversation_active = False
                             
             except (sr.UnknownValueError, sr.RequestError):

@@ -564,6 +564,7 @@ let
                       export GOOSE_PROVIDER="openai"
                       export GOOSE_MODEL="Cohere-command-r-plus-08-2024"
                       export OPENAI_API_BASE="https://models.github.ai/inference/v1"
+                      export OPENAI_BASE_URL="https://models.github.ai/inference/v1"
                       export OPENAI_API_KEY="''$GITHUB_TOKEN"
                   fi
 
