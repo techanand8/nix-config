@@ -29,6 +29,13 @@
   # This provides the necessary setuid wrappers for hardware-accelerated recording
   programs.gpu-screen-recorder.enable = true;
 
+  # Create a wrapper for gpu-screen-recorder so Ambxst's NixOS capability check passes
+  security.wrappers.gpu-screen-recorder = {
+    owner = "root";
+    group = "root";
+    source = "${pkgs.gpu-screen-recorder}/bin/gpu-screen-recorder";
+  };
+
   # Required for hyprlock and ambxst to work securely on NixOS
   security.pam.services.hyprlock = { };
   security.pam.services.ambxst = { };

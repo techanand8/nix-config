@@ -15,6 +15,8 @@
     # --- Multimedia & Creative ---
     vlc
     mpv
+    loupe # Premium modern image viewer (GNOME)
+    snapshot # Best modern camera/webcam application
     kdePackages.kdenlive
     kdePackages.dragon
 
@@ -25,6 +27,7 @@
     # --- Professional Productivity & Documentation ---
     onlyoffice-desktopeditors
     libreoffice-fresh
+    glow # Premium markdown renderer for the terminal
     xournalpp
     texlive.combined.scheme-full
 
@@ -50,6 +53,7 @@
     neovide
 
     # --- ELITE DEVELOPER UTILS ---
+    xdotool # Command-line X11 automation tool
     nix-index # File-to-package indexer
     comma # Run any nix command without installing (usage: , <cmd>)
   ];
