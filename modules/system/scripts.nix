@@ -9,6 +9,7 @@ let
       soundfile
       speechrecognition
       edge-tts
+      pyaudio
     ]
   );
 

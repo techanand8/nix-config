@@ -357,15 +357,23 @@ def listen_and_execute():
     speak("Nixi biometric voice system engaged. I am listening for your command.")
     
     r = sr.Recognizer()
+    r.pause_threshold = 0.5            # Fast pause threshold (snappy reaction when you stop speaking)
+    r.non_speaking_duration = 0.3      # Low delay padding
+    r.dynamic_energy_threshold = True  # Dynamically tracks background noise levels in real-time
+    
+    # Perform ambient noise calibration ONLY ONCE on startup to save 1.5 seconds per loop!
+    log("🔊 Calibrating microphone for background noise...", C_MUTED)
+    with sr.Microphone() as source:
+        r.adjust_for_ambient_noise(source, duration=1.0)
+    log("✅ Calibration complete! Jarvis-level listening active. ⚡", C_SUCCESS)
     
     while True:
         with sr.Microphone() as source:
-            r.adjust_for_ambient_noise(source, duration=0.8)
             log("💤 Waiting for wake word 'Nixi'...", C_MUTED)
             try:
                 audio = r.listen(source, timeout=None, phrase_time_limit=3)
             except Exception as e:
-                time.sleep(1)
+                time.sleep(0.2)
                 continue
 
         try:
@@ -375,7 +383,6 @@ def listen_and_execute():
                 speak("Yes, Mayank? I am listening.")
                 
                 with sr.Microphone() as source:
-                    r.adjust_for_ambient_noise(source, duration=0.5)
                     log("🎤 Listening for command...", C_PRIMARY)
                     try:
                         audio_cmd = r.listen(source, timeout=5, phrase_time_limit=5)
