@@ -359,33 +359,33 @@ def listen_and_execute():
     r = sr.Recognizer()
     r.pause_threshold = 0.5            # Fast pause threshold (snappy reaction when you stop speaking)
     r.non_speaking_duration = 0.3      # Low delay padding
-    r.dynamic_energy_threshold = True  # Dynamically tracks background noise levels in real-time
+    r.energy_threshold = 300           # High sensitivity fixed threshold (hears standard speech easily)
+    r.dynamic_energy_threshold = False # Disable dynamic changes to prevent self-muting under fan/AC noise
     
-    # Perform ambient noise calibration ONLY ONCE on startup to save 1.5 seconds per loop!
-    log("🔊 Calibrating microphone for background noise...", C_MUTED)
-    with sr.Microphone() as source:
-        r.adjust_for_ambient_noise(source, duration=1.0)
-    log("✅ Calibration complete! Jarvis-level listening active. ⚡", C_SUCCESS)
+    log("✅ Microphone initialized. Jarvis-level sensitivity active! ⚡", C_SUCCESS)
     
     while True:
         with sr.Microphone() as source:
             log("💤 Waiting for wake word 'Nixi'...", C_MUTED)
             try:
-                audio = r.listen(source, timeout=None, phrase_time_limit=3)
+                audio = r.listen(source, timeout=None, phrase_time_limit=4)
             except Exception as e:
                 time.sleep(0.2)
                 continue
 
         try:
-            wake_text = r.recognize_google(audio).lower()
-            if any(w in wake_text for w in ["nixi", "nixy", "nixie", "nix"]):
+            wake_text = r.recognize_google(audio).lower().strip()
+            log(f"🎙️ Heard audio: \"{wake_text}\"", C_MUTED)
+            
+            # Match Nixi or common phonetic variations (Google API often writes these for Hinglish speakers)
+            if any(w in wake_text for w in ["nixi", "nixy", "nixie", "nix", "nikki", "nicky", "pixie", "lexi", "mixie"]):
                 print(f"\n{C_HIGHLIGHT}✨ WAKE WORD DETECTED!{NC}")
                 speak("Yes, Mayank? I am listening.")
                 
                 with sr.Microphone() as source:
                     log("🎤 Listening for command...", C_PRIMARY)
                     try:
-                        audio_cmd = r.listen(source, timeout=5, phrase_time_limit=5)
+                        audio_cmd = r.listen(source, timeout=6, phrase_time_limit=6)
                     except sr.WaitTimeoutError:
                         speak("Listening timed out.")
                         continue
