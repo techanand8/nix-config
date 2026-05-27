@@ -1,6 +1,17 @@
 { pkgs, vars, ... }:
 
 let
+  voicePython = pkgs.python3.withPackages (
+    ps: with ps; [
+      numpy
+      scipy
+      sounddevice
+      soundfile
+      speechrecognition
+      edge-tts
+    ]
+  );
+
   manx-script = pkgs.writeShellApplication {
     name = "manx";
     runtimeInputs = with pkgs; [
@@ -19,7 +30,7 @@ let
       bat
       libnotify
       xdg-utils
-      python3
+      voicePython
       onlyoffice-desktopeditors
       libreoffice
       procps
@@ -31,16 +42,6 @@ let
       shell-gpt
       mpv
       portaudio # Required for sounddevice
-      (python3.withPackages (
-        ps: with ps; [
-          numpy
-          scipy
-          sounddevice
-          soundfile
-          speechrecognition
-          edge-tts
-        ]
-      ))
 
     ];
     text = ''
@@ -582,9 +583,9 @@ let
                   
                   shift
                   if [[ "''${1:-}" == "enroll" ]]; then
-                      python3 "''$VOICE_SCRIPT" enroll
+                      ${voicePython}/bin/python3 "''$VOICE_SCRIPT" enroll
                   elif [[ "''${1:-}" == "listen" ]]; then
-                      python3 "''$VOICE_SCRIPT" listen
+                      ${voicePython}/bin/python3 "''$VOICE_SCRIPT" listen
                   else
                       error "Usage: manx voice [enroll | listen]"
                   fi
