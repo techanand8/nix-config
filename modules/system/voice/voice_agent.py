@@ -40,25 +40,34 @@ def speak(text):
     temp_mp3 = os.path.join(tempfile.gettempdir(), f"manx_speech_{int(time.time())}.mp3")
     
     try:
-        subprocess.run(
+        # Generate Speech using edge-tts
+        res_tts = subprocess.run(
             ["edge-tts", "--voice", voice, "--text", text, "--write-media", temp_mp3],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            check=True
+            capture_output=True,
+            text=True
         )
-        subprocess.run(
+        if res_tts.returncode != 0:
+            log(f"Speech synthesis warning: edge-tts failed with error: {res_tts.stderr.strip()}", C_ERROR)
+            return
+            
+        # Play Audio using mpv
+        res_play = subprocess.run(
             ["mpv", "--no-video", "--volume=90", temp_mp3],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            check=True
+            capture_output=True,
+            text=True
         )
+        if res_play.returncode != 0:
+            log(f"Audio playback warning: mpv failed with error: {res_play.stderr.strip()}", C_ERROR)
+            
+    except FileNotFoundError as e:
+        log(f"Missing audio dependency: edge-tts or mpv is not installed in the path. Details: {e}", C_ERROR)
     except Exception as e:
-        pass
+        log(f"Unexpected TTS speech error: {e}", C_ERROR)
     finally:
         if os.path.exists(temp_mp3):
             try:
                 os.remove(temp_mp3)
-            except:
+            except Exception:
                 pass
 
 def chat_with_nixi(prompt):
@@ -75,7 +84,9 @@ def chat_with_nixi(prompt):
     import urllib.request
     import json
     
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    # Future-proof model ID selection via environment variable override
+    gemini_model = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{gemini_model}:generateContent?key={api_key}"
     
     global PERSONALITY_MODE
     
@@ -108,7 +119,7 @@ def chat_with_nixi(prompt):
         "systemInstruction": {"parts": [{"text": system_instruction}]},
         "generationConfig": {
             "maxOutputTokens": 100,
-            "temperature": 0.8
+            "temperature": 0.6  # Lowered temperature to 0.6 for cleaner, more stable assistant behavior
         }
     }
     
