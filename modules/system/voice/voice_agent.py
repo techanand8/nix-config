@@ -17,6 +17,7 @@ DURATION = 5  # seconds for enrollment
 PERSONALITY_MODE = "normal"
 SILENT_MODE = False
 CURRENT_VOICE = os.environ.get("EDGE_TTS_VOICE", "en-IN-NeerjaNeural")
+CONVERSATION_HISTORY = []
 
 # Standard HSL Hues for Premium CLI Styling
 C_PRIMARY = "\033[38;5;75m"
@@ -51,7 +52,7 @@ def prewarm_tts_cache():
         cache_dir = os.path.expanduser("~/.cache/manx_voice")
         os.makedirs(cache_dir, exist_ok=True)
         
-        voices = ["en-IN-NeerjaNeural", "en-US-AvaNeural"]
+        voices = ["en-IN-NeerjaNeural", "en-IN-MadhurNeural", "en-US-AvaNeural", "en-US-AndrewNeural"]
         for voice in voices:
             for p in phrases:
                 text_hash = hashlib.md5(f"{p.lower().strip()}_{voice}".encode("utf-8")).hexdigest()
@@ -63,11 +64,40 @@ def prewarm_tts_cache():
                     )
     threading.Thread(target=warm, daemon=True).start()
 
+ACTIVE_MPV_PROCESS = None
+
+def stop_speaking():
+    global ACTIVE_MPV_PROCESS
+    if ACTIVE_MPV_PROCESS:
+        try:
+            ACTIVE_MPV_PROCESS.terminate()
+            ACTIVE_MPV_PROCESS.wait(timeout=1)
+        except Exception:
+            try:
+                ACTIVE_MPV_PROCESS.kill()
+            except Exception:
+                pass
+        ACTIVE_MPV_PROCESS = None
+
+def is_speaking():
+    global ACTIVE_MPV_PROCESS
+    if ACTIVE_MPV_PROCESS:
+        if ACTIVE_MPV_PROCESS.poll() is None:
+            return True
+        else:
+            ACTIVE_MPV_PROCESS = None
+    return False
+
 def speak(text):
-    global SILENT_MODE, CURRENT_VOICE
+    global SILENT_MODE, CURRENT_VOICE, ACTIVE_MPV_PROCESS
+    
+    # Always silence any ongoing speech first
+    stop_speaking()
+    
     if SILENT_MODE:
         log(f"[SILENT MODE] Nixi: \"{text}\"", C_MUTED)
         return
+        
     log(f"Speaking: \"{text}\"", C_MUTED)
     import subprocess
     import hashlib
@@ -82,14 +112,14 @@ def speak(text):
     text_hash = hashlib.md5(f"{clean_text}_{voice}".encode("utf-8")).hexdigest()
     cached_path = os.path.join(cache_dir, f"{text_hash}.mp3")
     
-    # If already cached, play instantly!
+    # If already cached, play asynchronously!
     if os.path.exists(cached_path) and os.path.getsize(cached_path) > 0:
         try:
-            res_play = subprocess.run(
+            ACTIVE_MPV_PROCESS = subprocess.Popen(
                 ["mpv", "--no-video", "--volume=90", cached_path],
-                capture_output=True,
-                text=True,
-                stdin=subprocess.DEVNULL
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
             )
             return
         except Exception as e:
@@ -106,12 +136,12 @@ def speak(text):
             log(f"Speech synthesis warning: edge-tts failed with error: {res_tts.stderr.strip()}", C_ERROR)
             return
             
-        # Play Audio using mpv
-        res_play = subprocess.run(
+        # Play Audio asynchronously using mpv Popen!
+        ACTIVE_MPV_PROCESS = subprocess.Popen(
             ["mpv", "--no-video", "--volume=90", cached_path],
-            capture_output=True,
-            text=True,
-            stdin=subprocess.DEVNULL
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
         )
             
     except FileNotFoundError as e:
@@ -135,11 +165,16 @@ def chat_with_gpt_fallback(prompt, system_instruction):
             "Authorization": f"Bearer {github_token}",
             "Content-Type": "application/json"
         }
+        global CONVERSATION_HISTORY
+        messages_payload = [{"role": "system", "content": system_instruction}]
+        recent_history = CONVERSATION_HISTORY[-18:] if len(CONVERSATION_HISTORY) > 18 else CONVERSATION_HISTORY
+        for turn in recent_history:
+            role_mapped = "assistant" if turn["role"] == "model" else turn["role"]
+            messages_payload.append({"role": role_mapped, "content": turn["content"]})
+        messages_payload.append({"role": "user", "content": prompt})
+        
         data = {
-            "messages": [
-                {"role": "system", "content": system_instruction},
-                {"role": "user", "content": prompt}
-            ],
+            "messages": messages_payload,
             "model": "gpt-4o",
             "max_tokens": 100,
             "temperature": 0.6
@@ -243,13 +278,13 @@ def chat_with_nixi(prompt):
     raw_models = []
     if custom_model:
         raw_models.append(custom_model)
-    # Prioritize highly supported 2.5-flash first to avoid 404 warnings on standard accounts!
+    # Prioritize active production models list to prevent 404 deprecated endpoints
     raw_models.extend([
+        "gemini-flash-latest",
+        "gemini-pro-latest",
         "gemini-2.5-flash",
-        "gemini-1.5-flash-latest",
-        "gemini-1.5-flash",
         "gemini-2.0-flash",
-        "gemini-2.0-flash-exp",
+        "gemini-1.5-flash",
         "gemini-pro"
     ])
     
@@ -287,13 +322,28 @@ def chat_with_nixi(prompt):
             "CRITICAL: You must NEVER generate or use any emojis, symbols, or emotional glyphs (like 😊, ❤️, etc.). Keep response strictly textual."
         )
         
+    global CONVERSATION_HISTORY
     headers = {"Content-Type": "application/json"}
+    
+    # Build contents with rolling chat memory to keep context fast and light
+    contents_payload = []
+    recent_history = CONVERSATION_HISTORY[-18:] if len(CONVERSATION_HISTORY) > 18 else CONVERSATION_HISTORY
+    for turn in recent_history:
+        contents_payload.append({
+            "role": turn["role"],
+            "parts": [{"text": turn["content"]}]
+        })
+    contents_payload.append({
+        "role": "user",
+        "parts": [{"text": prompt}]
+    })
+    
     data = {
-        "contents": [{"parts": [{"text": prompt}]}],
+        "contents": contents_payload,
         "systemInstruction": {"parts": [{"text": system_instruction}]},
         "generationConfig": {
             "maxOutputTokens": 100,
-            "temperature": 0.6  # Stable temperature for natural but command-adjacent answers
+            "temperature": 0.6
         }
     }
     
@@ -305,6 +355,11 @@ def chat_with_nixi(prompt):
             with urllib.request.urlopen(req, timeout=8) as response:
                 res_data = json.loads(response.read().decode("utf-8"))
                 reply = res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
+                # Track dialogue history
+                CONVERSATION_HISTORY.append({"role": "user", "content": prompt})
+                CONVERSATION_HISTORY.append({"role": "model", "content": reply})
+                if len(CONVERSATION_HISTORY) > 40:
+                    CONVERSATION_HISTORY = CONVERSATION_HISTORY[-40:]
                 return reply
         except urllib.error.HTTPError as e:
             error_body = e.read().decode("utf-8") if e else ""
@@ -319,7 +374,13 @@ def chat_with_nixi(prompt):
             
     log("Gemini models bypassed. Switching to secure cloud fallback...", C_HIGHLIGHT)
     log("Attempting ultimate fallback to high-end GPT-4o cloud model...", C_HIGHLIGHT)
-    return chat_with_gpt_fallback(prompt, system_instruction)
+    reply = chat_with_gpt_fallback(prompt, system_instruction)
+    # Track fallback history
+    CONVERSATION_HISTORY.append({"role": "user", "content": prompt})
+    CONVERSATION_HISTORY.append({"role": "model", "content": reply})
+    if len(CONVERSATION_HISTORY) > 40:
+        CONVERSATION_HISTORY = CONVERSATION_HISTORY[-40:]
+    return reply
 
 def is_command_sensitive(cmd_lower):
     sensitive_keywords = [
@@ -586,26 +647,115 @@ def execute_command_intent(command_text, r):
         SILENT_MODE = False
         log("Nixi switched to Speaking Mode", C_SUCCESS)
         speak("Switching to speaking mode. I am ready to talk to you again, Mayank!")
+    elif "us male" in cmd_lower or "american male" in cmd_lower or "american guy" in cmd_lower:
+        CURRENT_VOICE = "en-US-AndrewNeural"
+        log("Nixi switched to Premium US Male Voice (AndrewNeural)", C_SUCCESS)
+        speak("Switching to American English male voice. How do I sound, Mayank?")
+    elif "us female" in cmd_lower or "american female" in cmd_lower or "american lady" in cmd_lower:
+        CURRENT_VOICE = "en-US-AvaNeural"
+        log("Nixi switched to Premium US Female Voice (AvaNeural)", C_SUCCESS)
+        speak("Switching to American English female voice. I am ready, Mayank.")
+    elif "indian male" in cmd_lower or "indian guy" in cmd_lower:
+        CURRENT_VOICE = "en-IN-MadhurNeural"
+        log("Nixi switched to Standard IN Male Voice (MadhurNeural)", C_SUCCESS)
+        speak("Switching to Indian English male voice. How do I sound, Mayank?")
+    elif "indian female" in cmd_lower or "indian lady" in cmd_lower:
+        CURRENT_VOICE = "en-IN-NeerjaNeural"
+        log("Nixi switched to Standard IN Female Voice (NeerjaNeural)", C_SUCCESS)
+        speak("Switching back to Indian English female voice. Ready to assist you.")
     elif "american voice" in cmd_lower or "us voice" in cmd_lower or "american accent" in cmd_lower:
         CURRENT_VOICE = "en-US-AvaNeural"
         log("Nixi switched to Premium US Voice (AvaNeural)", C_SUCCESS)
-        speak("Switching to American English voice. How do I sound, Mayank?")
+        speak("Switching to American English female voice. You can also ask me for the American male voice!")
     elif "indian voice" in cmd_lower or "indian accent" in cmd_lower or "standard voice" in cmd_lower:
         CURRENT_VOICE = "en-IN-NeerjaNeural"
         log("Nixi switched to Standard IN Voice (NeerjaNeural)", C_SUCCESS)
-        speak("Switching back to Indian English voice. Ready to assist you, Mayank!")
-    elif "open browser" in cmd_lower or "open the browser" in cmd_lower or "launch browser" in cmd_lower:
-        log("Executing: Launching default browser...", C_SUCCESS)
-        speak("Launching browser now.")
-        os.system("hyprctl dispatch exec firefox &>/dev/null || xdg-open 'https://google.com' &>/dev/null &")
+        speak("Switching back to Indian English female voice. You can also ask me for the Indian male voice!")
+    elif "open terminal" in cmd_lower or "launch terminal" in cmd_lower or "open kitty" in cmd_lower or "launch kitty" in cmd_lower:
+        log("Executing: Launching Terminal (Kitty)...", C_SUCCESS)
+        speak("Launching terminal emulator.")
+        os.system("kitty &>/dev/null || xterm &>/dev/null &")
+        return True
+    elif "search" in cmd_lower and "on google" in cmd_lower:
+        query = command_text
+        query = query.lower().replace("search", "").replace("on google", "").strip()
+        log(f"Executing: Searching Google for \"{query}\"...", C_SUCCESS)
+        speak(f"Searching Google for {query}.")
+        import urllib.parse
+        encoded_query = urllib.parse.quote(query)
+        os.system(f"firefox 'https://google.com/search?q={encoded_query}' &>/dev/null || xdg-open 'https://google.com/search?q={encoded_query}' &>/dev/null &")
+        return True
+    elif "search" in cmd_lower and "on youtube" in cmd_lower:
+        query = command_text
+        query = query.lower().replace("search", "").replace("on youtube", "").strip()
+        log(f"Executing: Searching YouTube for \"{query}\"...", C_SUCCESS)
+        speak(f"Searching YouTube for {query}.")
+        import urllib.parse
+        encoded_query = urllib.parse.quote(query)
+        os.system(f"firefox 'https://youtube.com/results?search_query={encoded_query}' &>/dev/null || xdg-open 'https://youtube.com/results?search_query={encoded_query}' &>/dev/null &")
+        return True
+    elif cmd_lower.startswith("open ") or cmd_lower.startswith("launch ") or "in my browser" in cmd_lower or "in browser" in cmd_lower:
+        target = cmd_lower.replace("open", "").replace("launch", "").replace("in my browser", "").replace("in browser", "").strip()
+        if target in ["gmail", "youtube", "github", "google", "facebook", "twitter", "reddit", "linkedin", "chatgpt"]:
+            log(f"Executing: Launching {target.capitalize()} in browser...", C_SUCCESS)
+            speak(f"Opening {target.capitalize()}.")
+            url_map = {
+                "gmail": "https://mail.google.com",
+                "youtube": "https://youtube.com",
+                "github": "https://github.com",
+                "google": "https://google.com",
+                "facebook": "https://facebook.com",
+                "twitter": "https://twitter.com",
+                "reddit": "https://reddit.com",
+                "linkedin": "https://linkedin.com",
+                "chatgpt": "https://chatgpt.com"
+            }
+            url = url_map.get(target, f"https://{target}.com")
+            os.system(f"firefox '{url}' &>/dev/null || xdg-open '{url}' &>/dev/null &")
+            return True
+        elif target in ["browser", "firefox", "chrome"]:
+            log("Executing: Launching default browser...", C_SUCCESS)
+            speak("Launching browser.")
+            os.system("firefox &>/dev/null || xdg-open 'https://google.com' &>/dev/null &")
+            return True
+        elif target in ["dolphin", "file manager", "files", "dolphin file"]:
+            log("Executing: Launching Dolphin File Manager...", C_SUCCESS)
+            speak("Opening dolphin file manager.")
+            os.system("dolphin &>/dev/null || xdg-open ~ &>/dev/null &")
+            return True
+        elif target in ["discord", "spotify", "steam", "obs", "vlc", "vscode", "code"]:
+            app_map = {
+                "discord": "discord",
+                "spotify": "spotify",
+                "steam": "steam",
+                "obs": "obs-studio",
+                "vlc": "vlc",
+                "vscode": "code",
+                "code": "code"
+            }
+            app_cmd = app_map.get(target, target)
+            log(f"Executing: Launching {target.capitalize()}...", C_SUCCESS)
+            speak(f"Opening {target.capitalize()}.")
+            os.system(f"{app_cmd} &>/dev/null &")
+            return True
+        else:
+            # Dynamically launch general apps cleanly across any desktop environment!
+            clean_target = target.replace("file", "").replace("app", "").strip()
+            if clean_target:
+                log(f"Executing: Launching {clean_target.capitalize()} dynamically...", C_SUCCESS)
+                speak(f"Opening {clean_target.capitalize()}.")
+                os.system(f"{clean_target} &>/dev/null &")
+                return True
+            else:
+                pass
     elif "lock system" in cmd_lower or "lock screen" in cmd_lower:
         log("Executing: Securing Workstation...", C_SUCCESS)
         speak("Securing workstation.")
-        os.system("hyprlock &")
+        os.system("hyprlock &>/dev/null || kscreenlocker_greet &>/dev/null &")
     elif "close window" in cmd_lower or "close active window" in cmd_lower:
         log("Executing: Closing active window...", C_SUCCESS)
         speak("Closing active window.")
-        os.system("hyprctl dispatch closewindow active")
+        os.system("hyprctl dispatch closewindow active &>/dev/null || xdotool windowclose $(xdotool getactivewindow) &>/dev/null &")
     elif "take screenshot" in cmd_lower or "screenshot" in cmd_lower:
         log("Executing: Capture Region...", C_SUCCESS)
         speak("Capturing screen region.")
@@ -701,9 +851,17 @@ def listen_and_execute():
     
     with sr.Microphone() as source:
         while True:
+            # Prevent loop back triggers from ongoing playback
+            if is_speaking():
+                r.energy_threshold = 1200
+            else:
+                r.energy_threshold = 300
+                
             log("Waiting for wake word 'Nixi'...", C_MUTED)
             try:
                 audio = r.listen(source, timeout=None, phrase_time_limit=4)
+                # Cut off any active speech the moment input is captured!
+                stop_speaking()
             except Exception as e:
                 time.sleep(0.2)
                 continue
@@ -722,10 +880,17 @@ def listen_and_execute():
                     first_turn = True
                     
                     while conversation_active:
+                        if is_speaking():
+                            r.energy_threshold = 1200
+                        else:
+                            r.energy_threshold = 300
+                            
                         log("Listening for command...", C_PRIMARY)
                         try:
                             # 6 seconds timeout, 8 seconds maximum sentence length
                             audio_cmd = r.listen(source, timeout=6, phrase_time_limit=8)
+                            # Stop speaking instantly when user starts speaking!
+                            stop_speaking()
                         except sr.WaitTimeoutError:
                             log("Conversation timed out. Going back to sleep...", C_MUTED)
                             conversation_active = False
@@ -773,7 +938,6 @@ def listen_and_execute():
                         else:
                             print(f"{C_ERROR}ACCESS DENIED ({match_score}% Confidence)!{NC}")
                             speak("Access denied. Voice print mismatch.")
-                            conversation_active = False                    speak("Access denied. Voice print mismatch.")
                             conversation_active = False
                             
             except (sr.UnknownValueError, sr.RequestError):
