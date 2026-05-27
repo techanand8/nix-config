@@ -434,7 +434,7 @@ def listen_and_execute():
             log(f"🎙️ Heard audio: \"{wake_text}\"", C_MUTED)
             
             # Match Nixi or common phonetic variations (Google API often writes these for Hinglish speakers)
-            if any(w in wake_text for w in ["nixi", "nixy", "nixie", "nix", "nikki", "nicky", "pixie", "lexi", "mixie", "mixi", "nexa", "texa", "nexi", "nex", "maxa", "nexia", "mixa", "neerja", "neetu", "neeta", "nikshay"]):
+            if any(w in wake_text for w in ["nixi", "nixy", "nixie", "nix", "nikki", "nicky", "pixie", "lexi", "mixie", "mixi", "nexa", "texa", "nexi", "nex", "maxa", "nexia", "mixa", "neerja", "neetu", "neeta", "nikshay", "nikshae","nikie","niki","nik","mixie","mixi"]):
                 print(f"\n{C_HIGHLIGHT}✨ WAKE WORD DETECTED!{NC}")
                 speak("Yes, Mayank? I am listening.")
                 
