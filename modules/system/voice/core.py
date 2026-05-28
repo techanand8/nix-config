@@ -202,6 +202,11 @@ class NixiAgent:
         self.speak("Warning, Mayank. You are attempting a sensitive system action. Do you confirm this command? Please say: confirm command, or cancel.")
         
         r = sr.Recognizer()
+        r.pause_threshold = self.config.get("pause_threshold", 0.5)
+        r.non_speaking_duration = self.config.get("non_speaking_duration", 0.3)
+        r.energy_threshold = self.config.get("energy_threshold", 300)
+        r.dynamic_energy_threshold = self.config.get("dynamic_energy_threshold", True)
+        
         with sr.Microphone() as source:
             self.log("🎤 Waiting for confirmation ('confirm command' or 'cancel')...", C_HIGHLIGHT)
             self.notify("Nixi Security Shield", "Waiting for confirmation ('confirm command'/'cancel')")
@@ -347,17 +352,23 @@ class NixiAgent:
         self.speak("Nixi biometric voice system engaged. I am listening for your command.")
         
         r = sr.Recognizer()
-        r.pause_threshold = 0.5
-        r.non_speaking_duration = 0.3
-        r.energy_threshold = 300
-        r.dynamic_energy_threshold = True
+        r.pause_threshold = self.config.get("pause_threshold", 0.5)
+        r.non_speaking_duration = self.config.get("non_speaking_duration", 0.3)
+        r.energy_threshold = self.config.get("energy_threshold", 300)
+        r.dynamic_energy_threshold = self.config.get("dynamic_energy_threshold", True)
         
         self.log("🎤 Voice-activity assisted wake-word engine active. Say 'Nixi'...", C_SUCCESS)
         
         with sr.Microphone() as source:
-            self.log("Adjusting for ambient noise...", C_MUTED)
-            r.adjust_for_ambient_noise(source, duration=1.0)
-            self.log(f"Calibrated energy threshold: {r.energy_threshold:.2f}", C_MUTED)
+            if self.config.get("adjust_for_ambient_noise", True):
+                self.log("Adjusting for ambient noise...", C_MUTED)
+                r.adjust_for_ambient_noise(source, duration=self.config.get("ambient_noise_duration", 1.0))
+                # Cap the threshold if it's too high (e.g. due to startup pop/static)
+                cap = self.config.get("energy_threshold_cap", 1000)
+                if r.energy_threshold > cap:
+                    self.log(f"Calibrated threshold was too high ({r.energy_threshold:.2f}). Capping to {cap}.", C_MUTED)
+                    r.energy_threshold = cap
+                self.log(f"Calibrated energy threshold: {r.energy_threshold:.2f}", C_MUTED)
             
             while True:
                 try:
@@ -445,10 +456,10 @@ class NixiAgent:
 
     def conversational_loop(self):
         r = sr.Recognizer()
-        r.pause_threshold = 0.5
-        r.non_speaking_duration = 0.3
-        r.energy_threshold = 300
-        r.dynamic_energy_threshold = True
+        r.pause_threshold = self.config.get("pause_threshold", 0.5)
+        r.non_speaking_duration = self.config.get("non_speaking_duration", 0.3)
+        r.energy_threshold = self.config.get("energy_threshold", 300)
+        r.dynamic_energy_threshold = self.config.get("dynamic_energy_threshold", True)
         
         conversation_active = True
         

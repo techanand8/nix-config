@@ -16,7 +16,14 @@ DEFAULT_CONFIG = {
     "gemini_model": "gemini-1.5-flash",
     "speaker_threshold": 62,
     "wakeword_threshold": 65.0,  # DTW alignment confidence threshold
-    "wakeword_len_sec": 1.2      # Short wake-word window size
+    "wakeword_len_sec": 1.2,      # Short wake-word window size
+    "energy_threshold": 300,
+    "dynamic_energy_threshold": True,
+    "adjust_for_ambient_noise": True,
+    "ambient_noise_duration": 1.0,
+    "energy_threshold_cap": 1000,
+    "pause_threshold": 0.5,
+    "non_speaking_duration": 0.3
 }
 
 def load_voice_config():
