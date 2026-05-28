@@ -36,7 +36,7 @@ def get_mel_filterbanks(num_filters, fft_len, sample_rate):
             
     return filters
 
-def extract_mfcc(audio, sample_rate=16000, num_mfcc=13, num_filters=26, fft_len=512):
+def extract_mfcc(audio, sample_rate=16000, num_mfcc=13, num_filters=26, fft_len=512, mean_normalize=True):
     if len(audio.shape) > 1:
         audio = audio.mean(axis=1)
     # Pre-emphasis
@@ -70,7 +70,8 @@ def extract_mfcc(audio, sample_rate=16000, num_mfcc=13, num_filters=26, fft_len=
     mfcc = fftpack.dct(log_filterbank_energies, type=2, axis=1, norm='ortho')[:, :num_mfcc]
     
     # Mean Normalization
-    mfcc -= (np.mean(mfcc, axis=0) + 1e-8)
+    if mean_normalize:
+        mfcc -= (np.mean(mfcc, axis=0) + 1e-8)
     return mfcc
 
 def dtw_distance(s1, s2):
@@ -105,7 +106,7 @@ def verify_speaker(audio_data, sample_rate=16000):
     except Exception:
         return 0
         
-    mfcc = extract_mfcc(audio_data, sample_rate)
+    mfcc = extract_mfcc(audio_data, sample_rate, mean_normalize=False)
     new_mean = np.mean(mfcc, axis=0)
     new_std = np.std(mfcc, axis=0)
     
@@ -182,7 +183,7 @@ def match_wakeword(audio_data, sample_rate=16000):
 def adapt_voice_profile(audio_data, sample_rate=16000):
     """Continuously adapts and refines the speaker biometrics profile based on verified inputs."""
     try:
-        mfcc = extract_mfcc(audio_data, sample_rate)
+        mfcc = extract_mfcc(audio_data, sample_rate, mean_normalize=False)
         new_mean = np.mean(mfcc, axis=0).tolist()
         new_std = np.std(mfcc, axis=0).tolist()
         

@@ -253,7 +253,7 @@ class NixiAgent:
                 self.active_mpv = None
         return False
 
-    def speak(self, text):
+    def speak(self, text, block=True):
         self.stop_speaking()
         
         if self.silent_mode:
@@ -275,6 +275,8 @@ class NixiAgent:
                     ["mpv", "--no-video", "--volume=90", cached_path],
                     stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
                 )
+                if block:
+                    self.active_mpv.wait()
                 return
             except Exception as e:
                 self.log(f"Cache audio failed: {e}. Synthesizing...", C_ERROR)
@@ -291,6 +293,8 @@ class NixiAgent:
                     ["mpv", "--no-video", "--volume=90", cached_path],
                     stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
                 )
+                if block:
+                    self.active_mpv.wait()
         except Exception as e:
             self.log(f"TTS synthesis failed: {e}", C_ERROR)
 
@@ -383,7 +387,7 @@ class NixiAgent:
                     self.log(f"Recording failed: {e}. Defaulting to silent sample.", C_ERROR)
                     audio_np = np.zeros(self.sample_rate * 4, dtype=np.float32)
             
-            mfcc = extract_mfcc(audio_np, self.sample_rate)
+            mfcc = extract_mfcc(audio_np, self.sample_rate, mean_normalize=False)
             mean_profile = np.mean(mfcc, axis=0).tolist()
             std_profile = np.std(mfcc, axis=0).tolist()
             
