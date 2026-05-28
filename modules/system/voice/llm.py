@@ -99,7 +99,7 @@ def chat_with_gpt_fallback(prompt, system_instruction, history, agent_logger):
             }
             
             req = urllib.request.Request(url, data=json.dumps(data).encode("utf-8"), headers=headers, method="POST")
-            with urllib.request.urlopen(req, timeout=10) as response:
+            with urllib.request.urlopen(req, timeout=3.5) as response:
                 res_data = json.loads(response.read().decode("utf-8"))
                 reply = res_data["choices"][0]["message"]["content"].strip()
                 agent_logger("Resilient GPT-4o fallback connection successful!", C_SUCCESS)
@@ -116,7 +116,7 @@ def chat_with_gpt_fallback(prompt, system_instruction, history, agent_logger):
             ["sgpt", prompt],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=4.0
         )
         if res.returncode == 0 and res.stdout.strip():
             agent_logger("Resilient CLI SGPT fallback successful!", C_SUCCESS)
@@ -143,7 +143,7 @@ def chat_with_gpt_fallback(prompt, system_instruction, history, agent_logger):
             headers={"Content-Type": "application/json"}, 
             method="POST"
         )
-        with urllib.request.urlopen(ollama_req, timeout=5) as response:
+        with urllib.request.urlopen(ollama_req, timeout=3.0) as response:
             res_data = json.loads(response.read().decode("utf-8"))
             reply = res_data["choices"][0]["message"]["content"].strip()
             agent_logger("Resilient Local Ollama connection successful!", C_SUCCESS)
@@ -151,7 +151,7 @@ def chat_with_gpt_fallback(prompt, system_instruction, history, agent_logger):
     except Exception as oe:
         try:
             tags_url = "http://localhost:11434/api/tags"
-            with urllib.request.urlopen(tags_url, timeout=2) as response:
+            with urllib.request.urlopen(tags_url, timeout=1.0) as response:
                 models_list = json.loads(response.read().decode("utf-8"))
                 if models_list.get("models"):
                     active_model = models_list["models"][0]["name"]
@@ -163,7 +163,7 @@ def chat_with_gpt_fallback(prompt, system_instruction, history, agent_logger):
                         headers={"Content-Type": "application/json"}, 
                         method="POST"
                     )
-                    with urllib.request.urlopen(ollama_req, timeout=5) as response2:
+                    with urllib.request.urlopen(ollama_req, timeout=3.0) as response2:
                         res_data = json.loads(response2.read().decode("utf-8"))
                         reply = res_data["choices"][0]["message"]["content"].strip()
                         agent_logger(f"Resilient Local Ollama ({active_model}) connection successful!", C_SUCCESS)
@@ -197,12 +197,13 @@ def chat_with_nixi(prompt, history, personality_mode, agent_logger):
     if custom_model:
         raw_models.append(custom_model)
     raw_models.extend([
+        "gemini-2.5-flash",
+        "gemini-2.5-pro",
+        "gemini-2.0-flash",
         "gemini-2.0-flash-exp",
         "gemini-2.0-pro-exp",
         "gemini-flash-latest",
         "gemini-pro-latest",
-        "gemini-2.5-flash",
-        "gemini-2.0-flash",
         "gemini-1.5-flash",
         "gemini-pro"
     ])
@@ -244,7 +245,7 @@ def chat_with_nixi(prompt, history, personality_mode, agent_logger):
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
         try:
             req = urllib.request.Request(url, data=json.dumps(data).encode("utf-8"), headers=headers, method="POST")
-            with urllib.request.urlopen(req, timeout=8) as response:
+            with urllib.request.urlopen(req, timeout=3.5) as response:
                 res_data = json.loads(response.read().decode("utf-8"))
                 reply = res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
                 return reply

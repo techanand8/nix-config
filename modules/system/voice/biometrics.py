@@ -118,22 +118,32 @@ def verify_speaker(audio_data, sample_rate=16000):
         if len(enrolled_mean) == 0 or len(enrolled_std) == 0:
             return 0
         cosine_sim = np.dot(enrolled_mean, new_mean) / (np.linalg.norm(enrolled_mean) * np.linalg.norm(new_mean) + 1e-8)
+        cosine_dist = 1.0 - cosine_sim
+        dist = np.linalg.norm(enrolled_mean - new_mean)
         correlation = np.corrcoef(enrolled_std, new_std)[0, 1]
         if np.isnan(correlation): correlation = 0
-        confidence = (cosine_sim * 0.7) + (correlation * 0.3)
-        return max(0, min(100, int((confidence + 1) / 2 * 100)))
+        
+        dist_score = max(0, 100 - int(dist * 22))
+        cosine_score = max(0, 100 - int(cosine_dist * 400))
+        corr_score = max(0, int((correlation + 1) / 2 * 100))
+        return int(dist_score * 0.4 + cosine_score * 0.4 + corr_score * 0.2)
         
     for t in profile["templates"]:
         enrolled_mean = np.array(t["mean"])
         enrolled_std = np.array(t["std"])
         
         cosine_sim = np.dot(enrolled_mean, new_mean) / (np.linalg.norm(enrolled_mean) * np.linalg.norm(new_mean) + 1e-8)
+        cosine_dist = 1.0 - cosine_sim
+        dist = np.linalg.norm(enrolled_mean - new_mean)
         correlation = np.corrcoef(enrolled_std, new_std)[0, 1]
         if np.isnan(correlation):
             correlation = 0
             
-        confidence = (cosine_sim * 0.7) + (correlation * 0.3)
-        score = max(0, min(100, int((confidence + 1) / 2 * 100)))
+        dist_score = max(0, 100 - int(dist * 22))
+        cosine_score = max(0, 100 - int(cosine_dist * 400))
+        corr_score = max(0, int((correlation + 1) / 2 * 100))
+        
+        score = int(dist_score * 0.4 + cosine_score * 0.4 + corr_score * 0.2)
         if score > best_score:
             best_score = score
             

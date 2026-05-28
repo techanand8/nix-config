@@ -385,7 +385,13 @@ class NixiAgent:
                             
                     # Check if the wake-word is present
                     wake_matched = False
-                    wake_synonyms = ["nixi", "niksi", "nixie", "niks", "nix", "pixie", "nikki"]
+                    wake_synonyms = [
+                        "nixi", "niksi", "nixie", "niks", "nix", "pixie", "nikki",
+                        "nixy", "niksy", "nike", "nyx", "neexee", "neexi", "nexi",
+                        "nexie", "nixi's", "nixies", "miki", "micky", "niki", "niky",
+                        "leexie", "lexi", "lexie", "nicks", "nicky", "fixie", "mixer",
+                        "nikshay", "neeta", "neetu", "mixi", "meexi"
+                    ]
                     for synonym in wake_synonyms:
                         if synonym in spoken_text:
                             wake_matched = True
