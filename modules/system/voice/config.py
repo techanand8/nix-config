@@ -21,7 +21,7 @@ DEFAULT_CONFIG = {
     "dynamic_energy_threshold": True,
     "adjust_for_ambient_noise": True,
     "ambient_noise_duration": 1.0,
-    "energy_threshold_cap": 1000,
+    "energy_threshold_cap": 5000,
     "pause_threshold": 0.5,
     "non_speaking_duration": 0.3
 }

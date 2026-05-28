@@ -22,6 +22,25 @@ C_HIGHLIGHT = "\033[38;5;220m"
 C_MUTED = "\033[38;5;244m"
 NC = "\033[0m"
 
+class DCOffsetWrapper:
+    def __init__(self, original_stream):
+        self.original_stream = original_stream
+
+    def read(self, size):
+        raw_bytes = self.original_stream.read(size)
+        if not raw_bytes:
+            return raw_bytes
+        try:
+            audio_data = np.frombuffer(raw_bytes, dtype=np.int16).astype(np.float64)
+            mean = np.mean(audio_data)
+            dc_removed = (audio_data - mean).astype(np.int16)
+            return dc_removed.tobytes()
+        except Exception:
+            return raw_bytes
+
+    def __getattr__(self, name):
+        return getattr(self.original_stream, name)
+
 class NixiSynth:
     @staticmethod
     def play(effect_name, silent=False):
@@ -268,6 +287,7 @@ class NixiAgent:
         r.dynamic_energy_threshold = self.config.get("dynamic_energy_threshold", True)
         
         with sr.Microphone() as source:
+            source.stream = DCOffsetWrapper(source.stream)
             self.log("🎤 Waiting for confirmation ('confirm command' or 'cancel')...", C_HIGHLIGHT)
             self.notify("Nixi Security Shield", "Waiting for confirmation ('confirm command'/'cancel')")
             try:
@@ -336,6 +356,7 @@ class NixiAgent:
                 
             self.log("🎤 RECORDING ACTIVE... SPEAK NOW!", C_HIGHLIGHT)
             with sr.Microphone() as source:
+                source.stream = DCOffsetWrapper(source.stream)
                 try:
                     audio_data = r.listen(source, timeout=8, phrase_time_limit=5)
                     wav_data = audio_data.get_wav_data(convert_rate=self.sample_rate, convert_width=2)
@@ -381,6 +402,7 @@ class NixiAgent:
                 
             self.log("🎤 Speak now...", C_HIGHLIGHT)
             with sr.Microphone() as source:
+                source.stream = DCOffsetWrapper(source.stream)
                 try:
                     audio_data = r.listen(source, timeout=5, phrase_time_limit=2)
                     wav_data = audio_data.get_wav_data(convert_rate=self.sample_rate, convert_width=2)
@@ -420,11 +442,12 @@ class NixiAgent:
         self.log("🎤 Voice-activity assisted wake-word engine active. Say 'Nixi'...", C_SUCCESS)
         
         with sr.Microphone() as source:
+            source.stream = DCOffsetWrapper(source.stream)
             if self.config.get("adjust_for_ambient_noise", True):
                 self.log("Adjusting for ambient noise...", C_MUTED)
                 r.adjust_for_ambient_noise(source, duration=self.config.get("ambient_noise_duration", 1.0))
                 # Cap the threshold if it's too high (e.g. due to startup pop/static)
-                cap = self.config.get("energy_threshold_cap", 1000)
+                cap = self.config.get("energy_threshold_cap", 5000)
                 if r.energy_threshold > cap:
                     self.log(f"Calibrated threshold was too high ({r.energy_threshold:.2f}). Capping to {cap}.", C_MUTED)
                     r.energy_threshold = cap
@@ -524,6 +547,7 @@ class NixiAgent:
         conversation_active = True
         
         with sr.Microphone() as source:
+            source.stream = DCOffsetWrapper(source.stream)
             while conversation_active:
                 self.log("Listening for follow-up command...", C_PRIMARY)
                 try:
