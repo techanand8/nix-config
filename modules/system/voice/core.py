@@ -314,7 +314,7 @@ class NixiAgent:
             pitch = self.config.get("edge_tts_pitch", "+0Hz")
             res_tts = subprocess.run(
                 ["edge-tts", "--voice", self.current_voice, "--rate", rate, "--pitch", pitch, "--text", text, "--write-media", cached_path],
-                capture_output=True, text=True
+                capture_output=True, text=True, timeout=4.0
             )
             if res_tts.returncode == 0:
                 self.active_mpv = subprocess.Popen(
@@ -323,8 +323,23 @@ class NixiAgent:
                 )
                 if block:
                     self.active_mpv.wait()
+            else:
+                raise Exception(f"edge-tts returned non-zero code {res_tts.returncode}: {res_tts.stderr}")
         except Exception as e:
-            self.log(f"TTS synthesis failed: {e}", C_ERROR)
+            self.log(f"TTS synthesis failed: {e}. Trying offline fallback spd-say...", C_ERROR)
+            try:
+                cmd = ["spd-say", "-r", "-10"]
+                if block:
+                    cmd.append("-w")
+                cmd.append(text)
+                self.active_mpv = subprocess.Popen(
+                    cmd,
+                    stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+                )
+                if block:
+                    self.active_mpv.wait()
+            except Exception as ex:
+                self.log(f"Offline fallback TTS spd-say failed too: {ex}", C_ERROR)
 
     def confirm_sensitive_action(self, command_text):
         self.speak("Warning, Mayank. You are attempting a sensitive system action. Do you confirm this command? Please say: confirm command, or cancel.")
@@ -354,7 +369,7 @@ class NixiAgent:
                 
                 self.log("🔒 Verifying confirmation biometric print...")
                 score = verify_speaker(audio_np, self.sample_rate)
-                threshold = self.config.get("speaker_threshold", 62)
+                threshold = self.config.get("speaker_threshold", 55)
                 
                 if score >= threshold:
                     self.speak("Confirmation verified. Executing command.")
@@ -514,6 +529,9 @@ class NixiAgent:
             print(f"{C_ERROR}[ERROR]{NC} No voice profile found. Run 'manx voice enroll' first!")
             sys.exit(1)
             
+        import socket
+        socket.setdefaulttimeout(3.5)
+        
         self.notify("Nixi Voice Engine", "Biometric wake-word engine engaged.")
         self.speak("Nixi biometric voice system engaged. I am listening for your command.")
         
@@ -569,7 +587,11 @@ class NixiAgent:
                         "nexie", "nixi's", "nixies", "miki", "micky", "niki", "niky",
                         "leexie", "lexi", "lexie", "nicks", "nicky", "fixie", "mixer",
                         "nikshay", "neeta", "neetu", "mixi", "meexi", "nexe", "mix",
-                        "niks", "niks", "neek", "nifty", "nexa"
+                        "niks", "neek", "nifty", "nexa", "sexy", "taxi", "pixy",
+                        "makes see", "make see", "make c", "next c", "nick see", "nick c",
+                        "nix c", "mc", "mac c", "max c", "mac see", "max see", "mixie",
+                        "mixy", "fixy", "lexy", "nixing", "mixing", "nicie", "lixi",
+                        "lixie", "rixi", "rixie", "vixi", "vixie", "neksi", "neksy", "neksie"
                     ]
                     for synonym in wake_synonyms:
                         if synonym in spoken_text:
@@ -580,7 +602,7 @@ class NixiAgent:
                         # Biometric Speaker Verification
                         self.log("🔒 Checking wake-word speaker biometric print...")
                         score = verify_speaker(audio_np, self.sample_rate)
-                        threshold = self.config.get("speaker_threshold", 62)
+                        threshold = self.config.get("speaker_threshold", 55)
                         
                         if score >= threshold:
                             self.log(f"🔥 Wake word MATCH CONFIRMED ({score}%)!", C_SUCCESS)
@@ -627,7 +649,7 @@ class NixiAgent:
                 except Exception as e:
                     self.log(f"Error in wake-word main loop: {e}", C_ERROR)
                     time.sleep(0.5)
-
+ 
     def conversational_loop(self):
         r = sr.Recognizer()
         r.pause_threshold = self.config.get("pause_threshold", 0.5)
@@ -642,7 +664,7 @@ class NixiAgent:
             while conversation_active:
                 self.log("Listening for follow-up command...", C_PRIMARY)
                 try:
-                    audio_cmd = r.listen(source, timeout=6, phrase_time_limit=8)
+                    audio_cmd = r.listen(source, timeout=6, phrase_time_limit=15)
                     self.stop_speaking()
                 except sr.WaitTimeoutError:
                     self.log("Conversation timed out. Going back to sleep...", C_MUTED)
@@ -661,7 +683,7 @@ class NixiAgent:
                 self.log("Checking Voice ID Biometrics...")
                 match_score = verify_speaker(audio_np, self.sample_rate)
                 
-                threshold = self.config.get("speaker_threshold", 62)
+                threshold = self.config.get("speaker_threshold", 55)
                 if match_score >= threshold:
                     self.log(f"VOICE ID MATCH CONFIRMED ({match_score}%)!", C_SUCCESS)
                     
@@ -767,9 +789,11 @@ class NixiAgent:
             except Exception as e:
                 return f"Failed to launch GUI command in the background: {e}"
 
+        # Dynamic execution strategy:
+        # First try to run with a quick timeout (e.g. 3.0 seconds)
         try:
             res = subprocess.run(
-                cmd_to_run, shell=True, capture_output=True, text=True, timeout=6.0
+                cmd_to_run, shell=True, capture_output=True, text=True, timeout=3.0
             )
             stdout = res.stdout.strip()
             stderr = res.stderr.strip()
@@ -782,7 +806,57 @@ class NixiAgent:
             self.log("🤖 [AGENT] Processing command results with Gemini...", C_MUTED)
             reply = chat_with_nixi(summary_prompt, self.conversation_history, self.personality_mode, self.log)
             return reply
+            
         except subprocess.TimeoutExpired:
-            return "The command timed out, Mayank. It might be a long-running process."
+            # The command is a long-running process! Transition to a background thread!
+            self.log("⏳ Command is a long-running process. Shifting to background execution thread...", C_HIGHLIGHT)
+            self.notify("Nixi Agent", "Task shifted to background execution.")
+            
+            # Start the background execution helper
+            def run_background_task():
+                try:
+                    # Run with a much longer timeout (15 minutes / 900 seconds)
+                    res_bg = subprocess.run(
+                        cmd_to_run, shell=True, capture_output=True, text=True, timeout=900.0
+                    )
+                    bg_stdout = res_bg.stdout.strip()
+                    bg_stderr = res_bg.stderr.strip()
+                    
+                    if res_bg.returncode == 0:
+                        bg_summary_prompt = f"The background system command '{cmd_to_run}' completed successfully with output:\n{bg_stdout}\n\nPlease summarize this output or present the result to Mayank in your sweet voice."
+                    else:
+                        bg_summary_prompt = f"The background system command '{cmd_to_run}' failed with error:\n{bg_stderr}\n\nPlease explain this failure to Mayank and suggest how to resolve it."
+                    
+                    self.log("🤖 [AGENT/BG] Processing background command results with Gemini...", C_MUTED)
+                    bg_reply = chat_with_nixi(bg_summary_prompt, self.conversation_history, self.personality_mode, self.log)
+                    
+                    # Update conversation history
+                    self.conversation_history.append({"role": "user", "content": f"background system command: {cmd_to_run}"})
+                    self.conversation_history.append({"role": "model", "content": bg_reply})
+                    if len(self.conversation_history) > 40:
+                        self.conversation_history = self.conversation_history[-40:]
+                        
+                    # Play activation sound, show notification and speak results!
+                    self.play_sound_effect("access_granted")
+                    self.notify("Nixi Agent", f"Background command finished: {cmd_to_run[:30]}...")
+                    self.speak(bg_reply, block=False)
+                    
+                except subprocess.TimeoutExpired:
+                    err_msg = f"The background command '{cmd_to_run}' exceeded its 15 minute execution limit and timed out."
+                    self.log(f"🚫 [AGENT/BG] {err_msg}", C_ERROR)
+                    self.notify("Nixi Agent", "Background task timed out", 5000)
+                    self.speak(err_msg, block=False)
+                except Exception as ex:
+                    err_msg = f"I encountered an error running '{cmd_to_run}' in the background: {ex}"
+                    self.log(f"🚫 [AGENT/BG] {err_msg}", C_ERROR)
+                    self.notify("Nixi Agent", "Background task error", 5000)
+                    self.speak(err_msg, block=False)
+            
+            # Start background thread
+            threading.Thread(target=run_background_task, daemon=True).start()
+            
+            # Speak immediate feedback to the user
+            return "This command is taking a bit longer to execute. I will run it in the background and notify you when it's done, Mayank!"
+            
         except Exception as e:
             return f"I encountered an error running that command: {e}"
