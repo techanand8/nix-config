@@ -110,8 +110,10 @@ class IntentDispatcher:
         self.register(["previous song", "previous track"], self._handle_media_prev)
         self.register(["what song is playing", "current song", "what is playing"], self._handle_media_current)
 
-        # 12. Productivity Timers & Alarms
-        self.register(["set a timer for", "remind me in"], self._handle_timer)
+        # 12. Productivity Timers & Reminders
+        self.register(["remind me to", "set a reminder to", "remind me in", "set a timer for"], self._handle_remind_me)
+        self.register(["what are my reminders", "list reminders", "show reminders", "active reminders"], self._handle_list_reminders)
+        self.register(["clear reminders", "delete all reminders", "clear all reminders", "remove all reminders"], self._handle_clear_reminders)
 
         # 13. Weather Reports
         self.register(["weather in", "what is the weather like"], self._handle_weather)
@@ -576,40 +578,72 @@ class IntentDispatcher:
             self.agent.speak("I couldn't fetch the current music metadata.")
         return True
 
-    def _handle_timer(self, text, cmd):
+    def _handle_remind_me(self, text, cmd):
         import re
-        import time
-        import threading
         match = re.search(r'\b(\d+)\s*(second|minute|sec|min|hour|hr)s?\b', cmd)
-        if match:
-            val = int(match.group(1))
-            unit = match.group(2)
+        if not match:
+            return False
             
-            if "minute" in unit or "min" in unit:
-                secs = val * 60
-                unit_str = "minute" if val == 1 else "minutes"
-            elif "hour" in unit or "hr" in unit:
-                secs = val * 3600
-                unit_str = "hour" if val == 1 else "hours"
-            else:
-                secs = val
-                unit_str = "second" if val == 1 else "seconds"
-                
-            label_match = re.search(r'\b(to|for)\s+(.+)$', cmd)
-            label = label_match.group(2) if label_match else "your timer"
+        val = int(match.group(1))
+        unit = match.group(2)
+        
+        if "minute" in unit or "min" in unit:
+            secs = val * 60
+            unit_str = "minute" if val == 1 else "minutes"
+        elif "hour" in unit or "hr" in unit:
+            secs = val * 3600
+            unit_str = "hour" if val == 1 else "hours"
+        else:
+            secs = val
+            unit_str = "second" if val == 1 else "seconds"
             
-            self.agent.log(f"Executing: Setting timer for {val} {unit_str} ({label})...", C_SUCCESS)
-            self.agent.speak(f"Setting a timer for {val} {unit_str} to {label}.")
+        # Parse task description
+        task_match = re.search(r'(?:remind me to|set a reminder to|remind me in|remind me|reminder to)\s+(.+?)\s+in\s+\d+', cmd)
+        if task_match:
+            task = task_match.group(1).strip()
+        else:
+            fallback_match = re.search(r'\b(?:to|for)\s+(.+)$', cmd)
+            task = fallback_match.group(1).strip() if fallback_match else "take a break"
             
-            def timer_thread():
-                time.sleep(secs)
-                self.agent.play_sound_effect("activate")
-                self.agent.notify("Nixi Timer Alert", f"Timer Complete: {label.capitalize()}", 5000)
-                self.agent.speak(f"Mayank, your timer for {label} has completed!")
-                
-            threading.Thread(target=timer_thread, daemon=True).start()
+        self.agent.log(f"Setting persistent reminder: '{task}' in {val} {unit_str}", C_SUCCESS)
+        self.agent.speak(f"Alright Mayank, I have set a reminder to {task} in {val} {unit_str}.")
+        self.agent.add_reminder(task, secs)
+        return True
+
+    def _handle_list_reminders(self, text, cmd):
+        import time
+        self.agent.log("Listing active reminders...", C_SUCCESS)
+        reminders = self.agent.load_reminders()
+        active = [r for r in reminders if not r["notified"]]
+        
+        if not active:
+            self.agent.speak("You have no active reminders right now, Mayank.")
             return True
-        return False
+            
+        self.agent.speak(f"Mayank, you have {len(active)} active reminders.")
+        for i, r in enumerate(active):
+            time_left = int(r["time_expire"] - time.time())
+            if time_left <= 0:
+                continue
+                
+            if time_left >= 3600:
+                hrs = time_left // 3600
+                mins = (time_left % 3600) // 60
+                time_str = f"{hrs} hour and {mins} minutes" if hrs == 1 else f"{hrs} hours and {mins} minutes"
+            elif time_left >= 60:
+                mins = time_left // 60
+                time_str = f"{mins} minutes" if mins == 1 else f"{mins} minutes"
+            else:
+                time_str = f"{time_left} seconds"
+                
+            self.agent.speak(f"Reminder {i+1}: to {r['task']} in {time_str}.")
+        return True
+
+    def _handle_clear_reminders(self, text, cmd):
+        self.agent.log("Clearing all reminders...", C_SUCCESS)
+        self.agent.save_reminders([])
+        self.agent.speak("I have cleared all your reminders, Mayank.")
+        return True
 
     def _handle_weather(self, text, cmd):
         city = text.lower().replace("weather in", "").replace("weather", "").replace("what is the weather like in", "").strip()

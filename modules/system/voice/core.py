@@ -95,9 +95,69 @@ class NixiAgent:
         self.dispatcher = IntentDispatcher(self)
         self.sample_rate = self.config.get("sample_rate", 16000)
         self.prewarm_tts_cache()
+        self.reminders_path = os.path.expanduser("~/.config/manx/reminders.json")
+        self.start_reminder_monitor()
 
     def play_sound_effect(self, effect_name):
         NixiSynth.play(effect_name, self.silent_mode)
+
+    def load_reminders(self):
+        if not os.path.exists(self.reminders_path):
+            return []
+        try:
+            with open(self.reminders_path, "r") as f:
+                return json.load(f)
+        except Exception:
+            return []
+
+    def save_reminders(self, reminders):
+        try:
+            with open(self.reminders_path, "w") as f:
+                json.dump(reminders, f, indent=4)
+        except Exception:
+            pass
+
+    def add_reminder(self, task, secs):
+        reminders = self.load_reminders()
+        expire_time = time.time() + secs
+        new_reminder = {
+            "id": hashlib.md5(f"{task}_{expire_time}".encode("utf-8")).hexdigest(),
+            "task": task,
+            "time_created": time.time(),
+            "time_expire": expire_time,
+            "notified": False
+        }
+        reminders.append(new_reminder)
+        self.save_reminders(reminders)
+        return new_reminder
+
+    def start_reminder_monitor(self):
+        def monitor():
+            while True:
+                time.sleep(1.0)
+                reminders = self.load_reminders()
+                now = time.time()
+                changed = False
+                for r in reminders:
+                    if now >= r["time_expire"] and not r["notified"]:
+                        r["notified"] = True
+                        changed = True
+                        task = r["task"]
+                        self.play_sound_effect("activate")
+                        self.notify("Nixi Reminder", f"Active reminder: {task.capitalize()}", 8000)
+                        self.speak(f"Excuse me Mayank, this is your reminder to {task}!")
+                
+                clean_reminders = []
+                for r in reminders:
+                    if r["notified"] and (now - r["time_expire"]) > 600:
+                        changed = True
+                        continue
+                    clean_reminders.append(r)
+                
+                if changed:
+                    self.save_reminders(clean_reminders)
+                    
+        threading.Thread(target=monitor, daemon=True).start()
 
 
     def log(self, msg, style=C_PRIMARY):
