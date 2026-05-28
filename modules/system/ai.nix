@@ -32,6 +32,7 @@
       "llama3.1"
       "qwen2.5-coder:7b"
       "mistral"
+      "llama3.2:1b"
     ];
   };
 

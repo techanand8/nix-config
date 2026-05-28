@@ -13,7 +13,7 @@ DEFAULT_CONFIG = {
         ".ssh", ".gnupg", "passwd", "root", "systemctl", "shutdown", "reboot"
     ],
     "edge_tts_voice": "en-IN-NeerjaNeural",
-    "gemini_model": "gemini-1.5-flash",
+    "gemini_model": "gemini-3.5-flash",
     "speaker_threshold": 55,
     "wakeword_threshold": 65.0,  # DTW alignment confidence threshold
     "wakeword_len_sec": 1.2,      # Short wake-word window size

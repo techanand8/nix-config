@@ -400,7 +400,8 @@ class IntentDispatcher:
     def _handle_app_launch(self, text, cmd):
         target = cmd.replace("open", "").replace("launch", "").replace("in my browser", "").replace("in browser", "").strip()
         if not target:
-            return False
+            self.agent.speak("What application would you like me to open, Mayank?")
+            return True
             
         browser_targets = ["gmail", "youtube", "github", "google", "facebook", "twitter", "reddit", "linkedin", "chatgpt"]
         desktop_targets = ["discord", "spotify", "steam", "obs", "vlc", "vscode", "code", "dolphin", "file manager", "files", "browser", "firefox", "chrome", "terminal", "alacritty", "kitty", "ghostty"]

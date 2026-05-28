@@ -144,8 +144,12 @@ def chat_with_gpt_fallback(prompt, system_instruction, history, agent_logger):
                 models_list = json.loads(response.read().decode("utf-8"))
                 if models_list.get("models"):
                     installed_names = [m["name"] for m in models_list["models"]]
-                    # Prioritize common high-quality models
-                    priorities = ["llama3.1:latest", "llama3.1:8b", "qwen2.5-coder:7b", "deepseek-coder:6.7b", "mistral:latest"]
+                    # Prioritize lightweight models first for CPU/iGPU speed, followed by high-quality models
+                    priorities = [
+                        "llama3.2:1b", "llama3.2:3b", "qwen2:1.5b", "qwen2:0.5b",
+                        "llama3.1:latest", "llama3.1:8b", "qwen2.5-coder:7b",
+                        "deepseek-coder:6.7b", "mistral:latest"
+                    ]
                     chosen = None
                     for p in priorities:
                         if p in installed_names:
@@ -207,6 +211,9 @@ def chat_with_nixi(prompt, history, personality_mode, agent_logger):
     if custom_model:
         raw_models.append(custom_model)
     raw_models.extend([
+        "gemini-3.5-flash",
+        "gemini-3.1-flash-lite",
+        "gemini-2.0-flash-lite",
         "gemini-2.5-flash",
         "gemini-2.5-pro",
         "gemini-2.0-flash",
@@ -260,9 +267,12 @@ def chat_with_nixi(prompt, history, personality_mode, agent_logger):
                 reply = res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
                 return reply
         except urllib.error.HTTPError as e:
-            if e.code in [400, 403, 429]:
+            if e.code in [400, 403]:
                 agent_logger(f"Gemini API account/auth error ({e.code}). Shifting to fallback at flash speed!", C_HIGHLIGHT)
                 break
+            elif e.code == 429:
+                agent_logger(f"Gemini model {model} rate limited (429). Trying next candidate...", C_HIGHLIGHT)
+                continue
             continue
         except urllib.error.URLError as e:
             agent_logger(f"Network connection down/offline ({e.reason}). Shifting to fallback at flash speed!", C_HIGHLIGHT)

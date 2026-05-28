@@ -58,6 +58,29 @@ class DCOffsetWrapper:
     def __getattr__(self, name):
         return getattr(self.original_stream, name)
 
+def clean_text_for_speech(text):
+    if not text:
+        return ""
+    import re
+    # Remove markdown headers (e.g. ### Header)
+    text = re.sub(r'#+\s+', '', text)
+    # Remove markdown code blocks
+    text = re.sub(r'```[\s\S]*?```', '', text)
+    # Remove single backticks
+    text = text.replace("`", "")
+    # Remove asterisks and underscores
+    text = text.replace("**", "").replace("*", "").replace("__", "").replace("_", "")
+    # Remove technical instructions like RUN_CMD: or RUN_CMD
+    text = re.sub(r'(?i)\bRUN_CMD:?\s*', '', text)
+    # Replace common technical abbreviations/symbols with friendly speech
+    text = text.replace("@DEFAULT_SINK@", "default speakers")
+    text = text.replace("iGPU", "integrated graphics")
+    # Remove standard emoji characters (as some screen readers or TTS engines try to read them or choke)
+    text = re.sub(r'[\U00010000-\U0010ffff]', '', text)
+    # Clean up excess whitespace
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
 class NixiSynth:
     @staticmethod
     def play(effect_name, silent=False):
@@ -256,6 +279,11 @@ class NixiAgent:
     def speak(self, text, block=True):
         self.stop_speaking()
         
+        # Sanitize text to ensure a friendly, natural vocal response without raw model formatting
+        text = clean_text_for_speech(text)
+        if not text:
+            return
+            
         if self.silent_mode:
             self.log(f"[SILENT MODE] Nixi: \"{text}\"", C_MUTED)
             return
