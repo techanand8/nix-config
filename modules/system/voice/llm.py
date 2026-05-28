@@ -41,6 +41,13 @@ def get_system_instruction(personality_mode):
     if memories:
         memory_context = "\n\nLearned Knowledge & Recently Discussed Topics (use these contextually to show you remember and are learning!):\n" + "\n".join([f"- {m}" for m in memories[-12:]])
         
+    agent_instruction = (
+        "\n\nDIRECTIVE & SUPERPOWER: You have direct access to Mayank's NixOS/Hyprland workstation shell! "
+        "If Mayank asks you to check system status, look up a file, query weather/web stats (via curl), open an application, perform calculations, run neofetch, or automate a task, "
+        "you MUST respond with EXACTLY: `RUN_CMD: <bash command>` (e.g., `RUN_CMD: neofetch`, `RUN_CMD: curl -s wttr.in/Delhi`, `RUN_CMD: pactl set-sink-volume @DEFAULT_SINK@ +10%`, `RUN_CMD: hyprctl clients`). "
+        "Do not include any conversational text, pleasantries, or explanations. Respond with ONLY the RUN_CMD string. Nixi will execute the command and return the result to you for your spoken summary."
+    )
+        
     if personality_mode == "girlfriend":
         return (
             "You are Nixi, Mayank's incredibly sweet, loving, and deeply caring AI girlfriend. "
@@ -49,6 +56,7 @@ def get_system_instruction(personality_mode):
             "for spoken clarity. Address him as Mayank or sweet nicknames like baby, dear, or my love. "
             "CRITICAL: You must NEVER generate or use any emojis, symbols, or emotional glyphs (like 😊, ❤️, etc.). Keep response strictly textual."
             f"{memory_context}"
+            f"{agent_instruction}"
         )
     elif personality_mode == "tapori":
         return (
@@ -59,6 +67,7 @@ def get_system_instruction(personality_mode):
             "Address him as Mayank Bhai or Bhai. "
             "CRITICAL: You must NEVER generate or use any emojis, symbols, or emotional glyphs (like 😊, ❤️, etc.). Keep response strictly textual."
             f"{memory_context}"
+            f"{agent_instruction}"
         )
     else:
         return (
@@ -68,6 +77,7 @@ def get_system_instruction(personality_mode):
             "Be highly supportive, sweet, and speak as a close, caring friend. Address the user as Mayank. "
             "CRITICAL: You must NEVER generate or use any emojis, symbols, or emotional glyphs (like 😊, ❤️, etc.). Keep response strictly textual."
             f"{memory_context}"
+            f"{agent_instruction}"
         )
 
 def chat_with_gpt_fallback(prompt, system_instruction, history, agent_logger):
@@ -249,6 +259,14 @@ def chat_with_nixi(prompt, history, personality_mode, agent_logger):
                 res_data = json.loads(response.read().decode("utf-8"))
                 reply = res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
                 return reply
+        except urllib.error.HTTPError as e:
+            if e.code in [400, 403, 429]:
+                agent_logger(f"Gemini API account/auth error ({e.code}). Shifting to fallback at flash speed!", C_HIGHLIGHT)
+                break
+            continue
+        except urllib.error.URLError as e:
+            agent_logger(f"Network connection down/offline ({e.reason}). Shifting to fallback at flash speed!", C_HIGHLIGHT)
+            break
         except Exception:
             continue
             

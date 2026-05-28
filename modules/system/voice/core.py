@@ -536,6 +536,12 @@ class NixiAgent:
                                     self.log(f"Chatting with Nixi: \"{command_part}\"...", C_HIGHLIGHT)
                                     self.notify("Nixi Assistant", "Thinking...")
                                     reply = chat_with_nixi(command_part, self.conversation_history, self.personality_mode, self.log)
+                                    
+                                    # Handle agentic execution fallback
+                                    if reply.startswith("RUN_CMD:"):
+                                        cmd_to_run = reply.replace("RUN_CMD:", "").strip()
+                                        reply = self.execute_agent_command(cmd_to_run, command_part)
+                                        
                                     self.conversation_history.append({"role": "user", "content": command_part})
                                     self.conversation_history.append({"role": "model", "content": reply})
                                     if len(self.conversation_history) > 40:
@@ -612,6 +618,11 @@ class NixiAgent:
                             self.notify("Nixi Assistant", "Thinking...")
                             reply = chat_with_nixi(command_text, self.conversation_history, self.personality_mode, self.log)
                             
+                            # Handle agentic execution fallback
+                            if reply.startswith("RUN_CMD:"):
+                                cmd_to_run = reply.replace("RUN_CMD:", "").strip()
+                                reply = self.execute_agent_command(cmd_to_run, command_text)
+                                
                             self.conversation_history.append({"role": "user", "content": command_text})
                             self.conversation_history.append({"role": "model", "content": reply})
                             if len(self.conversation_history) > 40:
@@ -629,3 +640,43 @@ class NixiAgent:
                     self.notify("Nixi Assistant", f"Access Denied: Voice Mismatch ({match_score}%)", 3000)
                     self.speak("Access denied. Voice print mismatch.")
                     conversation_active = False
+
+    def execute_agent_command(self, cmd_to_run, original_prompt):
+        self.log(f"🤖 [AGENT] Nixi wants to execute shell command: '{cmd_to_run}'", C_HIGHLIGHT)
+        self.notify("Nixi Agent", f"Executing: {cmd_to_run}")
+        
+        # Check sensitive keywords
+        is_sensitive = False
+        sensitive_keywords = self.config.get("sensitive_keywords", [
+            "rm ", "delete", "remove", "destroy", "format", "nix-config", 
+            ".ssh", ".gnupg", "passwd", "root", "systemctl", "shutdown", "reboot"
+        ])
+        for kw in sensitive_keywords:
+            if kw in cmd_to_run.lower():
+                is_sensitive = True
+                break
+                
+        if is_sensitive:
+            confirmed = self.confirm_sensitive_action(cmd_to_run)
+            if not confirmed:
+                return "Action aborted by security print verification."
+                
+        try:
+            res = subprocess.run(
+                cmd_to_run, shell=True, capture_output=True, text=True, timeout=6.0
+            )
+            stdout = res.stdout.strip()
+            stderr = res.stderr.strip()
+            
+            if res.returncode == 0:
+                summary_prompt = f"The system command '{cmd_to_run}' completed successfully with output:\n{stdout}\n\nPlease summarize this output or present the result to Mayank in your sweet voice."
+            else:
+                summary_prompt = f"The system command '{cmd_to_run}' failed with error:\n{stderr}\n\nPlease explain this failure to Mayank and suggest how to resolve it."
+                
+            self.log("🤖 [AGENT] Processing command results with Gemini...", C_MUTED)
+            reply = chat_with_nixi(summary_prompt, self.conversation_history, self.personality_mode, self.log)
+            return reply
+        except subprocess.TimeoutExpired:
+            return "The command timed out, Mayank. It might be a long-running process."
+        except Exception as e:
+            return f"I encountered an error running that command: {e}"
