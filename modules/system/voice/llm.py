@@ -137,9 +137,30 @@ def chat_with_gpt_fallback(prompt, system_instruction, history, agent_logger):
     # Local Offline Ollama Fallback
     try:
         agent_logger("Attempting local offline Ollama fallback (fully local!)...", C_HIGHLIGHT)
+        tags_url = "http://localhost:11434/api/tags"
+        active_model = "llama3"  # fallback default
+        try:
+            with urllib.request.urlopen(tags_url, timeout=2.0) as response:
+                models_list = json.loads(response.read().decode("utf-8"))
+                if models_list.get("models"):
+                    installed_names = [m["name"] for m in models_list["models"]]
+                    # Prioritize common high-quality models
+                    priorities = ["llama3.1:latest", "llama3.1:8b", "qwen2.5-coder:7b", "deepseek-coder:6.7b", "mistral:latest"]
+                    chosen = None
+                    for p in priorities:
+                        if p in installed_names:
+                            chosen = p
+                            break
+                    if not chosen:
+                        chosen = installed_names[0]
+                    active_model = chosen
+        except Exception as e:
+            agent_logger(f"Could not query local Ollama models list: {e}. Defaulting to llama3.", C_MUTED)
+            
+        agent_logger(f"Querying local model: {active_model}...", C_HIGHLIGHT)
         ollama_url = "http://localhost:11434/v1/chat/completions"
         ollama_data = {
-            "model": "llama3",
+            "model": active_model,
             "messages": [
                 {"role": "system", "content": system_instruction},
                 {"role": "user", "content": prompt}
@@ -153,34 +174,13 @@ def chat_with_gpt_fallback(prompt, system_instruction, history, agent_logger):
             headers={"Content-Type": "application/json"}, 
             method="POST"
         )
-        with urllib.request.urlopen(ollama_req, timeout=3.0) as response:
+        with urllib.request.urlopen(ollama_req, timeout=25.0) as response:
             res_data = json.loads(response.read().decode("utf-8"))
             reply = res_data["choices"][0]["message"]["content"].strip()
-            agent_logger("Resilient Local Ollama connection successful!", C_SUCCESS)
+            agent_logger(f"Resilient Local Ollama ({active_model}) connection successful!", C_SUCCESS)
             return reply
     except Exception as oe:
-        try:
-            tags_url = "http://localhost:11434/api/tags"
-            with urllib.request.urlopen(tags_url, timeout=1.0) as response:
-                models_list = json.loads(response.read().decode("utf-8"))
-                if models_list.get("models"):
-                    active_model = models_list["models"][0]["name"]
-                    agent_logger(f"Dynamic local model found: {active_model}. Querying...", C_HIGHLIGHT)
-                    ollama_data["model"] = active_model
-                    ollama_req = urllib.request.Request(
-                        ollama_url, 
-                        data=json.dumps(ollama_data).encode("utf-8"), 
-                        headers={"Content-Type": "application/json"}, 
-                        method="POST"
-                    )
-                    with urllib.request.urlopen(ollama_req, timeout=3.0) as response2:
-                        res_data = json.loads(response2.read().decode("utf-8"))
-                        reply = res_data["choices"][0]["message"]["content"].strip()
-                        agent_logger(f"Resilient Local Ollama ({active_model}) connection successful!", C_SUCCESS)
-                        return reply
-        except Exception:
-            pass
-        agent_logger(f"Local Ollama fallback skipped/failed: {oe}", C_MUTED)
+        agent_logger(f"Local Ollama fallback failed: {oe}", C_MUTED)
         
     return "I'm having a little trouble connecting to my brain right now, Mayank."
 

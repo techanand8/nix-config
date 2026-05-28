@@ -341,9 +341,44 @@ class NixiAgent:
                 self.speak("Action cancelled.")
                 self.notify("Nixi Security Shield", "Action cancelled.", 2000)
                 return False
-        except Exception:
+        except sr.UnknownValueError:
+            self.speak("Sorry, I didn't catch that. Action cancelled.")
+            self.notify("Nixi Security Shield", "Speech not understood. Action cancelled.", 2000)
+            return False
+        except sr.RequestError as e:
+            self.log(f"Transcription API offline/error: {e}. Initiating local biometric fallback...", C_HIGHLIGHT)
+            self.speak("Transcription service offline. To confirm this sensitive action, please say the wake word Nixi now.")
+            self.notify("Nixi Security Shield", "Offline confirmation: Please say wake word", 3000)
+            
+            with sr.Microphone() as source:
+                source.stream = DCOffsetWrapper(source.stream)
+                try:
+                    audio_conf2 = r.listen(source, timeout=6, phrase_time_limit=4)
+                    wav_data = audio_conf2.get_wav_data(convert_rate=self.sample_rate, convert_width=2)
+                    audio_np = np.frombuffer(wav_data, dtype=np.int16).astype(np.float32) / 32768.0
+                    
+                    self.log("🔒 Verifying offline wake-word confirmation biometric print...", C_HIGHLIGHT)
+                    score = match_wakeword(audio_np, self.sample_rate)
+                    threshold = self.config.get("wakeword_threshold", 65.0)
+                    
+                    if score >= threshold:
+                        spk_score = verify_speaker(audio_np, self.sample_rate)
+                        spk_threshold = self.config.get("speaker_threshold", 55)
+                        if spk_score >= spk_threshold:
+                            self.speak("Offline confirmation verified. Executing command.")
+                            self.notify("Nixi Security Shield", f"Access Granted ({spk_score}%)", 2000)
+                            return True
+                    
+                    self.speak("Verification failed. Action aborted.")
+                    return False
+                except Exception as ex:
+                    self.speak("Action cancelled.")
+                    self.log(f"Offline confirmation failed: {ex}", C_ERROR)
+                    return False
+        except Exception as e:
             self.speak("Action cancelled due to transcription error.")
-            self.notify("Nixi Security Shield", "Action cancelled due to error.", 2000)
+            self.log(f"Confirmation error: {e}", C_ERROR)
+            self.notify("Nixi Security Shield", f"Error: {e}", 2000)
             return False
 
     def enroll(self):
@@ -505,7 +540,8 @@ class NixiAgent:
                         "nixy", "niksy", "nike", "nyx", "neexee", "neexi", "nexi",
                         "nexie", "nixi's", "nixies", "miki", "micky", "niki", "niky",
                         "leexie", "lexi", "lexie", "nicks", "nicky", "fixie", "mixer",
-                        "nikshay", "neeta", "neetu", "mixi", "meexi", "nexe", "mix"
+                        "nikshay", "neeta", "neetu", "mixi", "meexi", "nexe", "mix",
+                        "niks", "niks", "neek", "nifty", "nexa"
                     ]
                     for synonym in wake_synonyms:
                         if synonym in spoken_text:
@@ -542,8 +578,8 @@ class NixiAgent:
                                     reply = chat_with_nixi(command_part, self.conversation_history, self.personality_mode, self.log)
                                     
                                     # Handle agentic execution fallback
-                                    if reply.startswith("RUN_CMD:"):
-                                        cmd_to_run = reply.replace("RUN_CMD:", "").strip()
+                                    cmd_to_run = self._extract_run_cmd(reply)
+                                    if cmd_to_run:
                                         reply = self.execute_agent_command(cmd_to_run, command_part)
                                         
                                     self.conversation_history.append({"role": "user", "content": command_part})
@@ -623,8 +659,8 @@ class NixiAgent:
                             reply = chat_with_nixi(command_text, self.conversation_history, self.personality_mode, self.log)
                             
                             # Handle agentic execution fallback
-                            if reply.startswith("RUN_CMD:"):
-                                cmd_to_run = reply.replace("RUN_CMD:", "").strip()
+                            cmd_to_run = self._extract_run_cmd(reply)
+                            if cmd_to_run:
                                 reply = self.execute_agent_command(cmd_to_run, command_text)
                                 
                             self.conversation_history.append({"role": "user", "content": command_text})
@@ -644,6 +680,18 @@ class NixiAgent:
                     self.notify("Nixi Assistant", f"Access Denied: Voice Mismatch ({match_score}%)", 3000)
                     self.speak("Access denied. Voice print mismatch.")
                     conversation_active = False
+
+    def _extract_run_cmd(self, reply):
+        if not reply:
+            return None
+        import re
+        # Strip common markdown formatting
+        clean = reply.strip().strip("`").strip("*").strip()
+        # Search for RUN_CMD: <command> anywhere (case-insensitive)
+        match = re.search(r'RUN_CMD:\s*(.+)', clean, re.IGNORECASE)
+        if match:
+            return match.group(1).strip().strip("`").strip("*").strip()
+        return None
 
     def execute_agent_command(self, cmd_to_run, original_prompt):
         self.log(f"🤖 [AGENT] Nixi wants to execute shell command: '{cmd_to_run}'", C_HIGHLIGHT)
@@ -665,6 +713,32 @@ class NixiAgent:
             if not confirmed:
                 return "Action aborted by security print verification."
                 
+        # Check if the command is launching a GUI application
+        gui_apps = [
+            "alacritty", "kitty", "ghostty", "dolphin", "firefox", "chrome", "chromium",
+            "xdg-open", "discord", "spotify", "code", "vscode", "obs", "vlc", "steam",
+            "nautilus", "thunar", "pcmanfm", "konsole", "gnome-terminal", "wezterm",
+            "evince", "gimp", "inkscape", "blender", "mpv", "imv", "feh", "ristretto",
+            "libreoffice", "soffice", "qutebrowser", "zen-browser", "brave", "slack",
+            "telegram-desktop", "zoom", "teams"
+        ]
+        is_gui = False
+        import re
+        for app in gui_apps:
+            if re.search(r'\b' + re.escape(app) + r'\b', cmd_to_run.lower()):
+                is_gui = True
+                break
+                
+        if is_gui:
+            try:
+                subprocess.Popen(
+                    cmd_to_run, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True
+                )
+                self.log(f"🤖 [AGENT] Launched GUI command '{cmd_to_run}' in the background.", C_SUCCESS)
+                return f"I have successfully launched {cmd_to_run} in the background, Mayank!"
+            except Exception as e:
+                return f"Failed to launch GUI command in the background: {e}"
+
         try:
             res = subprocess.run(
                 cmd_to_run, shell=True, capture_output=True, text=True, timeout=6.0

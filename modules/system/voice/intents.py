@@ -71,8 +71,10 @@ class IntentDispatcher:
         self.register(["take screenshot", "screenshot"], self._handle_screenshot)
         self.register(["shutdown", "power off"], self._handle_shutdown)
         self.register(["reboot", "restart"], self._handle_reboot)
+        self.register(["logout", "log out", "exit session"], self._handle_logout)
 
         # 5. Search Engines
+        self.register(["search in terminal", "search terminal", "terminal search", "in terminal search"], self._handle_terminal_search)
         self.register(["search", "google", "youtube"], self._handle_search)
 
         # 6. Speaking/Silent states & Voice adjustments
@@ -201,12 +203,44 @@ class IntentDispatcher:
         os.system("systemctl reboot")
         return True
 
+    def _handle_logout(self, text, cmd):
+        self.agent.log("Executing: Logging out of session...", C_SUCCESS)
+        self.agent.speak("Logging out of your workstation now.")
+        os.system("hyprctl dispatch exit")
+        return True
+
+    def _handle_terminal_search(self, text, cmd):
+        query = text.lower()
+        for term in ["search in terminal for", "search terminal for", "in terminal search", "terminal search for", "search in terminal", "search terminal", "terminal search"]:
+            if query.startswith(term):
+                query = query.replace(term, "", 1)
+        query = query.strip()
+        
+        if not query:
+            return False
+            
+        self.agent.log(f"Executing: Searching package database for \"{query}\" in terminal...", C_SUCCESS)
+        self.agent.speak(f"Searching for {query} in terminal.")
+        
+        term_cmd = f"nh search {query}"
+        os.system(f"ghostty -e bash -c '{term_cmd}; exec bash' &>/dev/null || kitty -e bash -c '{term_cmd}; exec bash' &>/dev/null || alacritty -e bash -c '{term_cmd}; exec bash' &>/dev/null || xterm -e bash -c '{term_cmd}; exec bash' &>/dev/null &")
+        return True
+
     def _handle_search(self, text, cmd):
         import urllib.request
         import urllib.parse
         import re
         from llm import chat_with_nixi
         
+        # Intercept terminal searches
+        if "in terminal" in text.lower() or "in the terminal" in text.lower() or "terminal search" in text.lower():
+            clean_query = text.lower().replace("in terminal", "").replace("in the terminal", "").replace("terminal search", "")
+            for term in ["search for", "search", "google for", "google"]:
+                if clean_query.startswith(term):
+                    clean_query = clean_query.replace(term, "", 1)
+            clean_query = clean_query.strip()
+            return self._handle_terminal_search(clean_query, "search terminal")
+
         # 1. Determine if YouTube search
         if "youtube" in cmd:
             query = text.lower().replace("search", "").replace("on youtube", "").replace("youtube", "").strip()
@@ -369,7 +403,7 @@ class IntentDispatcher:
             return False
             
         browser_targets = ["gmail", "youtube", "github", "google", "facebook", "twitter", "reddit", "linkedin", "chatgpt"]
-        desktop_targets = ["discord", "spotify", "steam", "obs", "vlc", "vscode", "code", "dolphin", "file manager", "files", "browser", "firefox", "chrome"]
+        desktop_targets = ["discord", "spotify", "steam", "obs", "vlc", "vscode", "code", "dolphin", "file manager", "files", "browser", "firefox", "chrome", "terminal", "alacritty", "kitty", "ghostty"]
 
         if target in browser_targets:
             self.agent.log(f"Executing: Launching {target.capitalize()} in browser...", C_SUCCESS)
@@ -399,6 +433,12 @@ class IntentDispatcher:
             self.agent.log("Executing: Launching Dolphin File Manager...", C_SUCCESS)
             self.agent.speak("Opening dolphin file manager.")
             os.system("dolphin &>/dev/null || xdg-open ~ &>/dev/null &")
+            return True
+
+        elif target in ["terminal", "alacritty", "kitty", "ghostty"]:
+            self.agent.log("Executing: Launching Terminal...", C_SUCCESS)
+            self.agent.speak("Opening Terminal.")
+            os.system("ghostty &>/dev/null || kitty &>/dev/null || alacritty &>/dev/null || xterm &>/dev/null &")
             return True
             
         elif target in ["discord", "spotify", "steam", "obs", "vlc", "vscode", "code"]:
