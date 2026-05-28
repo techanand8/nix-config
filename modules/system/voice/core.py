@@ -33,8 +33,25 @@ class DCOffsetWrapper:
         try:
             audio_data = np.frombuffer(raw_bytes, dtype=np.int16).astype(np.float64)
             mean = np.mean(audio_data)
-            dc_removed = (audio_data - mean).astype(np.int16)
-            return dc_removed.tobytes()
+            dc_removed = audio_data - mean
+            
+            # Future-Ready Soft Automatic Gain Control (AGC)
+            peak = np.max(np.abs(dc_removed))
+            gain = 1.0
+            if peak > 200:
+                gain = 16000.0 / peak
+                # Cap maximum gain multiplier to avoid blowing up static noise
+                gain = min(gain, 6.0)
+                # Keep original volume for normal speaking unless it clips
+                if gain < 1.0:
+                    if peak > 28000:
+                        # Limit extremely loud/close-up signals to avoid clipping distortion
+                        gain = 28000.0 / peak
+                    else:
+                        gain = 1.0
+            
+            processed = (dc_removed * gain).astype(np.int16)
+            return processed.tobytes()
         except Exception:
             return raw_bytes
 
