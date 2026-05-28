@@ -505,7 +505,7 @@ class NixiAgent:
                         "nixy", "niksy", "nike", "nyx", "neexee", "neexi", "nexi",
                         "nexie", "nixi's", "nixies", "miki", "micky", "niki", "niky",
                         "leexie", "lexi", "lexie", "nicks", "nicky", "fixie", "mixer",
-                        "nikshay", "neeta", "neetu", "mixi", "meexi"
+                        "nikshay", "neeta", "neetu", "mixi", "meexi", "nexe", "mix"
                     ]
                     for synonym in wake_synonyms:
                         if synonym in spoken_text:
