@@ -85,6 +85,47 @@
               ];
               nixpkgs.overlays = [
                 inputs.nix-cachyos-kernel.overlays.pinned
+                (final: prev: {
+                  # TEMP WORKAROUND (remove after upstream fix):
+                  # pipx 1.8.0 currently fails under this nixpkgs/Python combo due to
+                  # package-spec formatting expectation drift in tests:
+                  #   expected: "name@ url"
+                  #   actual:   "name @ url"
+                  # This breaks NixOS/Home Manager rebuilds when pipx checks run.
+                  #
+                  # Remove this override once either:
+                  # 1) nixpkgs updates pipx/tests and
+                  #    `nix build .#nixosConfigurations.MANX.pkgs.python313Packages.pipx -L` passes, or
+                  # 2) you pin to a nixpkgs revision where pipx builds without this.
+                  pipx = prev.pipx.overrideAttrs (oldAttrs: {
+                    doCheck = false;
+                    doInstallCheck = false;
+                    dontUsePytestCheck = true;
+                    pytestCheckPhase = "true";
+                    checkPhase = "true";
+                    installCheckPhase = "true";
+                    nativeCheckInputs = [ ];
+                    nativeBuildInputs = builtins.filter (
+                      p: (p.pname or "") != "pytest-check-hook"
+                    ) oldAttrs.nativeBuildInputs;
+                  });
+                  pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+                    (python-final: python-prev: {
+                      pipx = python-prev.pipx.overrideAttrs (oldAttrs: {
+                        doCheck = false;
+                        doInstallCheck = false;
+                        dontUsePytestCheck = true;
+                        pytestCheckPhase = "true";
+                        checkPhase = "true";
+                        installCheckPhase = "true";
+                        nativeCheckInputs = [ ];
+                        nativeBuildInputs = builtins.filter (
+                          p: (p.pname or "") != "pytest-check-hook"
+                        ) oldAttrs.nativeBuildInputs;
+                      });
+                    })
+                  ];
+                })
               ];
             }
             ./hosts/${hostname}/configuration.nix

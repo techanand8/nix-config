@@ -121,10 +121,11 @@
       gp = "git push";
       gl = "git log --oneline --graph --decorate";
       m = "manx";
+      mayank = "manx";
       v = "nvim";
       gv = "gvim";
       word = "onlyoffice-desktopeditors";
-      grep = "ripgrep";
+      grep = "rg";
       anipy-cli = "LD_LIBRARY_PATH=/run/current-system/sw/share/nix-ld/lib anipy-cli";
 
       # --- SECURE VPN COMMANDS ---

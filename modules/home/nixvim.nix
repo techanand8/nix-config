@@ -2,6 +2,7 @@
   config,
   pkgs,
   vars,
+  inputs,
   ...
 }:
 
@@ -9,6 +10,8 @@
   programs.nixvim = {
     enable = true;
     defaultEditor = true;
+
+    nixpkgs.source = inputs.nixpkgs;
 
     # Extra Packages for Media & System integration
     extraPackages = with pkgs; [

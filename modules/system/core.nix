@@ -45,10 +45,14 @@
   ];
 
   # --- DEEP NIX STORE & FLAKE CONFIGURATIONS ---
+  nix.package = pkgs.nixVersions.latest;
   nix.settings = {
     experimental-features = [
       "nix-command"
       "flakes"
+      "ca-derivations"
+      "recursive-nix"
+      "fetch-closure"
     ];
     auto-optimise-store = true;
 
