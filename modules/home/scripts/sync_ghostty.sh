@@ -186,4 +186,19 @@ if [[ -n "$BG" ]]; then
             sed -i "s/gtk-cursor-theme-name=.*/gtk-cursor-theme-name=Bibata-Modern-Classic/" "$settings_file" 2>/dev/null || true
         fi
     done
+
+    # 6. Dynamic Firefox & VLSI Dashboard Theme Sync
+    FIREFOX_THEME_DIR="$HOME/.config/firefox"
+    mkdir -p "$FIREFOX_THEME_DIR"
+    cat << FF_EOF > "$FIREFOX_THEME_DIR/theme.css"
+/* =========================================================================
+   FF THEME COLORS (AUTO-SYNCED WITH AMBXST SYSTEM COLORS)
+   ========================================================================= */
+:root {
+  --bg-color: $BG !important;
+  --fg-color: $FG !important;
+  --accent-color: $CURSOR !important;
+  --accent-glow: $CURSOR\34\30 !important; /* 25% opacity neon glow */
+}
+FF_EOF
 fi

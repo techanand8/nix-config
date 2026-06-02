@@ -1,0 +1,85 @@
+{
+  "user": {
+    "name": "Mayank Anand",
+    "title": "MANX // Silicon Engineering",
+    "dynamicTitle": {
+      "enabled": true
+    }
+  },
+  "message": {
+    "font": "JetBrains Mono",
+    "type": "afternoon"
+  },
+  "wallpaper": {
+    "type": "url",
+    "source": "https://raw.githubusercontent.com/NixOS/nixos-artwork/master/wallpapers/nix-wallpaper-dracula-2.png"
+  },
+  "ui": {
+    "style": "glass",
+    "foregroundColor": "#e5e7eb",
+    "backgroundColor": "#0b0f14",
+    "accentColor": "#7c3aed",
+    "borderRadius": "12px",
+    "blur": 15
+  },
+  "search": {
+    "engine": "https://www.google.com/search?q=",
+    "suggestions": true
+  },
+  "bookmarks": [
+    {
+      "name": "GitHub",
+      "url": "https://github.com",
+      "icon": "https://github.com/favicon.ico"
+    },
+    {
+      "name": "Perplexity AI",
+      "url": "https://www.perplexity.ai",
+      "icon": "https://www.perplexity.ai/favicon.ico"
+    },
+    {
+      "name": "NixOS Search",
+      "url": "https://search.nixos.org/packages",
+      "icon": "https://nixos.org/favicon.ico"
+    },
+    {
+      "name": "Hyprland Wiki",
+      "url": "https://wiki.hypr.land",
+      "icon": "https://wiki.hypr.land/favicon.ico"
+    },
+    {
+      "name": "DSP Guru",
+      "url": "https://dspguru.com",
+      "icon": "https://dspguru.com/favicon.ico"
+    },
+    {
+      "name": "VLSI Guide",
+      "url": "https://www.vlsiguide.com",
+      "icon": "https://www.vlsiguide.com/favicon.ico"
+    },
+    {
+      "name": "WhatsApp",
+      "url": "https://web.whatsapp.com",
+      "icon": "https://web.whatsapp.com/favicon.ico"
+    },
+    {
+      "name": "Gmail",
+      "url": "https://mail.google.com",
+      "icon": "https://mail.google.com/favicon.ico"
+    },
+    {
+      "name": "YouTube",
+      "url": "https://youtube.com",
+      "icon": "https://youtube.com/favicon.ico"
+    },
+    {
+      "name": "ChatGPT",
+      "url": "https://chatgpt.com",
+      "icon": "https://chatgpt.com/favicon.ico"
+    }
+  ],
+  "animations": {
+    "enabled": true
+  },
+  "customCss": ".mtab-card { border: 1px solid rgba(255,255,255,0.1); } .mtab-title { font-family: 'Outfit', sans-serif; letter-spacing: -1px; }"
+}

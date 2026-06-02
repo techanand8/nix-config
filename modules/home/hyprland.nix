@@ -126,6 +126,7 @@
           hl.exec_cmd("sleep 1 && dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
           hl.exec_cmd("systemctl --user start graphical-session.target")
           hl.exec_cmd("systemctl --user start hyprpolkitagent")
+          hl.exec_cmd("${pkgs.kdePackages.kwallet-pam}/libexec/pam_kwallet_init")
           hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
           hl.exec_cmd("bash $HOME/.local/bin/sync_ghostty.sh")
           hl.exec_cmd("hyprctl keyword windowrule 'dimaround, hyprpolkitagent'")
@@ -292,7 +293,7 @@
         {
           # 3. Secure Lock (5 mins)
           timeout = 300;
-          on-timeout = "loginctl lock-session";
+          on-timeout = "pkill -f 'alacritty --class manx-screensaver' || true; ambxst lock";
         }
         {
           # 4. Power Save / Screen Off (5.5 mins)

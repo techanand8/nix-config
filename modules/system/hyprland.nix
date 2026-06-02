@@ -39,6 +39,8 @@
   # Required for hyprlock and ambxst to work securely on NixOS
   security.pam.services.hyprlock = { };
   security.pam.services.ambxst = { };
+  security.pam.services.login.enableKwallet = true;
+  security.pam.services.sddm.enableKwallet = true;
 
   # Ambxst system-level requirements & functional utilities
   environment.systemPackages = with pkgs; [
@@ -67,6 +69,8 @@
     networkmanagerapplet
     libva-utils
     vulkan-tools
+    kdePackages.kwallet
+    kdePackages.kwalletmanager
   ];
 
   # Security / Keyring for apps

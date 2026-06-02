@@ -9,12 +9,37 @@
   # Basic programs
   programs.bash = {
     enable = true;
+    shellAliases = {
+      sr = "steam-run";
+      ar = "appimage-run";
+      backup-ece = "hf upload mayank-anand/backup_tools /home/mayank-anand/ece_tools/ece_tools_backup.tar.gz --repo-type=dataset";
+      restore-ece = "hf download mayank-anand/backup_tools ece_tools_backup.tar.gz --local-dir /home/mayank-anand/ece_tools --repo-type=dataset";
+    };
     initExtra = ''
       # Load Gemini API Key automatically
       if [ -f "$HOME/.config/manx/gemini_token" ]; then
           export GOOGLE_API_KEY=$(cat "$HOME/.config/manx/gemini_token")
           export GEMINI_API_KEY="$GOOGLE_API_KEY"
       fi
+
+      # High-performance Hugging Face Quick-Uploader Helper
+      function hf-push() {
+        if [[ "$#" -lt 2 ]]; then
+          echo -e "\033[1;31m󰅚  [ERROR] Missing arguments!\033[0m"
+          echo -e "Usage: \033[1;36mhf-push <repo_id> <local_path_to_file_or_folder> [repo_type]\033[0m"
+          echo -e "Example: \033[1;32mhf-push mayank-anand/my-dataset ./my_folder\033[0m"
+          return 1
+        fi
+        local repo_id="$1"
+        local local_path="$2"
+        local repo_type="dataset"
+        if [[ -n "$3" ]]; then
+          repo_type="$3"
+        fi
+
+        echo -e "\033[1;34m󰗪  [Hugging Face Upload] Starting upload of '$local_path' to '$repo_id' ($repo_type)...\033[0m"
+        hf upload "$repo_id" "$local_path" --repo-type="$repo_type"
+      }
     '';
   };
   programs.fish.enable = true;
@@ -103,9 +128,31 @@
       # High-performance Xilinx Distrobox Executer Helper
       function vrun() {
         distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 "$@"
-      }    '';
+      }
+
+      # High-performance Hugging Face Quick-Uploader Helper
+      function hf-push() {
+        if [[ "$#" -lt 2 ]]; then
+          echo -e "\033[1;31m󰅚  [ERROR] Missing arguments!\033[0m"
+          echo -e "Usage: \033[1;36mhf-push <repo_id> <local_path_to_file_or_folder> [repo_type]\033[0m"
+          echo -e "Example: \033[1;32mhf-push mayank-anand/my-dataset ./my_folder\033[0m"
+          return 1
+        fi
+        local repo_id="$1"
+        local local_path="$2"
+        local repo_type="dataset"
+        if [[ -n "$3" ]]; then
+          repo_type="$3"
+        fi
+
+        echo -e "\033[1;34m󰗪  [Hugging Face Upload] Starting upload of '$local_path' to '$repo_id' ($repo_type)...\033[0m"
+        hf upload "$repo_id" "$local_path" --repo-type="$repo_type"
+      }
+    '';
 
     shellAliases = {
+      sr = "steam-run";
+      ar = "appimage-run";
       ".." = "cd ..";
       "..." = "cd ../..";
       ".3" = "cd ../../..";
@@ -157,6 +204,10 @@
       # --- XP-Pen Tablet Driver Wrappers ---
       xppen = "env QT_QPA_PLATFORM=xcb pentablet";
       pentablet = "env QT_QPA_PLATFORM=xcb pentablet";
+
+      # --- ECE Tools Backup Helper ---
+      backup-ece = "hf upload mayank-anand/backup_tools /home/mayank-anand/ece_tools/ece_tools_backup.tar.gz --repo-type=dataset";
+      restore-ece = "hf download mayank-anand/backup_tools ece_tools_backup.tar.gz --local-dir /home/mayank-anand/ece_tools --repo-type=dataset";
     };
   };
 

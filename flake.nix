@@ -42,6 +42,9 @@
 
     # Statelessness / Impermanence
     impermanence.url = "github:nix-community/impermanence";
+
+    # OpenLane 2 - Digital ASIC implementation flow
+    openlane.url = "github:efabless/openlane2";
   };
 
   outputs =
@@ -84,6 +87,81 @@
               nixpkgs.config.permittedInsecurePackages = [
               ];
               nixpkgs.overlays = [
+                (
+                  final: prev:
+                  if prev.stdenv.hostPlatform.system == "x86_64-linux" then
+                    {
+                      boost185 = prev.boost;
+                      swig4 = prev.swig;
+                      clang-tools_14 = prev.clang-tools;
+                      standard-magic-vlsi = prev.magic-vlsi;
+                    }
+                  else
+                    { }
+                )
+                # (
+                #   final: prev:
+                #   if prev.stdenv.hostPlatform.system == "x86_64-linux" then
+                #     (inputs.openlane.inputs.nix-eda.overlays.default final prev)
+                #   else
+                #     { }
+                # )
+                # (
+                #   final: prev:
+                #   if prev.stdenv.hostPlatform.system == "x86_64-linux" then
+                #     {
+                #       magic-vlsi = final.standard-magic-vlsi;
+                #       magic = final.standard-magic-vlsi;
+                #     }
+                #   else
+                #     { }
+                # )
+                # (
+                #   final: prev:
+                #   if prev.stdenv.hostPlatform.system == "x86_64-linux" then
+                #     (
+                #       let
+                #         safePrev =
+                #           prev
+                #           // (
+                #             if prev ? yosys then
+                #               {
+                #                 yosys = prev.yosys.overrideAttrs (old: {
+                #                   patches = old.patches or [ ];
+                #                 });
+                #               }
+                #             else
+                #               { }
+                #           )
+                #           // (
+                #             if prev ? klayout then
+                #               {
+                #                 klayout = prev.klayout.overrideAttrs (old: {
+                #                   configurePhase = old.configurePhase or "";
+                #                 });
+                #               }
+                #             else
+                #               { }
+                #           );
+                #         baseKlayout = inputs.openlane.inputs.nix-eda.packages.${prev.stdenv.hostPlatform.system}.klayout;
+                #       in
+                #       (inputs.openlane.overlays.default final safePrev)
+                #       // {
+                #         klayout =
+                #           (baseKlayout.overrideAttrs (old: {
+                #             configurePhase = builtins.replaceStrings [ "-without-qtbinding" ] [ "-with-qtbinding" ] (
+                #               old.configurePhase or ""
+                #             );
+                #           }))
+                #           // {
+                #             pymod = baseKlayout.pymod;
+                #           };
+                #         openlane = inputs.openlane.packages.${prev.stdenv.hostPlatform.system}.openlane;
+                #       }
+                #     )
+                #   else
+                #     { }
+                # )
                 inputs.nix-cachyos-kernel.overlays.pinned
                 (final: prev: {
                   # TEMP WORKAROUND (remove after upstream fix):

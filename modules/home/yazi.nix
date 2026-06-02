@@ -61,65 +61,65 @@
         rules = [
           # Code & Configs
           {
-            name = "*.txt";
+            url = "*.txt";
             use = "edit";
           }
           {
-            name = "*.lua";
+            url = "*.lua";
             use = "edit";
           }
           {
-            name = "*.nix";
+            url = "*.nix";
             use = "edit";
           }
           {
-            name = "*.json";
+            url = "*.json";
             use = "edit";
           }
           {
-            name = "*.v";
+            url = "*.v";
             use = "edit";
           } # Verilog
           {
-            name = "*.sv";
+            url = "*.sv";
             use = "edit";
           } # SystemVerilog
           {
-            name = "*.vhdl";
+            url = "*.vhdl";
             use = "edit";
           } # VHDL
           {
-            name = "*.py";
+            url = "*.py";
             use = "edit";
           } # Python scripts
 
           # VLSI Waveforms
           {
-            name = "*.vcd";
+            url = "*.vcd";
             use = "wave";
           }
           {
-            name = "*.ghw";
+            url = "*.ghw";
             use = "wave";
           }
           {
-            name = "*.gtkw";
+            url = "*.gtkw";
             use = "wave";
           }
 
           # VLSI Layouts
           {
-            name = "*.gds";
+            url = "*.gds";
             use = "layout";
           }
           {
-            name = "*.oas";
+            url = "*.oas";
             use = "layout";
           }
 
           # Documentation
           {
-            name = "*.pdf";
+            url = "*.pdf";
             use = "doc";
           }
 

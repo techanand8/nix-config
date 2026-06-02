@@ -69,6 +69,8 @@
       "https://nix-community.cachix.org"
       "https://cache.garnix.io"
       "https://attic.xuyh0120.win/lantian"
+      "https://openlane.cachix.org"
+      "https://nix-cache.fossi-foundation.org"
     ]
     ++ (lib.optionals
       (vars ? cachixName && vars.cachixName != "" && vars.cachixName != "your-cachix-subdomain")
@@ -83,6 +85,8 @@
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
       "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
+      "openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E="
+      "nix-cache.fossi-foundation.org:3+K59iFwXqKsL7BNu6Guy0v+uTlwsxYQxjspXzqLYQs="
     ]
     ++ (lib.optionals
       (
@@ -119,6 +123,8 @@
     curl
     gemini-cli-bin
     distrobox
+    steam-run
+    appimage-run
     xhost
     usbutils
     bluez # Required for bluetoothctl & background CLI helpers
@@ -148,6 +154,10 @@
   programs.firefox.enable = true;
   programs.ambxst.enable = true;
   programs.zsh.enable = true;
+  programs.appimage = {
+    enable = true;
+    binfmt = true;
+  };
 
   # --- FHS, NIX-LD, & ENVIRONMENT SCRIPTS SUPPORT ---
   # Enable envfs to dynamically resolve shebangs like #!/bin/bash, #!/usr/bin/env, etc.

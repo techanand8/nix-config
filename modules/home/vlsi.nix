@@ -1,6 +1,7 @@
 {
   config,
   pkgs,
+  lib,
   vars,
   ...
 }:
@@ -28,34 +29,58 @@ in
     ghdl
     opencl-headers
     netlistsvg
+    circt # Circuit IR compilers and tools (MLIR-based hardware design)
+    haskellPackages.sv2v # SystemVerilog to Verilog conversion
+    sv-lang # SystemVerilog compiler and language services
+    bluespec # Toolchain for the Bluespec Hardware Definition Language
+    openocd # Open On-Chip Debugging (JTAG/SWD support)
+    lcov # Code coverage tool for verification tracking
 
     # --- ADVANCED DV, RTL, SV/UVM, VHDL & FORMAL ---
     surelog # SystemVerilog compiler/elaborator (Full UVM & SV parser support)
     nvc # High-performance VHDL compiler & simulator
     xschem # Schematic capture for VLSI & mixed-signal designs
-    # netgen # LVS (Layout Vs Schematic) verification tool (Temporarily disabled due to upstream Python 3.13 pybind11 compile bug)
+    netgen # LVS (Layout Vs Schematic) verification tool
     svls # SystemVerilog Language Server
     svlint # SystemVerilog linter
     verible # Google's SystemVerilog developer tools (linter/formatter)
     veryl # Modern hardware design language (SV alternative)
     sby # Front-end driver for Yosys-based formal verification (formerly symbiyosys)
+    z3 # High-performance theorem prover & SMT solver (Formal backend)
+    cvc5 # High-performance theorem prover & SMT solver (Formal backend)
+    yices # High-performance theorem prover & SMT solver (Formal backend)
+    bitwuzla # SMT solver for bit-vectors and arrays (Formal backend)
+    python3Packages.scapy # Packet manipulation (Network-on-Chip/Protocol DV)
     python3Packages.wavedrom # Digital waveform generator & renderer (Python CLI package)
     python3Packages.cocotb # Coroutine-based cosimulation framework for DV
+    python3Packages.cocotb-bus # AXI/APB/AHB bus protocol extensions for cocotb
+    python3Packages.pyverilog # Python-based Verilog parsing, elaboration & AST tools (DFT/DV scripting)
+    python3Packages.pysmt # Python interface to SMT solvers (Custom Formal DV)
+    python3Packages.pyspice # Python-based interface to NGSpice (Mixed-Signal DV)
+    systemc # SystemC C++ library for architectural & Transaction-Level DV
 
     # --- ARCHITECTURE-SPECIFIC & EMBEDDED DESIGN ---
     # RISC-V Toolchain & Simulation
     pkgsCross.riscv64-embedded.buildPackages.gcc # RISC-V 64-bit Embedded GCC
+    (pkgsCross.riscv64-embedded.buildPackages.gdb.overrideAttrs (oldAttrs: {
+      versionCheckProgram = "${placeholder "out"}/bin/riscv64-none-elf-gdb";
+    })) # RISC-V 64-bit Embedded GDB
     spike # RISC-V ISA Simulator (Standard for architectural exploration)
     pkgsCross.riscv64.riscv-pk # RISC-V Proxy Kernel (Required for Spike)
+    rars # RISC-V Assembler and Runtime Simulator (Educational IDE)
 
     # ARM Toolchain & Simulation
-    gcc-arm-embedded # ARM Embedded GCC (arm-none-eabi)
+    (lib.lowPrio gcc-arm-embedded) # ARM Embedded GCC (arm-none-eabi)
     qemu # Full system and user-mode emulation for RISC-V/ARM
 
-    # --- ADVANCED PHYSICAL DESIGN & SYNTHESIS ---
+    # --- ADVANCED PHYSICAL DESIGN & ASIC FLOWS ---
     yosys-ghdl # GHDL plugin for Yosys (VHDL synthesis support)
+    # librelane # ASIC implementation flow infrastructure (OpenLane 3 backend)
+    # openlane # OpenLane 2 ASIC Flow (Industrial Standard)
+    # klayout-gdsfactory # KLayout with GDSFactory preconfigured (Python Layout & Routing for PD)
+    urjtag # Universal JTAG library, server and tools (Boundary Scan & DFT)
+    openfpgaloader # Universal utility for programming FPGAs (JTAG Support)
   ];
-
   # --- AMD VIVADO & XILINX SUITE DESKTOP LAUNCHERS ---
   xdg.desktopEntries = {
 

@@ -13,6 +13,7 @@
 
   imports = [
     ./identity.nix # Identity & Identity Boilerplate
+    ./firefox.nix # Declarative Firefox & VLSI Semiconductor Dashboard
     ./user-packages.nix # General User Apps
     ./fastfetch.nix # Premium Fastfetch System Dashboard
     ./vlsi.nix # Engineering & VLSI Tools

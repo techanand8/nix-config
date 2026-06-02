@@ -4,10 +4,11 @@
   # --- Shared User Packages (Daily Use, Multimedia, Creative) ---
   home.packages = with pkgs; [
     # --- Browsers & Communication ---
-    firefox
     microsoft-edge
     brave
     google-chrome
+    tor-browser
+    protonvpn-gui
     telegram-desktop
     discord
     localsend
@@ -57,5 +58,7 @@
     wlrctl # Wayland-native automation tool
     nix-index # File-to-package indexer
     comma # Run any nix command without installing (usage: , <cmd>)
+    git-lfs # Git Large File Storage for hosting huge files
+    python3Packages.huggingface-hub # Hugging Face CLI & SDK for private dataset backups
   ];
 }

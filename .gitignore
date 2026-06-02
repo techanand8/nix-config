@@ -13,6 +13,11 @@ result-*
 node_modules/
 old_code.txt
 old_code_full.txt
+modules/system/voice/models/
+*.wav
+*.mp3
+*.png
+nixi_*.json
 
 # --- EDITOR JUNK ---
 *.swp
