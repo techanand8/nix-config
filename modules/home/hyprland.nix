@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  inputs,
   ...
 }:
 
@@ -65,6 +66,16 @@
       dofile(config_dir .. "/hyprland/input.lua")
       dofile(config_dir .. "/hyprland/execs.lua")
       dofile(config_dir .. "/hyprland/general.lua")
+
+      -- Synchronously load plugins before configuration is parsed
+      os.execute("hyprctl plugin load ${
+        inputs.hypr-dynamic-cursors.packages.${pkgs.stdenv.hostPlatform.system}.hypr-dynamic-cursors
+      }/lib/libhypr-dynamic-cursors.so")
+      os.execute("hyprctl plugin load ${
+        inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprfocus
+      }/lib/libhyprfocus.so")
+
+      dofile(config_dir .. "/hyprland/plugins.lua")
       dofile(config_dir .. "/hyprland/rules.lua")
       dofile(config_dir .. "/hyprland/keybinds.lua")
     '';
@@ -244,6 +255,46 @@
       hl.bind("SUPER + ALT + Up", hl.dsp.exec_cmd("resizeactive 0 -50"))
       hl.bind("Print", hl.dsp.exec_cmd("ambxst run screenshot"))
       hl.bind("SUPER + L", hl.dsp.exec_cmd("loginctl lock-session"))
+    '';
+
+    "hypr/hyprland/plugins.lua".text = ''
+      -- ############ CURSOR DYNAMICS & SHAKE EFFECT ############
+      hl.config({
+          plugin = {
+              ["dynamic-cursors"] = {
+                  enabled = true,
+                  mode = "tilt", -- Tilt the cursor dynamically for natural physics
+                  
+                  -- Shake to find cursor settings
+                  shake = {
+                      enabled = true,
+                      nearest = true,
+                      threshold = 3.0,
+                      timeout = 2000,
+                      base = 3.0,
+                  },
+                  
+                  -- Hyprcursor configuration for smooth, blur-free magnifying
+                  hyprcursor = {
+                      enabled = true,
+                      fallback = "default",
+                  }
+              },
+
+              -- ############ SLEEK WINDOW FOCUS ANIMATION ############
+              hyprfocus = {
+                  enabled = true,
+                  keyboard_focus_animation = "flash",
+                  mouse_focus_animation = "flash",
+                  
+                  flash = {
+                      flash_opacity = 0.85,
+                      in_speed = 0.5,
+                      out_speed = 3,
+                  }
+              }
+          }
+      })
     '';
   };
 

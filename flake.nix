@@ -16,6 +16,16 @@
     # Hyprland flake for the absolute latest features
     hyprland.url = "github:hyprwm/Hyprland";
 
+    hypr-dynamic-cursors = {
+      url = "github:VirtCode/hypr-dynamic-cursors";
+      inputs.hyprland.follows = "hyprland";
+    };
+
+    hyprland-plugins = {
+      url = "github:hyprwm/hyprland-plugins";
+      inputs.hyprland.follows = "hyprland";
+    };
+
     # Ambxst shell flake
     ambxst.url = "github:Axenide/Ambxst";
 
