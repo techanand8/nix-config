@@ -46,6 +46,9 @@
   };
   boot.loader.efi.canTouchEfiVariables = true;
 
+  # --- NETWORK FILESYSTEMS (NFS Client Support for VLSI EDA Toolshares) ---
+  boot.supportedFilesystems = [ "nfs" ];
+
   # --- SYSTEM KERNEL & HARDWARE OPTIMIZATIONS ---
   # Centralized boot configurations for performance, silent boot, and early graphics handoff
   boot.kernelParams = [

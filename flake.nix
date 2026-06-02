@@ -59,6 +59,15 @@
     # Statelessness / Impermanence
     impermanence.url = "github:nix-community/impermanence";
 
+    # Declarative Flatpaks
+    nix-flatpak.url = "github:gmodena/nix-flatpak";
+
+    # Google Antigravity (IDE)
+    antigravity-nix = {
+      url = "github:jacopone/antigravity-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # OpenLane 2 - Digital ASIC implementation flow
     openlane.url = "github:efabless/openlane2";
   };
@@ -209,6 +218,67 @@
                       });
                     })
                   ];
+
+                  # --- BUBBLEWRAP FHS WRAPPER FOR ANTIGRAVITY IDE ---
+                  antigravity-fhs =
+                    if final ? buildFHSUserEnv then
+                      final.buildFHSUserEnv {
+                        name = "antigravity-fhs";
+                        targetPkgs =
+                          pkgs: with pkgs; [
+                            # Core GNU/C++ Development Toolchains
+                            gcc
+                            gnumake
+                            cmake
+                            binutils
+                            git
+                            pkg-config
+                            gdb
+                            zlib
+
+                            # Python & Deep Learning Ecosystem
+                            python3
+                            python3Packages.pip
+                            python3Packages.virtualenv
+                            python3Packages.setuptools
+
+                            # Silicon & VLSI Hardware Engineering Toolchains
+                            verilator
+                            iverilog
+                            yosys
+
+                            # Graphics, Audio, and OS Library Bindings
+                            xorg.libX11
+                            xorg.libXcomposite
+                            xorg.libXdamage
+                            xorg.libXext
+                            xorg.libXfixes
+                            xorg.libXi
+                            xorg.libXrandr
+                            xorg.libXrender
+                            xorg.libXtst
+                            xorg.libxcb
+                            xorg.libxshmfence
+                            libGL
+                            libva
+                            libxkbcommon
+                            nss
+                            nspr
+                            alsa-lib
+                            dbus
+                            glib
+                            icu
+                            openssl
+                            curl
+                            stdenv.cc.cc.lib
+                            zstd
+                          ];
+                        runScript = "${
+                          inputs.antigravity-nix.packages.${final.stdenv.hostPlatform.system}.default
+                        }/bin/antigravity";
+                      }
+                    else
+                      final.hello;
                 })
               ];
             }

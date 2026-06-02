@@ -103,8 +103,12 @@ in
   services.blueman.enable = true;
   services.upower.enable = true;
 
-  # --- DESKTOP INTERCONNECTS (Flatpak & KDE Connect) ---
-  services.flatpak.enable = true;
+  # --- DESKTOP INTERCONNECTS (Declarative Flatpak & KDE Connect) ---
+  services.flatpak = {
+    enable = true;
+    update.onActivation = true;
+    uninstallUnmanaged = false; # Safe fallback: do not delete manually installed flatpaks!
+  };
   programs.kdeconnect.enable = true;
 
   # --- LOCAL FIREWALL INTEGRATION ---

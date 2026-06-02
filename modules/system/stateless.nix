@@ -95,6 +95,7 @@
       "/var/lib/containers" # Podman system containers
       "/var/lib/ollama" # Persistent AI models
       "/var/lib/open-webui" # Persistent AI chats and settings
+      "/var/lib/flatpak" # Persist system-wide Flatpak apps
       "/tools" # Global Engineering Tools (Xilinx, etc.)
     ];
     files = [
