@@ -124,69 +124,7 @@
                   else
                     { }
                 )
-                # (
-                #   final: prev:
-                #   if prev.stdenv.hostPlatform.system == "x86_64-linux" then
-                #     (inputs.openlane.inputs.nix-eda.overlays.default final prev)
-                #   else
-                #     { }
-                # )
-                # (
-                #   final: prev:
-                #   if prev.stdenv.hostPlatform.system == "x86_64-linux" then
-                #     {
-                #       magic-vlsi = final.standard-magic-vlsi;
-                #       magic = final.standard-magic-vlsi;
-                #     }
-                #   else
-                #     { }
-                # )
-                # (
-                #   final: prev:
-                #   if prev.stdenv.hostPlatform.system == "x86_64-linux" then
-                #     (
-                #       let
-                #         safePrev =
-                #           prev
-                #           // (
-                #             if prev ? yosys then
-                #               {
-                #                 yosys = prev.yosys.overrideAttrs (old: {
-                #                   patches = old.patches or [ ];
-                #                 });
-                #               }
-                #             else
-                #               { }
-                #           )
-                #           // (
-                #             if prev ? klayout then
-                #               {
-                #                 klayout = prev.klayout.overrideAttrs (old: {
-                #                   configurePhase = old.configurePhase or "";
-                #                 });
-                #               }
-                #             else
-                #               { }
-                #           );
-                #         baseKlayout = inputs.openlane.inputs.nix-eda.packages.${prev.stdenv.hostPlatform.system}.klayout;
-                #       in
-                #       (inputs.openlane.overlays.default final safePrev)
-                #       // {
-                #         klayout =
-                #           (baseKlayout.overrideAttrs (old: {
-                #             configurePhase = builtins.replaceStrings [ "-without-qtbinding" ] [ "-with-qtbinding" ] (
-                #               old.configurePhase or ""
-                #             );
-                #           }))
-                #           // {
-                #             pymod = baseKlayout.pymod;
-                #           };
-                #         openlane = inputs.openlane.packages.${prev.stdenv.hostPlatform.system}.openlane;
-                #       }
-                #     )
-                #   else
-                #     { }
-                # )
+
                 inputs.nix-cachyos-kernel.overlays.pinned
                 (final: prev: {
                   # TEMP WORKAROUND: Fix pipx 1.8.0 test suite expectation drift.
@@ -244,6 +182,31 @@
                         verilator
                         iverilog
                         yosys
+                        gtkwave
+                        surfer
+                        verible
+                        svls
+                        python3Packages.cocotb
+
+                        # Cross-Compilation Toolchains (RISC-V & ARM)
+                        gcc-arm-embedded
+                        pkgsCross.riscv64-embedded.buildPackages.gcc
+
+                        # GTK / GNOME & Electron Desktop Integration
+                        gtk3
+                        atk
+                        at-spi2-atk
+                        at-spi2-core
+                        gdk-pixbuf
+                        pango
+                        cairo
+                        libdrm
+                        libnotify
+                        xdg-utils
+                        udev
+                        expat
+                        cups
+                        gsettings-desktop-schemas
 
                         # Graphics, Audio, and OS Library Bindings
                         libx11

@@ -24,9 +24,9 @@
               };
             };
             system = {
-              priority = 2;
+              priority = 3;
               name = "system";
-              size = "459G"; # Matching physical size approximately
+              size = "100%"; # Dynamic sizing to automatically occupy all remaining space
               content = {
                 type = "luks";
                 name = "cryptsystem";
@@ -124,9 +124,9 @@
               };
             };
             swap = {
-              priority = 3;
+              priority = 2;
               name = "swap";
-              size = "100%"; # Takes the remaining space (approx 16G)
+              size = "16G"; # Fixed size matching your RAM for hibernation
               content = {
                 type = "luks";
                 name = "cryptswap";
