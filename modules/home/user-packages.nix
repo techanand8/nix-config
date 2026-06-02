@@ -89,6 +89,14 @@ in
     xterm
     neovide
 
+    # --- CARTOON SHELL (QUICKSHELL PANEL) ---
+    quickshell # Desktop components framework (QML)
+    qt6.qt5compat # Required for blur and graphical effects
+    qt6.qtmultimedia # Required for volume / lockscreen media visualizers
+    kdePackages.kirigami # Required for Breeze-styled elements (tooltips, controls)
+    cava # Sound visualizer backend
+    ffmpeg # Required by Cartoon Shell for background wallpaper processing
+
     # --- ELITE DEVELOPER UTILS ---
     xdotool # Command-line X11 automation tool
     wlrctl # Wayland-native automation tool

@@ -8,6 +8,10 @@
       nerd-fonts.zed-mono
       nerd-fonts.fira-code
       nerd-fonts.mononoki
+      nerd-fonts.comic-shanns-mono # Dynamic cartoon-themed font for Cartoon Shell
+
+      # --- Icon & Symbol Fonts ---
+      material-symbols # Google's Material Symbols for Cartoon Shell bar icons
 
       # --- Professional & Document Fonts ---
       orbitron # Specific font for the custom SDDM theme
