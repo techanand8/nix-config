@@ -67,7 +67,7 @@
         {
           type = "os";
           key = " 󱄅  OS      ";
-          format = "MANX OS ${vars.stateVersion} ({10})";
+          format = "MANX OS {2} ({10})";
           keyColor = "cyan";
         }
         {
