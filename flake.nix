@@ -50,6 +50,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Declarative Disk Management
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Statelessness / Impermanence
     impermanence.url = "github:nix-community/impermanence";
 

@@ -20,16 +20,14 @@
         description = "Rollback Btrfs root subvolume to a pristine state";
         wantedBy = [ "initrd.target" ];
         after = [
-          "systemd-cryptsetup@${
-            builtins.replaceStrings [ "-" ] [ "\\x2d" ] "luks-${vars.luksSystemUUID}"
-          }.service"
+          "systemd-cryptsetup@cryptsystem.service"
         ];
         before = [ "sysroot.mount" ];
         unitConfig.DefaultDependencies = "no";
         serviceConfig.Type = "oneshot";
         script = ''
           mkdir -p /mnt
-          mount -t btrfs -o subvolid=5,noatime,compress=zstd,ssd /dev/mapper/luks-${vars.luksSystemUUID} /mnt
+          mount -t btrfs -o subvolid=5,noatime,compress=zstd,ssd /dev/mapper/cryptsystem /mnt
 
           # 1. Self-healing check: If blank snapshot is missing, capture current root first
           if [ ! -e /mnt/blank ]; then

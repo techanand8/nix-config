@@ -36,11 +36,8 @@ in
   # especially with systemd-initrd on some AMD systems. Let it use the early
   # simpledrm framebuffer immediately, then hand off cleanly once amdgpu is ready.
   boot.kernelParams = [
-    "quiet"
     "loglevel=3"
     "systemd.show_status=auto"
-    "rd.udev.log_level=3"
-    "udev.log_priority=3"
     "fbcon=nodefer"
     "plymouth.use-simpledrm"
   ];

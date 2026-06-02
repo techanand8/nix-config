@@ -9,12 +9,18 @@
 
 {
   imports = [
+    inputs.disko.nixosModules.disko
     ./hardware-configuration.nix
+    ./disko.nix
     ../common/default.nix
     ../../modules/system/amd.nix
     ../../modules/system/postgresql.nix
     ../../modules/system/backups.nix
   ];
+
+  # --- DISKO PERSISTENCE OVERRIDES ---
+  fileSystems."/home".neededForBoot = true;
+  fileSystems."/persist".neededForBoot = true;
 
   # --- HOST-SPECIFIC HARDWARE KERNEL OPTIMIZATIONS ---
   # These are appended to the common parameters defined in common/boot.nix

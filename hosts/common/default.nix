@@ -52,9 +52,35 @@
   boot.kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest-x86_64-v3;
   hardware.enableRedistributableFirmware = true;
 
+  # High-performance kernel tweaks for VLSI (massive compiles/simulations) & Deep Learning
   boot.kernel.sysctl = {
-    "vm.max_map_count" = 1048576;
+    "vm.max_map_count" = 1048576; # PyTorch / Elasticsearch database speedup
+    "vm.swappiness" = 10; # Prefer RAM over swap, reduces latency for heavy workloads
+    "vm.vfs_cache_pressure" = 50; # Keep file/directory metadata cached longer (speeds up compiles)
+    "fs.file-max" = 2097152; # Max number of open files system-wide
   };
+
+  # Maximize system limits for engineering tools (Vivado/OpenLane) and ML frameworks (PyTorch DataLoader)
+  security.pam.loginLimits = [
+    {
+      domain = "*";
+      type = "-";
+      item = "nofile";
+      value = "1048576";
+    }
+    {
+      domain = "*";
+      type = "-";
+      item = "memlock";
+      value = "unlimited";
+    }
+    {
+      domain = "*";
+      type = "-";
+      item = "stack";
+      value = "unlimited";
+    }
+  ];
 
   # --- HOST-SPECIFIC PACKAGES ---
   environment.systemPackages = [
