@@ -27,6 +27,7 @@
     ../../modules/system/ai.nix
     ../../modules/system/power.nix
     ../../modules/system/thunar.nix
+    ../../modules/system/onepassword.nix
   ]
   ++ (lib.optionals (vars ? enableImpermanence && vars.enableImpermanence) [
     ../../modules/system/stateless.nix

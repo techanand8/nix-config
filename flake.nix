@@ -355,9 +355,9 @@
 
       # Development Environments
       devShells = forAllSystems (
-        system:
+        arch:
         let
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = nixpkgs.legacyPackages.${arch};
         in
         {
           default = pkgs.mkShell {

@@ -163,7 +163,7 @@
         nixd = {
           enable = true;
           settings = {
-            nixpkgs.expr = "import <nixpkgs> { }";
+            nixpkgs.expr = "import ${inputs.nixpkgs} { }";
             formatting.command = [ "nixfmt" ];
             options = {
               nixos.expr = "(builtins.getFlake \"$HOME/nix-config\").nixosConfigurations.MANX.options";
