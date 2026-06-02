@@ -186,30 +186,18 @@
                   #    `nix build .#nixosConfigurations.MANX.pkgs.python313Packages.pipx -L` passes, or
                   # 2) you pin to a nixpkgs revision where pipx builds without this.
                   pipx = prev.pipx.overrideAttrs (oldAttrs: {
-                    doCheck = false;
-                    doInstallCheck = false;
-                    dontUsePytestCheck = true;
-                    pytestCheckPhase = "true";
-                    checkPhase = "true";
-                    installCheckPhase = "true";
-                    nativeCheckInputs = [ ];
-                    nativeBuildInputs = builtins.filter (
-                      p: (p.pname or "") != "pytest-check-hook"
-                    ) oldAttrs.nativeBuildInputs;
+                    # Patching tests because pipx 1.8.0 formatting expectations drifted
+                    # from what current packaging/setuptools produces.
+                    postPatch = (oldAttrs.postPatch or "") + ''
+                      sed -E -i 's/(nox|black|my-project)(\[[^]]*\])?@/\1\2 @/g' tests/test_package_specifier.py
+                    '';
                   });
                   pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
                     (python-final: python-prev: {
                       pipx = python-prev.pipx.overrideAttrs (oldAttrs: {
-                        doCheck = false;
-                        doInstallCheck = false;
-                        dontUsePytestCheck = true;
-                        pytestCheckPhase = "true";
-                        checkPhase = "true";
-                        installCheckPhase = "true";
-                        nativeCheckInputs = [ ];
-                        nativeBuildInputs = builtins.filter (
-                          p: (p.pname or "") != "pytest-check-hook"
-                        ) oldAttrs.nativeBuildInputs;
+                        postPatch = (oldAttrs.postPatch or "") + ''
+                          sed -E -i 's/(nox|black|my-project)(\[[^]]*\])?@/\1\2 @/g' tests/test_package_specifier.py
+                        '';
                       });
                     })
                   ];
