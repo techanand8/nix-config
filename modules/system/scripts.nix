@@ -153,6 +153,9 @@ let
                 echo -e "    ''${C_WHITE}vivado''${NC}    ''${C_MUTED}❯''${NC} Enter the AMD Vivado design environment"
                 echo -e "    ''${C_WHITE}openlane''${NC}  ''${C_MUTED}❯''${NC} Reproducible CAD flow (Yosys, OpenROAD, Magic)"
                 echo -e "    ''${C_WHITE}librelane''${NC} ''${C_MUTED}❯''${NC} Next-generation modular CAD design flow infrastructure"
+                echo -e "    ''${C_WHITE}verify''${NC}    ''${C_MUTED}❯''${NC} High-performance DV environment (Cocotb, Iverilog)"
+                echo -e "    ''${C_WHITE}vunit''${NC}     ''${C_MUTED}❯''${NC} Advanced Unit Testing framework for HDL"
+                echo -e "    ''${C_WHITE}vtr''${NC}       ''${C_MUTED}❯''${NC} FPGA Architecture Research (Verilog-to-Routing)"
                 echo -e "    ''${C_WHITE}fabric''${NC}    ''${C_MUTED}❯''${NC} Advanced Daily Task Patterns & Intelligence"
                 echo -e "    ''${C_WHITE}routine''${NC}   ''${C_MUTED}❯''${NC} Launch Silicon Routine & Self-Improvement Dashboard"
                         echo -e ""
@@ -733,6 +736,28 @@ let
                       echo -e ""
                       ;;
                   esac
+                  ;;
+
+                verify)
+                  log "Entering High-Fidelity Design Verification (DV) Workspace..."
+                  info "Initializing Cocotb (Python), Iverilog, Verilator, Spike, and GTKWave..."
+                  nix shell --impure --expr 'with import <nixpkgs> {}; mkShell { buildInputs = [ (python3.withPackages (ps: [ ps.cocotb ps.cocotb-bus ps.pyverilog ps.scapy ])) iverilog verilator gtkwave surfer spike pkgsCross.riscv64.riscv-pk ]; }'
+                  ;;
+
+                vunit)
+                  log "Initializing VUnit HDL Unit Testing Workspace..."
+                  info "VUnit-HDL is best used with a project-local shell.nix."
+                  echo -e "  ''${C_WHITE}1.''${NC} Create a ''${C_HIGHLIGHT}shell.nix''${NC} with ''${C_GOLD}python3Packages.vunit-hdl''${NC}"
+                  echo -e "  ''${C_WHITE}2.''${NC} Run ''${C_PRIMARY}nix-shell''${NC} to enter the environment."
+                  echo -e "  ''${C_WHITE}3.''${NC} Execute ''${C_PRIMARY}python3 run.py''${NC} to run tests."
+                  info "Entering a temporary VUnit shell for you..."
+                  nix shell --impure --expr 'with import <nixpkgs> {}; mkShell { buildInputs = [ (python3.withPackages (ps: [ ps.vunit-hdl ])) ghdl iverilog ]; }'
+                  ;;
+
+                vtr)
+                  log "Entering FPGA Architecture Research Workspace (VTR)..."
+                  info "Initializing Verilog-to-Routing flow (VPR, ODIN-II, ABC)..."
+                  nix shell nixpkgs#yosys-symbiflow
                   ;;
 
                 *) error "Unknown command: $1. Type 'manx' for help." ;;

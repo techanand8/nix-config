@@ -43,7 +43,7 @@ in
     netgen # LVS (Layout Vs Schematic) verification tool
     svls # SystemVerilog Language Server
     svlint # SystemVerilog linter
-    verible # Google's SystemVerilog developer tools (linter/formatter)
+    verible # Google's SystemVerilog developer tools (linter/formatter/indexer)
     veryl # Modern hardware design language (SV alternative)
     sby # Front-end driver for Yosys-based formal verification (formerly symbiyosys)
     z3 # High-performance theorem prover & SMT solver (Formal backend)
@@ -59,8 +59,12 @@ in
     python3Packages.pyspice # Python-based interface to NGSpice (Mixed-Signal DV)
     systemc # SystemC C++ library for architectural & Transaction-Level DV
 
+    # --- INDUSTRIAL PROJECT MANAGEMENT ---
+    fusesoc # Package manager and build system for HDL cores
+    python3Packages.edalize # Abstraction library for interfacing with EDA tools (used by FuseSoC)
+
     # --- ARCHITECTURE-SPECIFIC & EMBEDDED DESIGN ---
-    # RISC-V Toolchain & Simulation
+    # RISC-V Toolchain, Simulation & Formal ISA
     pkgsCross.riscv64-embedded.buildPackages.gcc # RISC-V 64-bit Embedded GCC
     (pkgsCross.riscv64-embedded.buildPackages.gdb.overrideAttrs (oldAttrs: {
       versionCheckProgram = "${placeholder "out"}/bin/riscv64-none-elf-gdb";
@@ -68,19 +72,20 @@ in
     spike # RISC-V ISA Simulator (Standard for architectural exploration)
     pkgsCross.riscv64.riscv-pk # RISC-V Proxy Kernel (Required for Spike)
     rars # RISC-V Assembler and Runtime Simulator (Educational IDE)
+    sail # Sail ISA specification language (Used for formal RISC-V model generation)
 
     # ARM Toolchain & Simulation
     (lib.lowPrio gcc-arm-embedded) # ARM Embedded GCC (arm-none-eabi)
-    qemu # Full system and user-mode emulation for RISC-V/ARM
+    qemu_full # Full system and user-mode emulation for RISC-V/ARM (Full build for engineering)
 
     # --- ADVANCED PHYSICAL DESIGN & ASIC FLOWS ---
+    openroad # OpenROAD project: autonomous physical design flow (Includes OpenSTA)
     yosys-ghdl # GHDL plugin for Yosys (VHDL synthesis support)
-    # librelane # ASIC implementation flow infrastructure (OpenLane 3 backend)
-    # openlane # OpenLane 2 ASIC Flow (Industrial Standard)
-    # klayout-gdsfactory # KLayout with GDSFactory preconfigured (Python Layout & Routing for PD)
+    python3Packages.gdsfactory # Python-based layout and routing for PD
     urjtag # Universal JTAG library, server and tools (Boundary Scan & DFT)
     openfpgaloader # Universal utility for programming FPGAs (JTAG Support)
   ];
+
   # --- AMD VIVADO & XILINX SUITE DESKTOP LAUNCHERS ---
   xdg.desktopEntries = {
 

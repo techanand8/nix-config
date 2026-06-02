@@ -8,7 +8,7 @@
     brave
     google-chrome
     tor-browser
-    protonvpn-gui
+    proton-vpn
     telegram-desktop
     discord
     localsend
