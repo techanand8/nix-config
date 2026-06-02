@@ -174,26 +174,28 @@
                 # )
                 inputs.nix-cachyos-kernel.overlays.pinned
                 (final: prev: {
-                  # TEMP WORKAROUND (remove after upstream fix):
-                  # pipx 1.8.0 currently fails under this nixpkgs/Python combo due to
-                  # package-spec formatting expectation drift in tests:
-                  #   expected: "name@ url"
-                  #   actual:   "name @ url"
-                  # This breaks NixOS/Home Manager rebuilds when pipx checks run.
+                  # TEMP WORKAROUND: Fix pipx 1.8.0 test suite expectation drift.
+                  # pipx currently fails to build because tests expect "name@ url" but current
+                  # packaging/setuptools produces "name @ url" (with a space).
                   #
-                  # Remove this override once either:
-                  # 1) nixpkgs updates pipx/tests and
-                  #    `nix build .#nixosConfigurations.MANX.pkgs.python313Packages.pipx -L` passes, or
-                  # 2) you pin to a nixpkgs revision where pipx builds without this.
+                  # Why we use sed instead of 'doCheck = false':
+                  # By using 'sed' to patch the affected test assertions, we preserve the overall
+                  # integrity of the pipx test suite, ensuring other core functionalities are still verified.
+                  #
+                  # When to remove:
+                  # Remove this overlay completely once nixpkgs updates pipx/tests and the command
+                  # `nix build .#nixosConfigurations.MANX.pkgs.pipx` compiles successfully without overrides.
                   pipx = prev.pipx.overrideAttrs (oldAttrs: {
-                    # Patching tests because pipx 1.8.0 formatting expectations drifted
-                    # from what current packaging/setuptools produces.
                     postPatch = (oldAttrs.postPatch or "") + ''
+                      # Regex targets the specific test package specs inside test_package_specifier.py 
+                      # and inserts a space before '@' to align assertions with modern setuptools behavior.
                       sed -E -i 's/(nox|black|my-project)(\[[^]]*\])?@/\1\2 @/g' tests/test_package_specifier.py
                     '';
                   });
                   pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
                     (python-final: python-prev: {
+                      # Mirror the same pipx test fix in pythonPackagesExtensions to ensure any
+                      # python toolchains pulling pipx from Python package sets are also fixed.
                       pipx = python-prev.pipx.overrideAttrs (oldAttrs: {
                         postPatch = (oldAttrs.postPatch or "") + ''
                           sed -E -i 's/(nox|black|my-project)(\[[^]]*\])?@/\1\2 @/g' tests/test_package_specifier.py
