@@ -220,69 +220,66 @@
                   ];
 
                   # --- BUBBLEWRAP FHS WRAPPER FOR ANTIGRAVITY IDE ---
-                  antigravity-fhs =
-                    if final ? buildFHSUserEnv then
-                      final.buildFHSUserEnv {
-                        name = "antigravity-fhs";
-                        targetPkgs =
-                          pkgs: with pkgs; [
-                            # Core GNU/C++ Development Toolchains
-                            gcc
-                            gnumake
-                            cmake
-                            binutils
-                            git
-                            pkg-config
-                            gdb
-                            zlib
+                  antigravity-fhs = (final.buildFHSEnv or final.buildFHSUserEnv) {
+                    name = "antigravity-fhs";
+                    targetPkgs =
+                      pkgs: with pkgs; [
+                        # Core GNU/C++ Development Toolchains
+                        gcc
+                        gnumake
+                        cmake
+                        binutils
+                        git
+                        pkg-config
+                        gdb
+                        zlib
 
-                            # Python & Deep Learning Ecosystem
-                            python3
-                            python3Packages.pip
-                            python3Packages.virtualenv
-                            python3Packages.setuptools
+                        # Python & Deep Learning Ecosystem
+                        python3
+                        python3Packages.pip
+                        python3Packages.virtualenv
+                        python3Packages.setuptools
 
-                            # Silicon & VLSI Hardware Engineering Toolchains
-                            verilator
-                            iverilog
-                            yosys
+                        # Silicon & VLSI Hardware Engineering Toolchains
+                        verilator
+                        iverilog
+                        yosys
 
-                            # Graphics, Audio, and OS Library Bindings
-                            xorg.libX11
-                            xorg.libXcomposite
-                            xorg.libXdamage
-                            xorg.libXext
-                            xorg.libXfixes
-                            xorg.libXi
-                            xorg.libXrandr
-                            xorg.libXrender
-                            xorg.libXtst
-                            xorg.libxcb
-                            xorg.libxshmfence
-                            libGL
-                            libva
-                            libxkbcommon
-                            nss
-                            nspr
-                            alsa-lib
-                            dbus
-                            glib
-                            icu
-                            openssl
-                            curl
-                            stdenv.cc.cc.lib
-                            zstd
-                          ];
-                        runScript = "${
-                          inputs.antigravity-nix.packages.${final.stdenv.hostPlatform.system}.default
-                        }/bin/antigravity";
-                      }
-                    else
-                      final.hello;
+                        # Graphics, Audio, and OS Library Bindings
+                        libx11
+                        libxcomposite
+                        libxdamage
+                        libxext
+                        libxfixes
+                        libxi
+                        libxrandr
+                        libxrender
+                        libxtst
+                        libxcb
+                        libxshmfence
+                        libGL
+                        libva
+                        libxkbcommon
+                        nss
+                        nspr
+                        alsa-lib
+                        dbus
+                        glib
+                        icu
+                        openssl
+                        curl
+                        stdenv.cc.cc.lib
+                        zstd
+                      ];
+                    runScript = "${
+                      inputs.antigravity-nix.packages.${final.stdenv.hostPlatform.system}.default
+                    }/bin/antigravity";
+                  };
                 })
               ];
             }
             ./hosts/${hostname}/configuration.nix
+            inputs.disko.nixosModules.disko
             inputs.ambxst.nixosModules.default
             inputs.home-manager.nixosModules.home-manager
             {

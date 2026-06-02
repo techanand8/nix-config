@@ -15,7 +15,7 @@ in
     # --- CORE THUNAR FILE MANAGER ---
     programs.thunar = {
       enable = true;
-      plugins = with pkgs.xfce; [
+      plugins = with pkgs; [
         thunar-archive-plugin # Integrates context menus for zip/tar/rar extraction
         thunar-volman # Automatic management of removable drives (USB/SD)
         thunar-media-tags-plugin # Reads media tags (MP3/FLAC) in file properties
