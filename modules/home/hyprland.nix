@@ -48,16 +48,17 @@
 
     # 0.5. Screen Shader for Zen Focus Mode
     "hypr/shaders/grayscale.frag".text = ''
-      #version 100
+      #version 300 es
       precision mediump float;
-      varying vec2 v_texcoord;
+      in vec2 v_texcoord;
       uniform sampler2D tex;
+      out vec4 fragColor;
 
       void main() {
-          vec4 color = texture2D(tex, v_texcoord);
+          vec4 color = texture(tex, v_texcoord);
           // ITU-R BT.601 standard weights for high-fidelity luminance extraction
           float gray = color.r * 0.299 + color.g * 0.587 + color.b * 0.114;
-          gl_FragColor = vec4(vec3(gray), color.a);
+          fragColor = vec4(vec3(gray), color.a);
       }
     '';
 
