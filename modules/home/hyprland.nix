@@ -400,7 +400,7 @@
       ${pkgs.libnotify}/bin/notify-send -t 2000 "MANX OS Shell Engine" "Switching desktop layout to: ''${TARGET_SHELL^}..." -i preferences-desktop-theme
 
       # Ensure proper QML import path mapping for all shells using stable Nix paths
-      export QML2_IMPORT_PATH="${pkgs.qt6.qt5compat}/lib/qt-6/qml:${pkgs.qt6.qtmultimedia}/lib/qt-6/qml:${pkgs.qt6.qtshadertools}/lib/qt-6/qml:${pkgs.kdePackages.kirigami}/lib/qt-6/qml:${pkgs.kdePackages.qqc2-desktop-style}/lib/qt-6/qml:$QML2_IMPORT_PATH"
+      export QML2_IMPORT_PATH="${pkgs.qt6.qt5compat.out}/lib/qt-6/qml:${pkgs.qt6.qtmultimedia.out}/lib/qt-6/qml:${pkgs.qt6.qtshadertools.out}/lib/qt-6/qml:${pkgs.kdePackages.kirigami.out}/lib/qt-6/qml:${pkgs.kdePackages.qqc2-desktop-style.out}/lib/qt-6/qml:$QML2_IMPORT_PATH"
 
       # 3. Safe Shutdown of Current Shell/Quickshell Instances
       pkill -f quickshell || true
@@ -412,7 +412,7 @@
       # 4. Launch Target Shell
       case "$TARGET_SHELL" in
           ambxst)
-              ambxst & disown
+              ambxst >/dev/null 2>&1 & disown
               ;;
           cartoon)
               CARTOON_PATH="$HOME/.config/quickshell/cartoon-shell"
@@ -420,30 +420,30 @@
                   ${pkgs.libnotify}/bin/notify-send -t 5000 "MANX OS Shell Engine" "Cartoon Shell path not found. Cloning from GitHub..." -i system-run
                   ${pkgs.git}/bin/git clone "$CARTOON_REPO" "$CARTOON_PATH"
               fi
-              quickshell --path "$CARTOON_PATH" & disown
+              quickshell --path "$CARTOON_PATH" >/dev/null 2>&1 & disown
               ;;
           noctalia)
               if command -v qs &>/dev/null; then
-                  qs -c noctalia-shell & disown
+                  qs -c noctalia-shell >/dev/null 2>&1 & disown
               else
                   NOCT_PATH="$HOME/.config/quickshell/noctalia"
                   if [ ! -d "$NOCT_PATH" ]; then
                       ${pkgs.libnotify}/bin/notify-send -t 5000 "MANX OS Shell Engine" "Noctalia path not found. Cloning from GitHub..." -i system-run
                       ${pkgs.git}/bin/git clone https://github.com/noctalia-dev/noctalia-shell.git "$NOCT_PATH"
                   fi
-                  quickshell --path "$NOCT_PATH" & disown
+                  quickshell --path "$NOCT_PATH" >/dev/null 2>&1 & disown
               fi
               ;;
           dms)
               if command -v dms &>/dev/null; then
-                  dms & disown
+                  dms >/dev/null 2>&1 & disown
               else
                   DMS_PATH="$HOME/.config/quickshell/dms"
                   if [ ! -d "$DMS_PATH" ]; then
                       ${pkgs.libnotify}/bin/notify-send -t 5000 "MANX OS Shell Engine" "DankMaterialShell path not found. Cloning from GitHub..." -i system-run
                       ${pkgs.git}/bin/git clone https://github.com/AvengeMedia/DankMaterialShell.git "$DMS_PATH"
                   fi
-                  quickshell --path "$DMS_PATH" & disown
+                  quickshell --path "$DMS_PATH" >/dev/null 2>&1 & disown
               fi
               ;;
       esac
@@ -460,7 +460,7 @@
       # Always resets to Ambxst on boot for maximum consistency.
 
       # Ensure proper QML import path mapping for premium shells
-      export QML2_IMPORT_PATH="${pkgs.qt6.qt5compat}/lib/qt-6/qml:${pkgs.qt6.qtmultimedia}/lib/qt-6/qml:${pkgs.qt6.qtshadertools}/lib/qt-6/qml:${pkgs.kdePackages.kirigami}/lib/qt-6/qml:${pkgs.kdePackages.qqc2-desktop-style}/lib/qt-6/qml:$QML2_IMPORT_PATH"
+      export QML2_IMPORT_PATH="${pkgs.qt6.qt5compat.out}/lib/qt-6/qml:${pkgs.qt6.qtmultimedia.out}/lib/qt-6/qml:${pkgs.qt6.qtshadertools.out}/lib/qt-6/qml:${pkgs.kdePackages.kirigami.out}/lib/qt-6/qml:${pkgs.kdePackages.qqc2-desktop-style.out}/lib/qt-6/qml:$QML2_IMPORT_PATH"
 
       # Always launch Ambxst on boot
       ambxst &
