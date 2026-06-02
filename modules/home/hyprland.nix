@@ -66,15 +66,6 @@
       dofile(config_dir .. "/hyprland/input.lua")
       dofile(config_dir .. "/hyprland/execs.lua")
       dofile(config_dir .. "/hyprland/general.lua")
-
-      -- Synchronously load plugins before configuration is parsed
-      os.execute("hyprctl plugin load ${
-        inputs.hypr-dynamic-cursors.packages.${pkgs.stdenv.hostPlatform.system}.hypr-dynamic-cursors
-      }/lib/libhypr-dynamic-cursors.so")
-      os.execute("hyprctl plugin load ${
-        inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprfocus
-      }/lib/libhyprfocus.so")
-
       dofile(config_dir .. "/hyprland/plugins.lua")
       dofile(config_dir .. "/hyprland/rules.lua")
       dofile(config_dir .. "/hyprland/keybinds.lua")
@@ -258,6 +249,18 @@
     '';
 
     "hypr/hyprland/plugins.lua".text = ''
+      -- Declaratively load plugins so configuration parameters are recognized on parse
+      hl.config({
+          plugin = "${
+            inputs.hypr-dynamic-cursors.packages.${pkgs.stdenv.hostPlatform.system}.hypr-dynamic-cursors
+          }/lib/libhypr-dynamic-cursors.so"
+      })
+      hl.config({
+          plugin = "${
+            inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprfocus
+          }/lib/libhyprfocus.so"
+      })
+
       -- ############ CURSOR DYNAMICS & SHAKE EFFECT ############
       hl.config({
           plugin = {
