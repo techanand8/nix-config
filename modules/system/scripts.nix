@@ -101,6 +101,7 @@ let
             function error() { echo -e "''${RED}󰅚  [ERROR]''${NC} $1"; exit 1; }
             function success() { echo -e "''${C_SUCCESS}󰄬  [SUCCESS]''${NC} $1"; }
             function info() { echo -e "''${C_HIGHLIGHT}󰌢  [INFO]''${NC} $1"; }
+            function check_ollama() { if ! curl -s http://127.0.0.1:11434 &>/dev/null; then error "Ollama service is not running!"; fi; }
 
             function show_help() {
                 local uptime_all uptime_seconds days hours mins uptime_str
@@ -374,11 +375,10 @@ let
 
                       aider)
                         log "Initializing Aider Coding Workspace..."
-                        check_ollama() { if ! curl -s http://127.0.0.1:11434 &>/dev/null; then error "Ollama service is not running!"; fi; }
                         if [ -z "''${2:-}" ] || [[ "$2" == -* ]]; then
                             if command -v fzf &> /dev/null; then
                                 log "Select a coding model for Aider (Local or Free Cloud):"
-                                CHOICE=$(echo -e "qwen2.5-coder:7b (Recommended Local)\ndeepseek-coder:6.7b (Stable Local)\nanthropic/claude-3-5-sonnet (Elite Cloud Claude)\ngithub/gpt-4o (Free Cloud GPT-4o)\ngithub/gpt-4o-mini (Fast Cloud GPT-4o)\ngemini/gemini-1.5-pro (Elite Free Gemini)\ngemini/gemini-1.5-flash (Fast Free Gemini)\ngithub/Llama-3.3-70B-Instruct (Powerful Free Llama)\ngithub/Cohere-command-r-plus-08-2024 (Elite Agent Model)\nEnter Custom Ollama..." | fzf --height 45% --layout=reverse --border --prompt="󰏆 Select Coding Model ❯ ")
+                                CHOICE=$(echo -e "qwen2.5-coder:7b (Recommended Local)\ndeepseek-coder:6.7b (Stable Local)\nanthropic/claude-3-5-sonnet (Elite Cloud Claude)\ngithub/gpt-4o (Free Cloud GPT-4o)\ngithub/gpt-4o-mini (Fast Cloud GPT-4o)\ngemini/gemini-2.5-pro (Elite Free Gemini)\ngemini/gemini-2.5-flash (Fast Free Gemini)\ngithub/meta/llama-3.3-70b-instruct (Powerful Free Llama)\ngithub/cohere/cohere-command-r-plus-08-2024 (Elite Agent Model)\nEnter Custom Ollama..." | fzf --height 45% --layout=reverse --border --prompt="󰏆 Select Coding Model ❯ ")
                                 if [ -z "''$CHOICE" ]; then exit 0; fi
                                 if [[ "''$CHOICE" == "Enter Custom Ollama..." ]]; then
                                     echo -ne "  ''${C_HIGHLIGHT}❯ Enter Ollama model name:''${NC} "; read -r MODEL
@@ -399,11 +399,12 @@ let
                             [ -z "''$ANTHROPIC_API_KEY" ] && error "An Anthropic API Key is required."
                             log "Launching Elite Claude Agent (Aider + ''$MODEL)..."; aider --model "''$MODEL" --no-browser --map-tokens 1024 --edit-format whole --watch-files "$@"
                         elif [[ "''$MODEL" == github/* ]]; then
-                            RAW_MODEL=$(echo "''$MODEL" | cut -d'/' -f2); export GITHUB_TOKEN; GITHUB_TOKEN=$(cat "$HOME/.config/manx/github_token" 2>/dev/null || echo "''${GITHUB_TOKEN:-}")
+                            RAW_MODEL=$(echo "''$MODEL" | cut -d'/' -f2-); export GITHUB_TOKEN; GITHUB_TOKEN=$(cat "$HOME/.config/manx/github_token" 2>/dev/null || echo "''${GITHUB_TOKEN:-}")
                             if [ -z "''$GITHUB_TOKEN" ]; then echo -ne "  ''${C_HIGHLIGHT}❯ Enter your GitHub PAT:''${NC} "; read -s -r USER_TOKEN; echo ""; export GITHUB_TOKEN="''$USER_TOKEN"; fi
                             [ -z "''$GITHUB_TOKEN" ] && error "A GitHub Token is required."
-                            export GITHUB_API_KEY="''$GITHUB_TOKEN"
-                            log "Launching Free Cloud Agent (Aider + ''$RAW_MODEL)..."; aider --model "litellm/github/''$RAW_MODEL" --no-browser --map-tokens 1024 --edit-format whole --watch-files "$@"
+                            export OPENAI_API_BASE="https://models.github.ai/inference/v1"
+                            export OPENAI_API_KEY="''$GITHUB_TOKEN"
+                            log "Launching Free Cloud Agent (Aider + ''$RAW_MODEL)..."; aider --model "openai/''$RAW_MODEL" --no-browser --map-tokens 1024 --edit-format whole --watch-files "$@"
                         else
                             check_ollama; if ! ollama list 2>/dev/null | grep -q "''$MODEL"; then info "Model '''$MODEL' not found. Downloading..."; ollama pull "''$MODEL"; fi
                             export OLLAMA_API_BASE="http://127.0.0.1:11434"
@@ -431,6 +432,13 @@ let
                             else MODEL="$1"; shift; fi
                             
                             WAYLAND_PROMPT="You are operating on NixOS under the Hyprland Wayland compositor. Standard X11 desktop automation libraries (like pyautogui, pynput, xdotool, xrectsel, pillow-based grab) WILL CRASH OR FAIL. Instead, you MUST use these native Wayland utilities: 1. SCREENSHOTS: Use 'grim /tmp/screenshot.png' (full screen) or 'grim -g \"\$(slurp)\" /tmp/screenshot.png' (region selection). 2. WINDOW CONTROL: Use 'hyprctl clients -j' to list open windows, and 'hyprctl dispatch focuswindow <class>' or 'hyprctl dispatch closewindow <class>' to manage windows. 3. INPUT: Use 'wlrctl keyboard type <text>' to inject keyboard inputs and typing. 4. CLIPBOARD: Use 'wl-copy' and 'wl-paste'. Do not attempt to import pyautogui. Use bash command execution with these tools instead!"
+
+                            # Self-healing check for open-interpreter virtual environment on NixOS
+                            if ! command -v interpreter &>/dev/null || ! interpreter --version &>/dev/null; then
+                                info "Agent virtual environment is out of sync or missing. Self-healing..."
+                                nix-shell -p python312 pipx gcc rustc cargo --run "pipx install --python python3.12 --force open-interpreter && pipx runpip open-interpreter install 'setuptools<70'"
+                                success "Agent brain successfully healed!"
+                            fi
 
                             if [[ "''$MODEL" == gemini/* ]]; then
                                 export GEMINI_API_KEY; GEMINI_API_KEY=$(cat "$HOME/.config/manx/gemini_token" 2>/dev/null || echo "''${GOOGLE_API_KEY:-}")
@@ -583,13 +591,13 @@ let
 
                         if [[ "''$PROVIDER" == "gemini" ]]; then
                             [ -z "''$GEMINI_API_KEY" ] && error "A Gemini API Key is required. Run 'manx agent' or put it in ~/.config/manx/gemini_token"
-                            export GOOSE_PROVIDER="gemini_oauth"
+                            export GOOSE_PROVIDER="google"
                             export GOOSE_MODEL="gemini-2.0-flash"
                             export GEMINI_API_KEY
                         elif [[ "''$PROVIDER" == "github" ]]; then
                             [ -z "''$GITHUB_TOKEN" ] && error "A GitHub PAT is required. Run 'manx agent' or put it in ~/.config/manx/github_token"
                             export GOOSE_PROVIDER="openai"
-                            export GOOSE_MODEL="Cohere-command-r-plus-08-2024"
+                            export GOOSE_MODEL="cohere/cohere-command-r-plus-08-2024"
                             export OPENAI_API_BASE="https://models.github.ai/inference/v1"
                             export OPENAI_BASE_URL="https://models.github.ai/inference/v1"
                             export OPENAI_API_KEY="''$GITHUB_TOKEN"

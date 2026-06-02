@@ -78,7 +78,6 @@
       dofile(ambxst_core)
 
       -- 5. Local Modular Overrides
-      dofile(config_dir .. "/hyprland/env.lua")
       dofile(config_dir .. "/hyprland/input.lua")
       dofile(config_dir .. "/hyprland/execs.lua")
       dofile(config_dir .. "/hyprland/general.lua")
@@ -354,16 +353,17 @@
     executable = true;
     text = ''
       #!/usr/bin/env bash
+      HYPRCTL="${pkgs.hyprland}/bin/hyprctl"
       SHADER_PATH="$HOME/.config/hypr/shaders/grayscale.frag"
 
       # Dynamic runtime shader toggling
-      CURRENT_SHADER=$(hyprctl getoption decoration:screen_shader -j | ${pkgs.jq}/bin/jq -r '.str')
+      CURRENT_SHADER=$($HYPRCTL getoption decoration:screen_shader -j | ${pkgs.jq}/bin/jq -r '.str')
 
       if [[ "$CURRENT_SHADER" == "none" || "$CURRENT_SHADER" == "" ]]; then
-          hyprctl eval 'hl.config({ decoration = { screen_shader = "'"$SHADER_PATH"'" } })'
+          $HYPRCTL eval 'hl.config({ decoration = { screen_shader = "'"$SHADER_PATH"'" } })'
           ${pkgs.libnotify}/bin/notify-send -t 1500 "Zen Focus Mode" "Grayscale screen filter active" -i info
       else
-          hyprctl eval 'hl.config({ decoration = { screen_shader = "" } })'
+          $HYPRCTL eval 'hl.config({ decoration = { screen_shader = "" } })'
           ${pkgs.libnotify}/bin/notify-send -t 1500 "Zen Focus Mode" "Standard color profile restored" -i info
       fi
     '';
