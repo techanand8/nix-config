@@ -16,6 +16,8 @@
     # --- Multimedia & Creative ---
     vlc
     mpv
+    yt-dlp # Ultimate video/audio downloader
+    ani-cli # CLI Anime streaming tool
     loupe # Premium modern image viewer (GNOME)
     snapshot # Best modern camera/webcam application
     kdePackages.kdenlive

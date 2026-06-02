@@ -46,6 +46,21 @@
       }
     '';
 
+    # 0.5. Screen Shader for Zen Focus Mode
+    "hypr/shaders/grayscale.frag".text = ''
+      // Elite Silicon Grayscale Focus Shader
+      precision mediump float;
+      varying vec2 v_texcoord;
+      uniform sampler2D tex;
+
+      void main() {
+          vec4 color = texture2D(tex, v_texcoord);
+          // ITU-R BT.601 standard weights for high-fidelity luminance extraction
+          float gray = color.r * 0.299 + color.g * 0.587 + color.b * 0.114;
+          gl_FragColor = vec4(vec3(gray), color.a);
+      }
+    '';
+
     # 1. Main Hyprland Entry Point
     "hypr/hyprland.lua".text = ''
       local home = os.getenv("HOME")
@@ -233,7 +248,29 @@
       hl.window_rule({ match = { class = "xschem" }, float = true })
       hl.window_rule({ match = { class = "gtkwave" }, float = true })
 
+      -- ############ ELA/VLSI FLOATING ZEN MUSIC WIDGET RULES ############
+      -- Float Amberol (minimalist local player) as a beautiful smartphone-like widget
+      hl.window_rule({ match = { class = ".*[aA]mberol.*" }, float = true })
+      hl.window_rule({ match = { class = ".*[aA]mberol.*" }, size = "360 520" })
+      hl.window_rule({ match = { class = ".*[aA]mberol.*" }, center = true })
+
+      -- Float Spotube (premium streaming & offline downloader) as a beautiful dashboard
+      hl.window_rule({ match = { class = ".*[sS]potube.*" }, float = true })
+      hl.window_rule({ match = { class = ".*[sS]potube.*" }, size = "950 650" })
+      hl.window_rule({ match = { class = ".*[sS]potube.*" }, center = true })
+
       hl.workspace_rule({ workspace = "special:special", gaps_out = 30 })
+
+      -- ############ MULTI-MONITOR WORKSPACE PINNING (EDA/VLSI DUAL-HEAD) ############
+      -- Pin primary design workspaces (1-5) to external HDMI display if connected
+      for w = 1, 5 do
+          hl.workspace_rule({ workspace = tostring(w), monitor = "HDMI-A-1", default = true })
+      end
+
+      -- Pin side tool/waveform workspaces (6-10) to internal laptop display (eDP-1)
+      for w = 6, 10 do
+          hl.workspace_rule({ workspace = tostring(w), monitor = "eDP-1", default = true })
+      end
     '';
     "hypr/hyprland/keybinds.lua".text = ''
 
@@ -247,10 +284,19 @@
       hl.bind("SUPER + ALT + Up", hl.dsp.exec_cmd("resizeactive 0 -50"))
       hl.bind("Print", hl.dsp.exec_cmd("ambxst run screenshot"))
       hl.bind("SUPER + L", hl.dsp.exec_cmd("loginctl lock-session"))
+      hl.bind("SUPER + G", hl.dsp.exec_cmd("bash $HOME/.local/bin/manx-toggle-grayscale"))
     '';
 
     "hypr/hyprland/plugins.lua".text = ''
       -- Plugins are loaded dynamically at runtime via manx-load-plugins to prevent Ambxst parser conflicts.
+    '';
+
+    # 4. Cliamp Config (Winamp retro TUI music player)
+    "cliamp/config.toml".text = ''
+      # Cliamp - Classic Winamp TUI Music Player Config
+      # If no theme is specified, cliamp automatically inherits terminal colors,
+      # synchronizing instantly with your active Ambxst theme preset!
+      theme = ""
     '';
   };
 
@@ -303,12 +349,52 @@
     '';
   };
 
+  home.file.".local/bin/manx-toggle-grayscale" = {
+    executable = true;
+    text = ''
+      #!/usr/bin/env bash
+      SHADER_PATH="$HOME/.config/hypr/shaders/grayscale.frag"
+
+      # Dynamic runtime shader toggling
+      CURRENT_SHADER=$(hyprctl getoption decoration:screen_shader -j | ${pkgs.jq}/bin/jq -r '.str')
+
+      if [[ "$CURRENT_SHADER" == "none" || "$CURRENT_SHADER" == "" ]]; then
+          hyprctl keyword decoration:screen_shader "$SHADER_PATH"
+          ${pkgs.libnotify}/bin/notify-send -t 1500 "Zen Focus Mode" "Grayscale screen filter active" -i info
+      else
+          hyprctl keyword decoration:screen_shader ""
+          ${pkgs.libnotify}/bin/notify-send -t 1500 "Zen Focus Mode" "Standard color profile restored" -i info
+      fi
+    '';
+  };
+
   # Install Bibata Cursors package locally so they can be loaded by Hyprland envs,
   # but without setting home.pointerCursor globally (so KDE stays untouched).
   home.packages = [
     pkgs.bibata-cursors
     pkgs.terminaltexteffects
     pkgs.chafa
+    pkgs.spotube # Premium streaming & offline music downloader
+    pkgs.amberol # Breathtaking minimalist local GTK4 offline player
+
+    # Cliamp: The ultimate retro Winamp-inspired TUI terminal music player!
+    (pkgs.stdenv.mkDerivation rec {
+      pname = "cliamp";
+      version = "1.56.0";
+
+      src = pkgs.fetchurl {
+        url = "https://github.com/bjarneo/cliamp/releases/download/v${version}/cliamp-linux-amd64";
+        sha256 = "07d0f8araglg5rw64h6rq34s36ah1b90mq0d5gxrqr5frns7hd1s";
+      };
+
+      dontUnpack = true;
+
+      installPhase = ''
+        mkdir -p $out/bin
+        cp $src $out/bin/cliamp
+        chmod +x $out/bin/cliamp
+      '';
+    })
   ];
 
   services.hypridle = {
