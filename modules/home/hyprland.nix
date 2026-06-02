@@ -131,6 +131,7 @@
           hl.exec_cmd("${pkgs.kdePackages.kwallet-pam}/libexec/pam_kwallet_init")
           hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
           hl.exec_cmd("bash $HOME/.local/bin/sync_ghostty.sh")
+          hl.exec_cmd("bash $HOME/.local/bin/manx-load-plugins &")
           hl.exec_cmd("hyprctl keyword windowrule 'dimaround, hyprpolkitagent'")
           hl.exec_cmd("sleep 5 && distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/xic/xic &")
       end)
@@ -249,55 +250,7 @@
     '';
 
     "hypr/hyprland/plugins.lua".text = ''
-      -- Declaratively load plugins so configuration parameters are recognized on parse
-      hl.config({
-          plugin = "${
-            inputs.hypr-dynamic-cursors.packages.${pkgs.stdenv.hostPlatform.system}.hypr-dynamic-cursors
-          }/lib/libhypr-dynamic-cursors.so"
-      })
-      hl.config({
-          plugin = "${
-            inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprfocus
-          }/lib/libhyprfocus.so"
-      })
-
-      -- ############ CURSOR DYNAMICS & SHAKE EFFECT ############
-      hl.config({
-          plugin = {
-              ["dynamic-cursors"] = {
-                  enabled = true,
-                  mode = "tilt", -- Tilt the cursor dynamically for natural physics
-                  
-                  -- Shake to find cursor settings
-                  shake = {
-                      enabled = true,
-                      nearest = true,
-                      threshold = 3.0,
-                      timeout = 2000,
-                      base = 3.0,
-                  },
-                  
-                  -- Hyprcursor configuration for smooth, blur-free magnifying
-                  hyprcursor = {
-                      enabled = true,
-                      fallback = "default",
-                  }
-              },
-
-              -- ############ SLEEK WINDOW FOCUS ANIMATION ############
-              hyprfocus = {
-                  enabled = true,
-                  keyboard_focus_animation = "flash",
-                  mouse_focus_animation = "flash",
-                  
-                  flash = {
-                      flash_opacity = 0.85,
-                      in_speed = 0.5,
-                      out_speed = 3,
-                  }
-              }
-          }
-      })
+      -- Plugins are loaded dynamically at runtime via manx-load-plugins to prevent Ambxst parser conflicts.
     '';
   };
 
@@ -310,6 +263,44 @@
   home.file.".local/bin/sync_ghostty.sh" = {
     executable = true;
     source = ./scripts/sync_ghostty.sh;
+  };
+
+  home.file.".local/bin/manx-load-plugins" = {
+    executable = true;
+    text = ''
+      #!/usr/bin/env bash
+      # Wait for the Hyprland socket to become fully active
+      sleep 1
+
+      # 1. Load the dynamic cursor physics plugin
+      hyprctl plugin load ${
+        inputs.hypr-dynamic-cursors.packages.${pkgs.stdenv.hostPlatform.system}.hypr-dynamic-cursors
+      }/lib/libhypr-dynamic-cursors.so
+
+      # 2. Load the window focus animation plugin
+      hyprctl plugin load ${
+        inputs.hyprland-plugins.packages.${pkgs.stdenv.hostPlatform.system}.hyprfocus
+      }/lib/libhyprfocus.so
+
+      # 3. Apply configurations for dynamic-cursors
+      hyprctl keyword plugin:dynamic-cursors:enabled true
+      hyprctl keyword plugin:dynamic-cursors:mode tilt
+      hyprctl keyword plugin:dynamic-cursors:shake:enabled true
+      hyprctl keyword plugin:dynamic-cursors:shake:nearest true
+      hyprctl keyword plugin:dynamic-cursors:shake:threshold 3.0
+      hyprctl keyword plugin:dynamic-cursors:shake:timeout 2000
+      hyprctl keyword plugin:dynamic-cursors:shake:base 3.0
+      hyprctl keyword plugin:dynamic-cursors:hyprcursor:enabled true
+      hyprctl keyword plugin:dynamic-cursors:hyprcursor:fallback default
+
+      # 4. Apply configurations for hyprfocus
+      hyprctl keyword plugin:hyprfocus:enabled true
+      hyprctl keyword plugin:hyprfocus:keyboard_focus_animation flash
+      hyprctl keyword plugin:hyprfocus:mouse_focus_animation flash
+      hyprctl keyword plugin:hyprfocus:flash:flash_opacity 0.85
+      hyprctl keyword plugin:hyprfocus:flash:in_speed 0.5
+      hyprctl keyword plugin:hyprfocus:flash:out_speed 3
+    '';
   };
 
   # Install Bibata Cursors package locally so they can be loaded by Hyprland envs,
