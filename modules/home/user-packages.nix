@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  inputs,
+  ...
+}:
 
 let
   yt-x = pkgs.stdenv.mkDerivation rec {
@@ -93,9 +98,23 @@ in
     quickshell # Desktop components framework (QML)
     qt6.qt5compat # Required for blur and graphical effects
     qt6.qtmultimedia # Required for volume / lockscreen media visualizers
+    qt6.qtshadertools # Required for modern QML shader effects
+    qt6.qtimageformats # Support for additional image formats in QML
     kdePackages.kirigami # Required for Breeze-styled elements (tooltips, controls)
+    kdePackages.qqc2-desktop-style # Desktop styling for QuickShell components
     cava # Sound visualizer backend
     ffmpeg # Required by Cartoon Shell for background wallpaper processing
+    playerctl # Media control CLI (used by Music Panel)
+    wl-clipboard # Wayland clipboard management
+    jq # JSON processing for weather and API calls
+    procps # System monitoring (top, free)
+    iproute2 # Networking info (ip command)
+
+    matugen # Required by Cartoon Shell for Material You dynamic color palette generation
+
+    # --- FLAKE-BASED DESKTOP SHELLS (PRE-COMPILED VIA FLAKES) ---
+    inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default
+    inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default
 
     # --- ELITE DEVELOPER UTILS ---
     xdotool # Command-line X11 automation tool

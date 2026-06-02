@@ -357,18 +357,22 @@
     text = ''
       #!/usr/bin/env bash
       # MANX OS premium dynamic shell toggle script
-      # Handles zero-lag transition between Ambxst, Cartoon, and Noctalia shells.
+      # Handles zero-lag transition between Ambxst, Cartoon, Noctalia, and DMS shells.
 
       PREF_FILE="$HOME/.config/manx-shell-pref"
       CURRENT_PREF=$(cat "$PREF_FILE" 2>/dev/null || echo "ambxst")
 
+      # Configurable repository for Cartoon Shell (which has no native flake)
+      CARTOON_REPO="https://github.com/mailong2401/cartoon-shell.git"
+
       print_usage() {
           echo -e "\e[1;36m❄️ MANX Shell Engine\e[0m"
           echo -e "Current Active Shell: \e[1;32m$CURRENT_PREF\e[0m\n"
-          echo -e "Usage: \e[1mmanx-shell-toggle [ambxst | cartoon | noctalia]\e[0m"
+          echo -e "Usage: \e[1mmanx-shell-toggle [ambxst | cartoon | noctalia | dms]\e[0m"
           echo -e "  - \e[33mambxst\e[0m    : Main Ambxst QML shell (Default)"
-          echo -e "  - \e[33mcartoon\e[0m   : Cartoon Shell QuickShell panel"
-          echo -e "  - \e[33mnoctalia\e[0m  : Minimal aesthetic Noctalia shell"
+          echo -e "  - \e[33mcartoon\e[0m   : Cartoon Shell QuickShell panel (Cloned from GitHub)"
+          echo -e "  - \e[33mnoctalia\e[0m  : Minimal aesthetic Noctalia shell (Flake-managed)"
+          echo -e "  - \e[33mdms\e[0m       : Material 3 DankMaterialShell (Flake-managed)"
       }
 
       if [[ -z "$1" ]]; then
@@ -379,7 +383,7 @@
       TARGET_SHELL=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 
       case "$TARGET_SHELL" in
-          ambxst|cartoon|noctalia)
+          ambxst|cartoon|noctalia|dms)
               ;;
           *)
               echo -e "\e[1;31mError: Unknown shell target '$1'\e[0m"
@@ -395,8 +399,14 @@
       # 2. Notify Switch Start
       ${pkgs.libnotify}/bin/notify-send -t 2000 "MANX OS Shell Engine" "Switching desktop layout to: ''${TARGET_SHELL^}..." -i preferences-desktop-theme
 
-      # 3. Safe Shutdown of Current Quickshell Instance
+      # Ensure proper QML import path mapping for all shells using stable Nix paths
+      export QML2_IMPORT_PATH="${pkgs.qt6.qt5compat}/lib/qt-6/qml:${pkgs.qt6.qtmultimedia}/lib/qt-6/qml:${pkgs.qt6.qtshadertools}/lib/qt-6/qml:${pkgs.kdePackages.kirigami}/lib/qt-6/qml:${pkgs.kdePackages.qqc2-desktop-style}/lib/qt-6/qml:$QML2_IMPORT_PATH"
+
+      # 3. Safe Shutdown of Current Shell/Quickshell Instances
       pkill -f quickshell || true
+      pkill -f noctalia-qs || true
+      pkill -f qs || true
+      pkill -f dms || true
       sleep 0.5
 
       # 4. Launch Target Shell
@@ -405,15 +415,36 @@
               ambxst & disown
               ;;
           cartoon)
-              quickshell --path "$HOME/.config/quickshell/cartoon-shell" & disown
+              CARTOON_PATH="$HOME/.config/quickshell/cartoon-shell"
+              if [ ! -d "$CARTOON_PATH" ]; then
+                  ${pkgs.libnotify}/bin/notify-send -t 5000 "MANX OS Shell Engine" "Cartoon Shell path not found. Cloning from GitHub..." -i system-run
+                  ${pkgs.git}/bin/git clone "$CARTOON_REPO" "$CARTOON_PATH"
+              fi
+              quickshell --path "$CARTOON_PATH" & disown
               ;;
           noctalia)
-              NOCT_PATH="$HOME/.config/quickshell/noctalia"
-              if [ ! -d "$NOCT_PATH" ]; then
-                  ${pkgs.libnotify}/bin/notify-send -t 5000 "MANX OS Shell Engine" "Noctalia path not found. Cloning from GitHub..." -i system-run
-                  ${pkgs.git}/bin/git clone https://github.com/noctalia-dev/noctalia-shell.git "$NOCT_PATH"
+              if command -v qs &>/dev/null; then
+                  qs -c noctalia-shell & disown
+              else
+                  NOCT_PATH="$HOME/.config/quickshell/noctalia"
+                  if [ ! -d "$NOCT_PATH" ]; then
+                      ${pkgs.libnotify}/bin/notify-send -t 5000 "MANX OS Shell Engine" "Noctalia path not found. Cloning from GitHub..." -i system-run
+                      ${pkgs.git}/bin/git clone https://github.com/noctalia-dev/noctalia-shell.git "$NOCT_PATH"
+                  fi
+                  quickshell --path "$NOCT_PATH" & disown
               fi
-              quickshell --path "$NOCT_PATH" & disown
+              ;;
+          dms)
+              if command -v dms &>/dev/null; then
+                  dms & disown
+              else
+                  DMS_PATH="$HOME/.config/quickshell/dms"
+                  if [ ! -d "$DMS_PATH" ]; then
+                      ${pkgs.libnotify}/bin/notify-send -t 5000 "MANX OS Shell Engine" "DankMaterialShell path not found. Cloning from GitHub..." -i system-run
+                      ${pkgs.git}/bin/git clone https://github.com/AvengeMedia/DankMaterialShell.git "$DMS_PATH"
+                  fi
+                  quickshell --path "$DMS_PATH" & disown
+              fi
               ;;
       esac
 
@@ -426,30 +457,13 @@
     text = ''
       #!/usr/bin/env bash
       # MANX OS Shell Loader - Invoked at Hyprland Boot
-      # Launches the user's preferred shell dynamically without bloat or lag.
+      # Always resets to Ambxst on boot for maximum consistency.
 
-      PREF_FILE="$HOME/.config/manx-shell-pref"
-      TARGET_SHELL=$(cat "$PREF_FILE" 2>/dev/null || echo "ambxst")
+      # Ensure proper QML import path mapping for premium shells
+      export QML2_IMPORT_PATH="${pkgs.qt6.qt5compat}/lib/qt-6/qml:${pkgs.qt6.qtmultimedia}/lib/qt-6/qml:${pkgs.qt6.qtshadertools}/lib/qt-6/qml:${pkgs.kdePackages.kirigami}/lib/qt-6/qml:${pkgs.kdePackages.qqc2-desktop-style}/lib/qt-6/qml:$QML2_IMPORT_PATH"
 
-      # Ensure proper QML import path mapping for additional dependencies
-      export QML2_IMPORT_PATH=$QML2_IMPORT_PATH:$(echo /nix/store/*-qt5compat-*/lib/qt-6/qml | tr ' ' ':'):$(echo /nix/store/*-qtmultimedia-*/lib/qt-6/qml | tr ' ' ':'):$(echo /nix/store/*-kirigami-*/lib/qt-6/qml | tr ' ' ':')
-
-      case "$TARGET_SHELL" in
-          cartoon)
-              quickshell --path "$HOME/.config/quickshell/cartoon-shell" &
-              ;;
-          noctalia)
-              NOCT_PATH="$HOME/.config/quickshell/noctalia"
-              if [ ! -d "$NOCT_PATH" ]; then
-                  ${pkgs.git}/bin/git clone https://github.com/noctalia-dev/noctalia-shell.git "$NOCT_PATH"
-              fi
-              quickshell --path "$NOCT_PATH" &
-              ;;
-          ambxst|*)
-              # Default fallback to user's favorite main shell
-              ambxst &
-              ;;
-      esac
+      # Always launch Ambxst on boot
+      ambxst &
     '';
   };
 
