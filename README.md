@@ -98,6 +98,50 @@ The display manager (SDDM) is configured as a VLSI CAD workstation terminal inte
 
 ---
 
+## 💿 Declarative Storage & LUKS Partitioning (Disko)
+
+To automate the partition structure, filesystem layouts, and encryption mappings, **MANX OS** leverages **Disko** (declarative disk partition management). This ensures that disk formatting, LUKS encryption containers, and Btrfs subvolumes are written in 100% pure Nix, making bare-metal provisioning completely automated and identical across target workstations.
+
+<div align="center" style="margin-top: 15px; margin-bottom: 25px;">
+  <img src="assets/disko_layout.svg" alt="MANX OS Declarative Storage Architecture" width="100%" />
+</div>
+
+### 🔒 Core Design Principles
+* **Dual LUKS Encryption Layers**: Direct TPM2 hardware integration unlocks both the system partition (`cryptsystem`) and the swap partition (`cryptswap`) automatically, maintaining high-fidelity security without manual passcode overhead at boot.
+* **Optimized Btrfs Storage Pool**: Custom filesystem parameters (`compress=zstd:3`, `noatime`, `discard=async`, `space_cache=v2`) maximize read/write performance and lifespan on NVMe SSD solid-state drives.
+* **Stateless Alignment**: Integrates directly with our Stage-1 initrd rollback script to mount Btrfs subvolumes (`home`, `nix`, `persist`, `srv`, `var/lib/...`) onto the designated system paths instantly on decryption.
+
+### 🔌 Live Non-Destructive Migration (Physical GPT Re-labeling)
+If deploying onto an existing machine whose physical partitions are already aligned but missing the correct GPT partition names required by Disko (such as standard manually partitioned drives), you can perform a **live metadata migration** without formatting or data loss:
+
+1. **Re-label the Physical Partitions**:
+   Assign the unique GPT partition names matching Disko's expected device symlinks:
+   ```bash
+   sudo nix-shell -p gptfdisk --run "sgdisk -c 1:disk-main-ESP -c 2:disk-main-system -c 3:disk-main-swap /dev/nvme0n1"
+   ```
+
+2. **Reload `udev` Symlinks**:
+   Instantly register the new labels in your live `/dev/disk/by-partlabel/` space:
+   ```bash
+   sudo udevadm trigger
+   ```
+
+3. **Verify Symlink Convergence**:
+   Verify that your paths successfully resolve:
+   ```bash
+   ls -l /dev/disk/by-partlabel/
+   ```
+   *Expected output:*
+   ```text
+   disk-main-ESP -> ../../nvme0n1p1
+   disk-main-system -> ../../nvme0n1p2
+   disk-main-swap -> ../../nvme0n1p3
+   ```
+
+Once validated, running `nh os boot --hostname MANX -- --accept-flake-config` will update your bootloader to read the new partition labels perfectly.
+
+---
+
 ## Integrated Silicon Design Flow & Toolchain
 
 The digital engineering suite is divided into logical processing pipelines, providing coverage from high-level hardware description language (HDL) design to analog mixed-signal simulation and physical GDSII layout.
