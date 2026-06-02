@@ -1,5 +1,38 @@
 { config, pkgs, ... }:
 
+let
+  yt-x = pkgs.stdenv.mkDerivation rec {
+    pname = "yt-x";
+    version = "latest";
+
+    src = pkgs.fetchurl {
+      url = "https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/master/yt-x";
+      sha256 = "0zpsjgyhc5pgz8jr2vp2ci3yg1vmnbcq27k602lgjra39hr2dg9c";
+    };
+
+    dontUnpack = true;
+
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+
+    installPhase = ''
+      mkdir -p $out/bin
+      cp $src $out/bin/yt-x
+      chmod +x $out/bin/yt-x
+      wrapProgram $out/bin/yt-x \
+        --prefix PATH : ${
+          pkgs.lib.makeBinPath [
+            pkgs.yt-dlp
+            pkgs.fzf
+            pkgs.jq
+            pkgs.curl
+            pkgs.mpv
+            pkgs.chafa
+            pkgs.ffmpeg
+          ]
+        }
+    '';
+  };
+in
 {
   # --- Shared User Packages (Daily Use, Multimedia, Creative) ---
   home.packages = with pkgs; [
@@ -18,6 +51,7 @@
     mpv
     yt-dlp # Ultimate video/audio downloader
     ani-cli # CLI Anime streaming tool
+    yt-x # Interactive terminal YouTube browser & player
     loupe # Premium modern image viewer (GNOME)
     snapshot # Best modern camera/webcam application
     kdePackages.kdenlive

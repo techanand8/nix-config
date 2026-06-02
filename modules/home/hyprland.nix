@@ -48,7 +48,7 @@
 
     # 0.5. Screen Shader for Zen Focus Mode
     "hypr/shaders/grayscale.frag".text = ''
-      // Elite Silicon Grayscale Focus Shader
+      #version 100
       precision mediump float;
       varying vec2 v_texcoord;
       uniform sampler2D tex;
@@ -359,10 +359,10 @@
       CURRENT_SHADER=$(hyprctl getoption decoration:screen_shader -j | ${pkgs.jq}/bin/jq -r '.str')
 
       if [[ "$CURRENT_SHADER" == "none" || "$CURRENT_SHADER" == "" ]]; then
-          hyprctl keyword decoration:screen_shader "$SHADER_PATH"
+          hyprctl eval 'hl.config({ decoration = { screen_shader = "'"$SHADER_PATH"'" } })'
           ${pkgs.libnotify}/bin/notify-send -t 1500 "Zen Focus Mode" "Grayscale screen filter active" -i info
       else
-          hyprctl keyword decoration:screen_shader ""
+          hyprctl eval 'hl.config({ decoration = { screen_shader = "" } })'
           ${pkgs.libnotify}/bin/notify-send -t 1500 "Zen Focus Mode" "Standard color profile restored" -i info
       fi
     '';
