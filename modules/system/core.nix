@@ -71,6 +71,7 @@
       "https://attic.xuyh0120.win/lantian"
       "https://openlane.cachix.org"
       "https://nix-cache.fossi-foundation.org"
+      "https://noctalia.cachix.org"
     ]
     ++ (lib.optionals
       (vars ? cachixName && vars.cachixName != "" && vars.cachixName != "your-cachix-subdomain")
@@ -87,6 +88,7 @@
       "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
       "openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E="
       "nix-cache.fossi-foundation.org:3+K59iFwXqKsL7BNu6Guy0v+uTlwsxYQxjspXzqLYQs="
+      "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
     ]
     ++ (lib.optionals
       (

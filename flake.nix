@@ -29,6 +29,12 @@
     # Ambxst shell flake
     ambxst.url = "github:Axenide/Ambxst";
 
+    # Noctalia shell flake
+    noctalia = {
+      url = "github:noctalia-dev/noctalia-shell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Nixvim Neovim management
     nixvim = {
       url = "github:nix-community/nixvim";

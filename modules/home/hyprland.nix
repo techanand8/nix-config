@@ -147,6 +147,7 @@
           hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
           hl.exec_cmd("bash $HOME/.local/bin/sync_ghostty.sh")
           hl.exec_cmd("bash $HOME/.local/bin/manx-load-plugins &")
+          hl.exec_cmd("bash $HOME/.local/bin/manx-shell-load &")
           hl.exec_cmd("hyprctl keyword windowrule 'dimaround, hyprpolkitagent'")
           hl.exec_cmd("sleep 5 && distrobox enter manx-vivado -- env _JAVA_AWT_WM_NONREPARENTING=1 /tools/Xilinx/xic/xic &")
       end)
@@ -346,6 +347,109 @@
       hyprctl keyword plugin:hyprfocus:flash:flash_opacity 0.85
       hyprctl keyword plugin:hyprfocus:flash:in_speed 0.5
       hyprctl keyword plugin:hyprfocus:flash:out_speed 3
+    '';
+  };
+
+  # --- MANX OS Premium Desktop Shell Toggle Engine ---
+  # Allows seamless switcher capability between Ambxst, Cartoon-Shell, and Noctalia.
+  home.file.".local/bin/manx-shell-toggle" = {
+    executable = true;
+    text = ''
+      #!/usr/bin/env bash
+      # MANX OS premium dynamic shell toggle script
+      # Handles zero-lag transition between Ambxst, Cartoon, and Noctalia shells.
+
+      PREF_FILE="$HOME/.config/manx-shell-pref"
+      CURRENT_PREF=$(cat "$PREF_FILE" 2>/dev/null || echo "ambxst")
+
+      print_usage() {
+          echo -e "\e[1;36m❄️ MANX Shell Engine\e[0m"
+          echo -e "Current Active Shell: \e[1;32m$CURRENT_PREF\e[0m\n"
+          echo -e "Usage: \e[1mmanx-shell-toggle [ambxst | cartoon | noctalia]\e[0m"
+          echo -e "  - \e[33mambxst\e[0m    : Main Ambxst QML shell (Default)"
+          echo -e "  - \e[33mcartoon\e[0m   : Cartoon Shell QuickShell panel"
+          echo -e "  - \e[33mnoctalia\e[0m  : Minimal aesthetic Noctalia shell"
+      }
+
+      if [[ -z "$1" ]]; then
+          print_usage
+          exit 0
+      fi
+
+      TARGET_SHELL=$(echo "$1" | tr '[:upper:]' '[:lower:]')
+
+      case "$TARGET_SHELL" in
+          ambxst|cartoon|noctalia)
+              ;;
+          *)
+              echo -e "\e[1;31mError: Unknown shell target '$1'\e[0m"
+              print_usage
+              exit 1
+              ;;
+      esac
+
+      # 1. Save Preference
+      mkdir -p "$(dirname "$PREF_FILE")"
+      echo "$TARGET_SHELL" > "$PREF_FILE"
+
+      # 2. Notify Switch Start
+      ${pkgs.libnotify}/bin/notify-send -t 2000 "MANX OS Shell Engine" "Switching desktop layout to: ''${TARGET_SHELL^}..." -i preferences-desktop-theme
+
+      # 3. Safe Shutdown of Current Quickshell Instance
+      pkill -f quickshell || true
+      sleep 0.5
+
+      # 4. Launch Target Shell
+      case "$TARGET_SHELL" in
+          ambxst)
+              ambxst & disown
+              ;;
+          cartoon)
+              quickshell --path "$HOME/.config/quickshell/cartoon-shell" & disown
+              ;;
+          noctalia)
+              NOCT_PATH="$HOME/.config/quickshell/noctalia"
+              if [ ! -d "$NOCT_PATH" ]; then
+                  ${pkgs.libnotify}/bin/notify-send -t 5000 "MANX OS Shell Engine" "Noctalia path not found. Cloning from GitHub..." -i system-run
+                  ${pkgs.git}/bin/git clone https://github.com/noctalia-dev/noctalia-shell.git "$NOCT_PATH"
+              fi
+              quickshell --path "$NOCT_PATH" & disown
+              ;;
+      esac
+
+      ${pkgs.libnotify}/bin/notify-send -t 1500 "MANX OS Shell Engine" "''${TARGET_SHELL^} Shell Loaded Successfully!" -i info
+    '';
+  };
+
+  home.file.".local/bin/manx-shell-load" = {
+    executable = true;
+    text = ''
+      #!/usr/bin/env bash
+      # MANX OS Shell Loader - Invoked at Hyprland Boot
+      # Launches the user's preferred shell dynamically without bloat or lag.
+
+      PREF_FILE="$HOME/.config/manx-shell-pref"
+      TARGET_SHELL=$(cat "$PREF_FILE" 2>/dev/null || echo "ambxst")
+
+      # Ensure proper QML import path mapping for additional dependencies
+      export QML2_IMPORT_PATH=$QML2_IMPORT_PATH:$(echo /nix/store/*-qt5compat-*/lib/qt-6/qml | tr ' ' ':'):$(echo /nix/store/*-qtmultimedia-*/lib/qt-6/qml | tr ' ' ':'):$(echo /nix/store/*-kirigami-*/lib/qt-6/qml | tr ' ' ':')
+
+      case "$TARGET_SHELL" in
+          cartoon)
+              quickshell --path "$HOME/.config/quickshell/cartoon-shell" &
+              ;;
+          noctalia)
+              NOCT_PATH="$HOME/.config/quickshell/noctalia"
+              if [ ! -d "$NOCT_PATH" ]; then
+                  ${pkgs.git}/bin/git clone https://github.com/noctalia-dev/noctalia-shell.git "$NOCT_PATH"
+              fi
+              quickshell --path "$NOCT_PATH" &
+              ;;
+          ambxst|*)
+              # Default fallback to user's favorite main shell
+              ambxst &
+              ;;
+      esac
     '';
   };
 
