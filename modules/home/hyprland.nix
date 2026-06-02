@@ -425,7 +425,7 @@
         {
           # 3. Secure Lock (5 mins)
           timeout = 300;
-          on-timeout = "pkill -f 'alacritty --class manx-screensaver' || true; ambxst lock";
+          on-timeout = "pkill -f 'alacritty --class manx-screensaver' || true; loginctl lock-session";
         }
         {
           # 4. Power Save / Screen Off (5.5 mins)
