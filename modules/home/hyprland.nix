@@ -433,10 +433,11 @@
       esac
 
       # 5. Force Hyprland Reload to recalibrate layout reservations/gaps
-      sleep 1.0
-      ${pkgs.hyprland}/bin/hyprctl reload
-
-      ${pkgs.libnotify}/bin/notify-send -t 1500 "MANX OS Shell Engine" "''${TARGET_SHELL^} Shell Loaded Successfully!" -i info &
+      (
+          sleep 2.0
+          ${pkgs.hyprland}/bin/hyprctl reload
+          ${pkgs.libnotify}/bin/notify-send -t 1500 "MANX OS Shell Engine" "''${TARGET_SHELL^} Shell Loaded Successfully!" -i info
+      ) &
     '';
   };
 
