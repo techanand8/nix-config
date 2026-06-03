@@ -239,8 +239,8 @@
         TIMELINE_CREATE = true;
         TIMELINE_CLEANUP = true;
         LIMIT_HOURLY = "10";
-        LIMIT_DAILY = "7";
-        LIMIT_WEEKLY = "3";
+        LIMIT_DAILY = "14";
+        LIMIT_WEEKLY = "4";
         LIMIT_MONTHLY = "0";
         LIMIT_YEARLY = "0";
       };
@@ -249,8 +249,8 @@
         TIMELINE_CREATE = true;
         TIMELINE_CLEANUP = true;
         LIMIT_HOURLY = "10";
-        LIMIT_DAILY = "7";
-        LIMIT_WEEKLY = "3";
+        LIMIT_DAILY = "14";
+        LIMIT_WEEKLY = "4";
         LIMIT_MONTHLY = "0";
         LIMIT_YEARLY = "0";
       };

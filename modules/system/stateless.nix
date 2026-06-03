@@ -102,15 +102,6 @@
       # "/etc/adjtime" # If you dual boot with Windows
     ];
 
-    # --- USER-LEVEL PERSISTENCE ---
-    # Preserves the entirety of the primary user's home directory.
-    # The "." operator explicitly binds the root of the home directory to the persistent subvolume,
-    # ensuring all user data, tool configurations, and hidden state files survive reboots.
-    users."${vars.username}" = {
-      directories = [
-        "."
-      ];
-    };
   };
 
   # Manually link the machine-id from persist to avoid impermanence activation collision
