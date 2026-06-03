@@ -389,6 +389,11 @@
 
       TARGET_SHELL=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 
+      if [[ "$TARGET_SHELL" == "$CURRENT_PREF" ]]; then
+          echo "Shell already active: $TARGET_SHELL"
+          exit 0
+      fi
+
       case "$TARGET_SHELL" in
           ambxst|cartoon)
               ;;
@@ -403,18 +408,14 @@
       mkdir -p "$(dirname "$PREF_FILE")"
       echo "$TARGET_SHELL" > "$PREF_FILE"
 
-      # 2. Notify Switch Start (asynchronously to avoid blocking if notification daemon is hung)
+      # 2. Notify Switch Start
       ${pkgs.libnotify}/bin/notify-send -t 2000 "MANX OS Shell Engine" "Switching desktop layout to: ''${TARGET_SHELL^}..." -i preferences-desktop-theme &
 
-      # Ensure proper QML import path mapping for all shells using stable Nix paths
-      export QML2_IMPORT_PATH="${pkgs.qt6.qt5compat.out}/lib/qt-6/qml:${pkgs.qt6.qtmultimedia.out}/lib/qt-6/qml:${pkgs.qt6.qtshadertools.out}/lib/qt-6/qml:${pkgs.kdePackages.kirigami.unwrapped}/lib/qt-6/qml:${pkgs.kdePackages.qqc2-desktop-style.out}/lib/qt-6/qml:$QML2_IMPORT_PATH"
-
-      # 3. Safe Shutdown of Current Shell/Quickshell Instances
-      # Use -x (exact match) instead of -f to avoid killing this script if "ambxst" is in the cmdline
+      # 3. Safe Shutdown of Current Shell Instances
+      # Use pkill -x to match only the exact process name, avoiding self-termination
       pkill -x quickshell || true
-      pkill -x qs || true
       pkill -x ambxst || true
-      sleep 0.5
+      sleep 0.8
 
       # 4. Launch Target Shell
       case "$TARGET_SHELL" in
@@ -430,6 +431,10 @@
               $UWSM_CMD quickshell --path "$CARTOON_PATH" & disown
               ;;
       esac
+
+      # 5. Force Hyprland Reload to recalibrate layout reservations/gaps
+      sleep 1.0
+      ${pkgs.hyprland}/bin/hyprctl reload
 
       ${pkgs.libnotify}/bin/notify-send -t 1500 "MANX OS Shell Engine" "''${TARGET_SHELL^} Shell Loaded Successfully!" -i info &
     '';
