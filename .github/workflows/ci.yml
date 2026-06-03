@@ -27,7 +27,7 @@ jobs:
         uses: DeterminateSystems/magic-nix-cache-action@v2
 
       - name: 01 / Verify Code Style (RFC-166)
-        run: nix fmt -- --check
+        run: nix fmt -- --ci
 
       - name: 02 / Audit Flake Integrity
         run: nix flake check -v --show-trace
