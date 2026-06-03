@@ -401,8 +401,10 @@
       export QML2_IMPORT_PATH="${pkgs.qt6.qt5compat.out}/lib/qt-6/qml:${pkgs.qt6.qtmultimedia.out}/lib/qt-6/qml:${pkgs.qt6.qtshadertools.out}/lib/qt-6/qml:${pkgs.kdePackages.kirigami.unwrapped}/lib/qt-6/qml:${pkgs.kdePackages.qqc2-desktop-style.out}/lib/qt-6/qml:$QML2_IMPORT_PATH"
 
       # 3. Safe Shutdown of Current Shell/Quickshell Instances
+      # We kill BOTH potential shells to ensure a clean transition without overlapping bars or gaps
       pkill -f quickshell || true
       pkill -f qs || true
+      pkill -f ambxst || true
       sleep 0.5
 
       # 4. Launch Target Shell
@@ -429,14 +431,13 @@
     text = ''
       #!/usr/bin/env bash
       # MANX OS Shell Loader - Invoked at Hyprland Boot
-      # Always resets to Ambxst on boot for maximum consistency.
+      # Respects user preference saved via manx-shell-toggle.
 
-      # Ensure proper QML import path mapping for premium shells
-      export QML2_IMPORT_PATH="${pkgs.qt6.qt5compat.out}/lib/qt-6/qml:${pkgs.qt6.qtmultimedia.out}/lib/qt-6/qml:${pkgs.qt6.qtshadertools.out}/lib/qt-6/qml:${pkgs.kdePackages.kirigami.unwrapped}/lib/qt-6/qml:${pkgs.kdePackages.qqc2-desktop-style.out}/lib/qt-6/qml:$QML2_IMPORT_PATH"
+      PREF_FILE="$HOME/.config/manx-shell-pref"
+      TARGET_SHELL=$(cat "$PREF_FILE" 2>/dev/null || echo "ambxst")
 
-
-      # Always launch Ambxst on boot
-      ambxst &
+      # Use the toggle script to ensure consistent launch logic and setup
+      exec bash $HOME/.local/bin/manx-shell-toggle "$TARGET_SHELL"
     '';
   };
 
