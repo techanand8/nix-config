@@ -368,11 +368,9 @@
       print_usage() {
           echo -e "\e[1;36m❄️ MANX Shell Engine\e[0m"
           echo -e "Current Active Shell: \e[1;32m$CURRENT_PREF\e[0m\n"
-          echo -e "Usage: \e[1mmanx-shell-toggle [ambxst | cartoon | noctalia | dms]\e[0m"
+          echo -e "Usage: \e[1mmanx-shell-toggle [ambxst | cartoon]\e[0m"
           echo -e "  - \e[33mambxst\e[0m    : Main Ambxst QML shell (Default)"
-          echo -e "  - \e[33mcartoon\e[0m   : Cartoon Shell QuickShell panel (Cloned from GitHub)"
-          echo -e "  - \e[33mnoctalia\e[0m  : Minimal aesthetic Noctalia shell (Flake-managed)"
-          echo -e "  - \e[33mdms\e[0m       : Material 3 DankMaterialShell (Flake-managed)"
+          echo -e "  - \e[33mcartoon\e[0m   : Cartoon Shell QuickShell panel"
       }
 
       if [[ -z "$1" ]]; then
@@ -383,7 +381,7 @@
       TARGET_SHELL=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 
       case "$TARGET_SHELL" in
-          ambxst|cartoon|noctalia|dms)
+          ambxst|cartoon)
               ;;
           *)
               echo -e "\e[1;31mError: Unknown shell target '$1'\e[0m"
@@ -404,9 +402,7 @@
 
       # 3. Safe Shutdown of Current Shell/Quickshell Instances
       pkill -f quickshell || true
-      pkill -f noctalia-qs || true
       pkill -f qs || true
-      pkill -f dms || true
       sleep 0.5
 
       # 4. Launch Target Shell
@@ -421,30 +417,6 @@
                   ${pkgs.git}/bin/git clone "$CARTOON_REPO" "$CARTOON_PATH"
               fi
               quickshell --path "$CARTOON_PATH" & disown
-              ;;
-          noctalia)
-              if command -v qs &>/dev/null; then
-                  qs -c noctalia-shell & disown
-              else
-                  NOCT_PATH="$HOME/.config/quickshell/noctalia"
-                  if [ ! -d "$NOCT_PATH" ]; then
-                      ${pkgs.libnotify}/bin/notify-send -t 5000 "MANX OS Shell Engine" "Noctalia path not found. Cloning from GitHub..." -i system-run &
-                      ${pkgs.git}/bin/git clone https://github.com/noctalia-dev/noctalia-shell.git "$NOCT_PATH"
-                  fi
-                  quickshell --path "$NOCT_PATH" & disown
-              fi
-              ;;
-          dms)
-              if command -v dms &>/dev/null; then
-                  dms & disown
-              else
-                  DMS_PATH="$HOME/.config/quickshell/dms"
-                  if [ ! -d "$DMS_PATH" ]; then
-                      ${pkgs.libnotify}/bin/notify-send -t 5000 "MANX OS Shell Engine" "DankMaterialShell path not found. Cloning from GitHub..." -i system-run &
-                      ${pkgs.git}/bin/git clone https://github.com/AvengeMedia/DankMaterialShell.git "$DMS_PATH"
-                  fi
-                  quickshell --path "$DMS_PATH" & disown
-              fi
               ;;
       esac
 

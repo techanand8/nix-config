@@ -112,10 +112,6 @@ in
 
     matugen # Required by Cartoon Shell for Material You dynamic color palette generation
 
-    # --- FLAKE-BASED DESKTOP SHELLS (PRE-COMPILED VIA FLAKES) ---
-    inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default
-    inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default
-
     # --- ELITE DEVELOPER UTILS ---
     xdotool # Command-line X11 automation tool
     wlrctl # Wayland-native automation tool
