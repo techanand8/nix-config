@@ -62,6 +62,12 @@
     # Declarative Flatpaks
     nix-flatpak.url = "github:gmodena/nix-flatpak";
 
+    # Multi-language formatter
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # OpenLane 2 - Digital ASIC implementation flow
     openlane.url = "github:efabless/openlane2";
   };
@@ -74,6 +80,59 @@
 
       # Helper to generate settings for each system
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
+
+      # --- SILICON-GRADE UNIFIED FORMATTER (TREEFMT) ---
+      # One command to format everything: Nix, Python, Shell, and SystemVerilog.
+      treefmtStack = forAllSystems (
+        system:
+        inputs.treefmt-nix.lib.evalModule nixpkgs.legacyPackages.${system} {
+          projectRootFile = "flake.nix";
+
+          # 1. Nix Language (Core)
+          programs.nixfmt.enable = true;
+
+          # 2. VLSI & Hardware Engineering (Critical for you!)
+          # Custom definition since programs.verible is not a built-in treefmt-nix option
+          settings.formatter.verible-format = {
+            command = "${nixpkgs.legacyPackages.${system}.verible}/bin/verible-verilog-format";
+            options = [
+              "--inplace"
+              "--indent_spaces=2"
+              "--named_port_alignment=align"
+              "--named_parameter_alignment=align"
+            ];
+            includes = [
+              "*.v"
+              "*.sv"
+              "*.vh"
+              "*.svh"
+            ];
+          };
+
+          # 3. Python & AI Scripting (Ultra-fast)
+          programs.ruff.enable = true;
+
+          # 4. Shell & System Scripts
+          programs.shfmt.enable = true;
+
+          # 5. Technical Documentation & Web (Markdown, YAML, JSON, CSS)
+          programs.prettier.enable = true;
+
+          # 6. Low-Level Firmware (C / C++)
+          programs.clang-format.enable = true;
+
+          # Configuration for specific formatters
+          settings.formatter = {
+            "shfmt" = {
+              options = [
+                "-i"
+                "2"
+                "-ci"
+              ];
+            };
+          };
+        }
+      );
 
       # Centralized System Builder
       mkSystem =
@@ -201,32 +260,8 @@
         };
       };
 
-      # Automated Nix Formatter (Multi-architecture)
-      formatter = forAllSystems (
-        system:
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-        in
-        pkgs.writeShellScriptBin "nixfmt" ''
-          # Parse arguments to separate flags from target files
-          args=()
-          files=()
-          for arg in "$@"; do
-            if [[ "$arg" == -* ]]; then
-              args+=("$arg")
-            else
-              files+=("$arg")
-            fi
-          done
-
-          if [ ''${#files[@]} -eq 0 ]; then
-            # Auto-find all nix files and format/check them
-            find . -name "*.nix" -not -path "./result/*" -not -path "./.git/*" -print0 | xargs -0 ${pkgs.nixfmt}/bin/nixfmt "''${args[@]}"
-          else
-            exec ${pkgs.nixfmt}/bin/nixfmt "$@"
-          fi
-        ''
-      );
+      # Expose the generated wrapper as the default 'nix fmt' command
+      formatter = forAllSystems (system: treefmtStack.${system}.config.build.wrapper);
 
       # Development Environments
       devShells = forAllSystems (
@@ -237,7 +272,8 @@
         {
           default = pkgs.mkShell {
             packages = with pkgs; [
-              nixfmt
+              # Add the formatter to the devShell so it is available locally
+              self.formatter.${system}
               nil
               statix
               deadnix

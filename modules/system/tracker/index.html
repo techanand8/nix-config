@@ -1,711 +1,993 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MANX // Silicon Routine & Self-Improvement Dashboard</title>
     <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Outfit:wght@100..900&display=swap"
-        rel="stylesheet">
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Outfit:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
     <!-- Google Material Icons -->
     <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
-        rel="stylesheet" />
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+      rel="stylesheet"
+    />
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="style.css">
-</head>
+    <link rel="stylesheet" href="style.css" />
+  </head>
 
-<body>
+  <body>
     <!-- Immersive Background Gradients & Glow Effects -->
     <div class="bg-glow bg-glow-orange"></div>
     <div class="bg-glow bg-glow-purple"></div>
     <div class="bg-glow bg-glow-teal"></div>
 
     <div class="app-container">
-        <!-- HEADER -->
-        <header class="app-header">
-            <div class="header-brand">
-                <span class="material-symbols-outlined brand-icon">developer_board</span>
-                <div class="brand-text">
-                    <h1>MANX <span>ROUTINE</span></h1>
-                    <p>Silicon Operations Control Plane</p>
-                </div>
-            </div>
-
-            <div class="date-navigator">
-                <button class="nav-btn btn-prev" id="btnPrevDay" title="Previous Day">
-                    <span class="material-symbols-outlined">chevron_left</span>
-                </button>
-                <div class="current-date-container">
-                    <span class="material-symbols-outlined">calendar_today</span>
-                    <input type="date" id="datePicker" class="date-picker-input">
-                </div>
-                <button class="nav-btn btn-next" id="btnNextDay" title="Next Day">
-                    <span class="material-symbols-outlined">chevron_right</span>
-                </button>
-                <button class="nav-btn btn-today" id="btnGoToday">TODAY</button>
-            </div>
-
-            <div class="header-status">
-                <button class="eye-saver-btn" id="btnWarmToggle" title="Eye Saver Temperature Mode">
-                    <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span> Eye Saver
-                </button>
-                <span class="status-indicator online"></span>
-                <span class="status-text">LOCAL TRACKING ENG. ACTIVE</span>
-            </div>
-        </header>
-
-        <!-- MAIN LAYOUT -->
-        <div class="dashboard-grid">
-
-            <!-- LEFT SIDEBAR: Calendar Logs & Quick Stats -->
-            <aside class="sidebar">
-                <div class="sidebar-card history-card">
-                    <div class="card-header">
-                        <span class="material-symbols-outlined">history</span>
-                        <h2>Timeline Records</h2>
-                    </div>
-                    <div class="history-list" id="historyList">
-                        <div class="history-placeholder">No logged data yet. Start tracking today!</div>
-                    </div>
-                </div>
-
-                <div class="sidebar-card quick-stats-card">
-                    <div class="card-header">
-                        <span class="material-symbols-outlined">analytics</span>
-                        <h2>Performance</h2>
-                    </div>
-                    <div class="stat-row">
-                        <div class="stat-col">
-                            <span class="stat-val" id="statWeeklyAvg">0/10</span>
-                            <span class="stat-lbl">7d Focus Avg</span>
-                        </div>
-                        <div class="stat-col">
-                            <span class="stat-val" id="statVlsiHours">0h</span>
-                            <span class="stat-lbl">7d VLSI Work</span>
-                        </div>
-                    </div>
-                    <div class="stat-row">
-                        <div class="stat-col">
-                            <span class="stat-val" id="statTasksComp">0</span>
-                            <span class="stat-lbl">Completed Tasks</span>
-                        </div>
-                        <div class="stat-col">
-                            <span class="stat-val" id="statStreak">0d</span>
-                            <span class="stat-lbl">Active Streak</span>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-
-            <!-- MAIN WORKSPACE -->
-            <main class="main-content">
-
-                <!-- TOP METRICS ROW -->
-                <section class="metrics-row">
-                    <div class="metric-card focus-metric">
-                        <div class="metric-icon">🎯</div>
-                        <div class="metric-info">
-                            <h3>Focus Rating</h3>
-                            <div class="metric-val-container">
-                                <span class="metric-value" id="valFocus">0</span><span class="metric-max">/10</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="metric-card reflection-metric">
-                        <div class="metric-icon">🥗</div>
-                        <div class="metric-info">
-                            <h3>Habits Score</h3>
-                            <div class="metric-val-container">
-                                <span class="metric-value" id="valHabits">0</span><span class="metric-max">/8</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="metric-card tasks-metric">
-                        <div class="metric-icon">🎓</div>
-                        <div class="metric-info">
-                            <h3>Academic Studies</h3>
-                            <div class="metric-val-container">
-                                <span class="metric-value" id="valAcademicHours">0</span><span
-                                    class="metric-max">hrs</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="metric-card vlsi-metric">
-                        <div class="metric-icon">⚡</div>
-                        <div class="metric-info">
-                            <h3>Silicon & VLSI</h3>
-                            <div class="metric-val-container">
-                                <span class="metric-value" id="valVlsiHours">0</span><span class="metric-max">hrs</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- WORKSPACE CARD -->
-                <section class="workspace-card">
-                    <!-- TABS -->
-                    <div class="workspace-tabs">
-                        <button class="tab-link active" data-tab="tabDaily">
-                            <span class="material-symbols-outlined">task_alt</span>
-                            Daily Reflection & Routine
-                        </button>
-                        <button class="tab-link" data-tab="tabVlsi">
-                            <span class="material-symbols-outlined">memory</span>
-                            VLSI & Silicon Engineering
-                        </button>
-                        <button class="tab-link" data-tab="tabAnalytics">
-                            <span class="material-symbols-outlined">monitoring</span>
-                            Data Analysis Charts
-                        </button>
-                    </div>
-
-                    <!-- TAB CONTENTS -->
-                    <div class="tab-container">
-
-                        <!-- TAB: DAILY REFLECTION -->
-                        <div id="tabDaily" class="tab-content active">
-                            <div class="form-grid">
-                                <div class="form-section full-width sliders-container"
-                                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;">
-                                    <div class="slider-group">
-                                        <div class="slider-header">
-                                            <label for="inputFocus">🎯 Focus & Productivity</label>
-                                            <span class="slider-badge orange" id="badgeFocus">0 / 10</span>
-                                        </div>
-                                        <input type="range" id="inputFocus" min="0" max="10" step="1" value="0">
-                                        <div class="slider-labels">
-                                            <span>Unfocused</span>
-                                            <span>Moderate</span>
-                                            <span>Deep Flow</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="slider-group">
-                                        <div class="slider-header">
-                                            <label for="inputReflection">🌱 Reflection & Growth</label>
-                                            <span class="slider-badge purple" id="badgeReflection">0 / 10</span>
-                                        </div>
-                                        <input type="range" id="inputReflection" min="0" max="10" step="1" value="0">
-                                        <div class="slider-labels">
-                                            <span>Lost Routine</span>
-                                            <span>Aligned</span>
-                                            <span>Exceptional</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="slider-group">
-                                        <div class="slider-header">
-                                            <label for="inputSleep">😴 Sleep Duration</label>
-                                            <span class="slider-badge blue" id="badgeSleep">8.0 hrs</span>
-                                        </div>
-                                        <input type="range" id="inputSleep" min="0" max="14" step="0.5" value="8">
-                                        <div class="slider-labels">
-                                            <span>Insomnia</span>
-                                            <span>Target (7-9h)</span>
-                                            <span>Oversleep</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="slider-group">
-                                        <div class="slider-header">
-                                            <label for="inputScreen">📵 Screen Time Control</label>
-                                            <span class="slider-badge red" id="badgeScreen">4.0 hrs</span>
-                                        </div>
-                                        <input type="range" id="inputScreen" min="0" max="16" step="0.5" value="4">
-                                        <div class="slider-labels">
-                                            <span>Zero Screen</span>
-                                            <span>Target (&lt;6h)</span>
-                                            <span>High Exposure</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- HABIT CORRECTNESS MATRIX -->
-                                <div class="form-section full-width habit-matrix-section">
-                                    <div class="section-title">
-                                        <span class="material-symbols-outlined text-teal">spa</span>
-                                        <h3>Habit Correctness Matrix</h3>
-                                        <span class="slider-badge green" id="badgeHabits">0% Complete</span>
-                                    </div>
-                                    <p class="field-desc">Toggle healthy daily habits. Small continuous gains shape
-                                        elite outcomes.</p>
-                                    <div class="habit-chips-grid">
-                                        <label class="habit-chip" data-habit="water">
-                                            <input type="checkbox" id="habitWater">
-                                            <span class="habit-content">
-                                                <span class="habit-icon">💧</span>
-                                                <span class="habit-text">3L Water</span>
-                                            </span>
-                                        </label>
-                                        <label class="habit-chip" data-habit="sleep">
-                                            <input type="checkbox" id="habitSleep">
-                                            <span class="habit-content">
-                                                <span class="habit-icon">😴</span>
-                                                <span class="habit-text">7h+ Sleep</span>
-                                            </span>
-                                        </label>
-                                        <label class="habit-chip" data-habit="exercise">
-                                            <input type="checkbox" id="habitExercise">
-                                            <span class="habit-content">
-                                                <span class="habit-icon">🏋️</span>
-                                                <span class="habit-text">Exercise</span>
-                                            </span>
-                                        </label>
-                                        <label class="habit-chip" data-habit="screen">
-                                            <input type="checkbox" id="habitScreen">
-                                            <span class="habit-content">
-                                                <span class="habit-icon">📵</span>
-                                                <span class="habit-text">No Bed Screen</span>
-                                            </span>
-                                        </label>
-                                        <label class="habit-chip" data-habit="read">
-                                            <input type="checkbox" id="habitRead">
-                                            <span class="habit-content">
-                                                <span class="habit-icon">📖</span>
-                                                <span class="habit-text">Read Tech specs</span>
-                                            </span>
-                                        </label>
-                                        <label class="habit-chip" data-habit="revise">
-                                            <input type="checkbox" id="habitRevise">
-                                            <span class="habit-content">
-                                                <span class="habit-icon">🧠</span>
-                                                <span class="habit-text">Concept Review</span>
-                                            </span>
-                                        </label>
-                                        <label class="habit-chip" data-habit="meditate">
-                                            <input type="checkbox" id="habitMeditate">
-                                            <span class="habit-content">
-                                                <span class="habit-icon">🧘</span>
-                                                <span class="habit-text">Mindfulness</span>
-                                            </span>
-                                        </label>
-                                        <label class="habit-chip" data-habit="bad-habits">
-                                            <input type="checkbox" id="habitBadHabitsAvoided">
-                                            <span class="habit-content">
-                                                <span class="habit-icon">🚫</span>
-                                                <span class="habit-text">Bad Habits Avoided</span>
-                                            </span>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <!-- DAILY ROUTINE ALIGNMENT WAVEFORM -->
-                                <div class="form-section full-width routine-waveform-section">
-                                    <div class="section-title">
-                                        <span class="material-symbols-outlined text-orange">timeline</span>
-                                        <h3>Daily Routine Chrono-Waveform</h3>
-                                        <span class="slider-badge orange" id="badgeRoutine">0% Routine Match</span>
-                                    </div>
-                                    <p class="field-desc">Check off routine slots as you complete them. Active blocks
-                                        construct a solid chronogram waveform of your day!</p>
-
-                                    <div class="routine-timeline-grid">
-                                        <label class="routine-slot-card" data-slot="0">
-                                            <input type="checkbox" name="routineSlots" value="0">
-                                            <div class="slot-visual">
-                                                <span class="slot-time">05:00 - 08:00</span>
-                                                <span class="slot-title">Morning Focus</span>
-                                                <span class="slot-desc">Meditation / Planning</span>
-                                                <div class="waveform-bar"></div>
-                                            </div>
-                                        </label>
-                                        <label class="routine-slot-card" data-slot="1">
-                                            <input type="checkbox" name="routineSlots" value="1">
-                                            <div class="slot-visual">
-                                                <span class="slot-time">08:00 - 12:00</span>
-                                                <span class="slot-title">Silicon Core</span>
-                                                <span class="slot-desc">HDL Coding & DV Theory</span>
-                                                <div class="waveform-bar"></div>
-                                            </div>
-                                        </label>
-                                        <label class="routine-slot-card" data-slot="2">
-                                            <input type="checkbox" name="routineSlots" value="2">
-                                            <div class="slot-visual">
-                                                <span class="slot-time">12:00 - 15:00</span>
-                                                <span class="slot-title">Academic & Math</span>
-                                                <span class="slot-desc">DSP & Architecture Core</span>
-                                                <div class="waveform-bar"></div>
-                                            </div>
-                                        </label>
-                                        <label class="routine-slot-card" data-slot="3">
-                                            <input type="checkbox" name="routineSlots" value="3">
-                                            <div class="slot-visual">
-                                                <span class="slot-time">15:00 - 18:00</span>
-                                                <span class="slot-title">Lab Practicals</span>
-                                                <span class="slot-desc">CAD Tools & Layout Design</span>
-                                                <div class="waveform-bar"></div>
-                                            </div>
-                                        </label>
-                                        <label class="routine-slot-card" data-slot="4">
-                                            <input type="checkbox" name="routineSlots" value="4">
-                                            <div class="slot-visual">
-                                                <span class="slot-time">18:00 - 21:00</span>
-                                                <span class="slot-title">Reflection & Gym</span>
-                                                <span class="slot-desc">Cardio & Habit Correction</span>
-                                                <div class="waveform-bar"></div>
-                                            </div>
-                                        </label>
-                                        <label class="routine-slot-card" data-slot="5">
-                                            <input type="checkbox" name="routineSlots" value="5">
-                                            <div class="slot-visual">
-                                                <span class="slot-time">21:00 - 05:00</span>
-                                                <span class="slot-title">PMO-Free Sleep</span>
-                                                <span class="slot-desc">Deep Rest & Recovery</span>
-                                                <div class="waveform-bar"></div>
-                                            </div>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div class="form-section">
-                                    <div class="section-title">
-                                        <span class="material-symbols-outlined text-purple">history_toggle_off</span>
-                                        <h3>Yesterday's Retrospective</h3>
-                                    </div>
-                                    <div class="input-group">
-                                        <label for="inputYesterdayDone">What I accomplished yesterday</label>
-                                        <textarea id="inputYesterdayDone"
-                                            placeholder="Describe highlights, milestones, and challenges conquered yesterday..."></textarea>
-                                    </div>
-                                    <div class="input-group">
-                                        <label for="inputYesterdayImprove">What I could have improved yesterday</label>
-                                        <textarea id="inputYesterdayImprove"
-                                            placeholder="Where did I waste time? How can I correct it?"></textarea>
-                                    </div>
-                                </div>
-
-                                <div class="form-section">
-                                    <div class="section-title">
-                                        <span class="material-symbols-outlined text-orange">today</span>
-                                        <h3>Today's Current Operations</h3>
-                                    </div>
-                                    <div class="input-group">
-                                        <label for="inputTodayDone">What I did today</label>
-                                        <textarea id="inputTodayDone"
-                                            placeholder="Outline active tasks accomplished, systems designed, documents finalized..."></textarea>
-                                    </div>
-                                    <div class="input-group">
-                                        <label for="inputTodayDoingNow">What I am doing right NOW</label>
-                                        <textarea id="inputTodayDoingNow"
-                                            placeholder="Describe the current immediate task or flow state..."></textarea>
-                                    </div>
-                                </div>
-
-                                <div class="form-section">
-                                    <div class="section-title">
-                                        <span class="material-symbols-outlined text-teal">rocket_launch</span>
-                                        <h3>Tomorrow's Strategy</h3>
-                                    </div>
-                                    <div class="input-group">
-                                        <label for="inputTomorrowDone">What I will do tomorrow</label>
-                                        <textarea id="inputTomorrowDone"
-                                            placeholder="List crucial high-priority items that must be executed tomorrow..."></textarea>
-                                    </div>
-                                </div>
-
-                                <div class="form-section">
-                                    <div class="section-title">
-                                        <span class="material-symbols-outlined text-amber">self_improvement</span>
-                                        <h3>Areas to Optimize & Improve</h3>
-                                    </div>
-                                    <div class="input-group">
-                                        <label for="inputTodayImprove">Self-Correction Plan</label>
-                                        <textarea id="inputTodayImprove"
-                                            placeholder="What actions will I take to optimize focus and improve moving forward?"></textarea>
-                                    </div>
-                                </div>
-
-                                <div class="form-section full-width todo-checklist-section">
-                                    <div class="section-title">
-                                        <span class="material-symbols-outlined text-teal">checklist</span>
-                                        <h3>Action Item Checklist</h3>
-                                    </div>
-                                    <div class="todo-input-row">
-                                        <input type="text" id="todoInput"
-                                            placeholder="Enter high-impact action item...">
-                                        <button class="btn btn-secondary" id="btnAddTodo">
-                                            <span class="material-symbols-outlined">add</span> ADD
-                                        </button>
-                                    </div>
-                                    <ul class="todo-list" id="todoList">
-                                        <!-- Dynamic checklist items -->
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- TAB: VLSI & SILICON ENGINEERING -->
-                        <div id="tabVlsi" class="tab-content">
-                            <div class="vlsi-container">
-                                <div class="vlsi-hero-banner">
-                                    <div class="banner-icon"><span class="material-symbols-outlined">memory</span></div>
-                                    <div class="banner-text">
-                                        <h2>Silicon Engineering Workflow Tracker</h2>
-                                        <p>Record hardware synthesis, block simulation, design verification (DV), and
-                                            physical design (PD) metrics.</p>
-                                    </div>
-                                </div>
-
-                                <div class="form-grid">
-                                    <div class="form-section full-width">
-                                        <label class="section-subtitle">Select Focus Discipline</label>
-                                        <div class="discipline-selector">
-                                            <label class="discipline-card active">
-                                                <input type="radio" name="vlsiType" value="dv" checked>
-                                                <div class="disc-content">
-                                                    <span class="material-symbols-outlined">bug_report</span>
-                                                    <h4>Design Verification (DV)</h4>
-                                                    <p>Simulation, assertion, coverage, testbenches, HDL logic
-                                                        validation</p>
-                                                </div>
-                                            </label>
-                                            <label class="discipline-card">
-                                                <input type="radio" name="vlsiType" value="pd">
-                                                <div class="disc-content">
-                                                    <span class="material-symbols-outlined">grid_view</span>
-                                                    <h4>Physical Design (PD)</h4>
-                                                    <p>Synthesis, floorplanning, placement, CTS, routing, STA, timing
-                                                        closure</p>
-                                                </div>
-                                            </label>
-                                            <label class="discipline-card">
-                                                <input type="radio" name="vlsiType" value="none">
-                                                <div class="disc-content">
-                                                    <span class="material-symbols-outlined">block</span>
-                                                    <h4>None / General</h4>
-                                                    <p>Skipping hardware tasks for this tracking cycle</p>
-                                                </div>
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    <!-- ACADEMIC COURSEWORK FOCUS -->
-                                    <div class="form-section" id="academicCourseworkSection">
-                                        <div class="section-title">
-                                            <span class="material-symbols-outlined text-amber">school</span>
-                                            <h3>Academic Focus & Coursework</h3>
-                                        </div>
-                                        <p class="field-desc">Check active subjects analyzed or studied today:</p>
-                                        <div class="checkbox-tag-grid">
-                                            <label class="checkbox-tag academic">
-                                                <input type="checkbox" name="academicFocus" value="VLSI & CAD/EDA">
-                                                <span>VLSI & CAD/EDA</span>
-                                            </label>
-                                            <label class="checkbox-tag academic">
-                                                <input type="checkbox" name="academicFocus"
-                                                    value="Computer Architecture">
-                                                <span>Computer Architecture</span>
-                                            </label>
-                                            <label class="checkbox-tag academic">
-                                                <input type="checkbox" name="academicFocus" value="DSP & Signals">
-                                                <span>DSP & Signals</span>
-                                            </label>
-                                            <label class="checkbox-tag academic">
-                                                <input type="checkbox" name="academicFocus"
-                                                    value="Algorithms & Data Structures">
-                                                <span>Algorithms & DS</span>
-                                            </label>
-                                            <label class="checkbox-tag academic">
-                                                <input type="checkbox" name="academicFocus"
-                                                    value="Analog/Digital IC Design">
-                                                <span>IC Design</span>
-                                            </label>
-                                            <label class="checkbox-tag academic">
-                                                <input type="checkbox" name="academicFocus" value="Applied Math">
-                                                <span>Applied Math / Stats</span>
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    <!-- ACADEMIC STUDY LOGS -->
-                                    <div class="form-section" id="academicLogsSection">
-                                        <div class="section-title">
-                                            <span class="material-symbols-outlined text-teal">menu_book</span>
-                                            <h3>Study & Academic Logs</h3>
-                                        </div>
-                                        <div class="input-row">
-                                            <div class="input-group flex-3">
-                                                <label for="inputAcademicTasks">Academic prep, homework, or exam
-                                                    notes</label>
-                                                <textarea id="inputAcademicTasks"
-                                                    placeholder="Document textbooks read, lab problems solved, syllabus milestones reached..."></textarea>
-                                            </div>
-                                            <div class="input-group flex-1">
-                                                <label for="inputAcademicHours">⏱️ Academic Hours</label>
-                                                <input type="number" id="inputAcademicHours" min="0" max="24" step="0.5"
-                                                    value="0">
-                                                <div class="academic-quick-toggles">
-                                                    <button type="button" class="btn-academic-toggle"
-                                                        data-val="1">1h</button>
-                                                    <button type="button" class="btn-academic-toggle"
-                                                        data-val="2">2h</button>
-                                                    <button type="button" class="btn-academic-toggle"
-                                                        data-val="4">4h</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-section" id="vlsiLanguagesSection">
-                                        <div class="section-title">
-                                            <span class="material-symbols-outlined text-orange">code</span>
-                                            <h3>HDL & Verification Languages</h3>
-                                        </div>
-                                        <p class="field-desc">Check the languages executed during today's tasks:</p>
-                                        <div class="checkbox-tag-grid">
-                                            <label class="checkbox-tag">
-                                                <input type="checkbox" name="vlsiLanguages" value="SystemVerilog">
-                                                <span>SystemVerilog</span>
-                                            </label>
-                                            <label class="checkbox-tag">
-                                                <input type="checkbox" name="vlsiLanguages" value="Verilog">
-                                                <span>Verilog</span>
-                                            </label>
-                                            <label class="checkbox-tag">
-                                                <input type="checkbox" name="vlsiLanguages" value="VHDL">
-                                                <span>VHDL</span>
-                                            </label>
-                                            <label class="checkbox-tag">
-                                                <input type="checkbox" name="vlsiLanguages" value="cocotb">
-                                                <span>cocotb</span>
-                                            </label>
-                                            <label class="checkbox-tag">
-                                                <input type="checkbox" name="vlsiLanguages" value="SystemC">
-                                                <span>SystemC</span>
-                                            </label>
-                                            <label class="checkbox-tag">
-                                                <input type="checkbox" name="vlsiLanguages" value="Python">
-                                                <span>Python (Scripts)</span>
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-section" id="vlsiMethodologiesSection">
-                                        <div class="section-title">
-                                            <span class="material-symbols-outlined text-purple">schema</span>
-                                            <h3>Methodologies & Operations</h3>
-                                        </div>
-                                        <p class="field-desc">Select engineering methodologies implemented:</p>
-                                        <div class="checkbox-tag-grid">
-                                            <label class="checkbox-tag">
-                                                <input type="checkbox" name="vlsiMethodologies" value="UVM">
-                                                <span>UVM / OVM</span>
-                                            </label>
-                                            <label class="checkbox-tag">
-                                                <input type="checkbox" name="vlsiMethodologies"
-                                                    value="Formal Verification">
-                                                <span>Formal Verification</span>
-                                            </label>
-                                            <label class="checkbox-tag">
-                                                <input type="checkbox" name="vlsiMethodologies" value="Logic Synthesis">
-                                                <span>Logic Synthesis</span>
-                                            </label>
-                                            <label class="checkbox-tag">
-                                                <input type="checkbox" name="vlsiMethodologies" value="CTS">
-                                                <span>CTS (Clock Tree)</span>
-                                            </label>
-                                            <label class="checkbox-tag">
-                                                <input type="checkbox" name="vlsiMethodologies" value="Routing">
-                                                <span>Routing & Layout</span>
-                                            </label>
-                                            <label class="checkbox-tag">
-                                                <input type="checkbox" name="vlsiMethodologies" value="STA">
-                                                <span>STA / Timing Close</span>
-                                            </label>
-                                            <label class="checkbox-tag">
-                                                <input type="checkbox" name="vlsiMethodologies" value="DFT">
-                                                <span>DFT (Design For Test)</span>
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-section full-width">
-                                        <div class="section-title">
-                                            <span class="material-symbols-outlined text-teal">edit_note</span>
-                                            <h3>Silicon Design Engineering Logs</h3>
-                                        </div>
-                                        <div class="input-row">
-                                            <div class="input-group flex-3">
-                                                <label for="inputVlsiTasks">Verification/Physical Design Activity
-                                                    Notes</label>
-                                                <textarea id="inputVlsiTasks"
-                                                    placeholder="Document bugs found, assertions added, simulation logs analyzed, timing path slacks resolved, clock trees configured..."></textarea>
-                                            </div>
-                                            <div class="input-group flex-1">
-                                                <label for="inputVlsiHours">⏱️ Focus Hours</label>
-                                                <input type="number" id="inputVlsiHours" min="0" max="24" step="0.5"
-                                                    value="0">
-                                                <div class="hours-quick-toggles">
-                                                    <button type="button" class="btn-hour-toggle"
-                                                        data-val="1">1h</button>
-                                                    <button type="button" class="btn-hour-toggle"
-                                                        data-val="2">2h</button>
-                                                    <button type="button" class="btn-hour-toggle"
-                                                        data-val="4">4h</button>
-                                                    <button type="button" class="btn-hour-toggle"
-                                                        data-val="8">8h</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- TAB: DATA ANALYSIS CHARTS -->
-                        <div id="tabAnalytics" class="tab-content">
-                            <div class="analytics-container">
-                                <div class="analytics-header">
-                                    <h2>Advance Metric Analysis Control</h2>
-                                    <p>Comprehensive visualizations showing self-improvement metrics and VLSI
-                                        engineering output trends.</p>
-                                </div>
-                                <div class="charts-grid">
-                                    <div class="chart-card">
-                                        <h3>7-Day Focus & Reflection Progression</h3>
-                                        <div class="chart-wrapper">
-                                            <canvas id="chartTrend"></canvas>
-                                        </div>
-                                    </div>
-                                    <div class="chart-card">
-                                        <h3>Discipline Hour Allocation</h3>
-                                        <div class="chart-wrapper">
-                                            <canvas id="chartAllocation"></canvas>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- FOOTER ACTIONS -->
-                    <div class="workspace-footer">
-                        <button class="btn btn-danger" id="btnReset" title="Reset this form back to defaults">
-                            <span class="material-symbols-outlined">restart_alt</span> Reset Day
-                        </button>
-                        <div class="footer-status-msg" id="saveStatus">All data secure and locally synced.</div>
-                        <button class="btn btn-primary" id="btnSave">
-                            <span class="material-symbols-outlined">save</span> SAVE WORK
-                        </button>
-                    </div>
-                </section>
-            </main>
+      <!-- HEADER -->
+      <header class="app-header">
+        <div class="header-brand">
+          <span class="material-symbols-outlined brand-icon"
+            >developer_board</span
+          >
+          <div class="brand-text">
+            <h1>MANX <span>ROUTINE</span></h1>
+            <p>Silicon Operations Control Plane</p>
+          </div>
         </div>
+
+        <div class="date-navigator">
+          <button class="nav-btn btn-prev" id="btnPrevDay" title="Previous Day">
+            <span class="material-symbols-outlined">chevron_left</span>
+          </button>
+          <div class="current-date-container">
+            <span class="material-symbols-outlined">calendar_today</span>
+            <input type="date" id="datePicker" class="date-picker-input" />
+          </div>
+          <button class="nav-btn btn-next" id="btnNextDay" title="Next Day">
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+          <button class="nav-btn btn-today" id="btnGoToday">TODAY</button>
+        </div>
+
+        <div class="header-status">
+          <button
+            class="eye-saver-btn"
+            id="btnWarmToggle"
+            title="Eye Saver Temperature Mode"
+          >
+            <span class="material-symbols-outlined" style="font-size: 16px"
+              >visibility</span
+            >
+            Eye Saver
+          </button>
+          <span class="status-indicator online"></span>
+          <span class="status-text">LOCAL TRACKING ENG. ACTIVE</span>
+        </div>
+      </header>
+
+      <!-- MAIN LAYOUT -->
+      <div class="dashboard-grid">
+        <!-- LEFT SIDEBAR: Calendar Logs & Quick Stats -->
+        <aside class="sidebar">
+          <div class="sidebar-card history-card">
+            <div class="card-header">
+              <span class="material-symbols-outlined">history</span>
+              <h2>Timeline Records</h2>
+            </div>
+            <div class="history-list" id="historyList">
+              <div class="history-placeholder">
+                No logged data yet. Start tracking today!
+              </div>
+            </div>
+          </div>
+
+          <div class="sidebar-card quick-stats-card">
+            <div class="card-header">
+              <span class="material-symbols-outlined">analytics</span>
+              <h2>Performance</h2>
+            </div>
+            <div class="stat-row">
+              <div class="stat-col">
+                <span class="stat-val" id="statWeeklyAvg">0/10</span>
+                <span class="stat-lbl">7d Focus Avg</span>
+              </div>
+              <div class="stat-col">
+                <span class="stat-val" id="statVlsiHours">0h</span>
+                <span class="stat-lbl">7d VLSI Work</span>
+              </div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-col">
+                <span class="stat-val" id="statTasksComp">0</span>
+                <span class="stat-lbl">Completed Tasks</span>
+              </div>
+              <div class="stat-col">
+                <span class="stat-val" id="statStreak">0d</span>
+                <span class="stat-lbl">Active Streak</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- MAIN WORKSPACE -->
+        <main class="main-content">
+          <!-- TOP METRICS ROW -->
+          <section class="metrics-row">
+            <div class="metric-card focus-metric">
+              <div class="metric-icon">🎯</div>
+              <div class="metric-info">
+                <h3>Focus Rating</h3>
+                <div class="metric-val-container">
+                  <span class="metric-value" id="valFocus">0</span
+                  ><span class="metric-max">/10</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="metric-card reflection-metric">
+              <div class="metric-icon">🥗</div>
+              <div class="metric-info">
+                <h3>Habits Score</h3>
+                <div class="metric-val-container">
+                  <span class="metric-value" id="valHabits">0</span
+                  ><span class="metric-max">/8</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="metric-card tasks-metric">
+              <div class="metric-icon">🎓</div>
+              <div class="metric-info">
+                <h3>Academic Studies</h3>
+                <div class="metric-val-container">
+                  <span class="metric-value" id="valAcademicHours">0</span
+                  ><span class="metric-max">hrs</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="metric-card vlsi-metric">
+              <div class="metric-icon">⚡</div>
+              <div class="metric-info">
+                <h3>Silicon & VLSI</h3>
+                <div class="metric-val-container">
+                  <span class="metric-value" id="valVlsiHours">0</span
+                  ><span class="metric-max">hrs</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- WORKSPACE CARD -->
+          <section class="workspace-card">
+            <!-- TABS -->
+            <div class="workspace-tabs">
+              <button class="tab-link active" data-tab="tabDaily">
+                <span class="material-symbols-outlined">task_alt</span>
+                Daily Reflection & Routine
+              </button>
+              <button class="tab-link" data-tab="tabVlsi">
+                <span class="material-symbols-outlined">memory</span>
+                VLSI & Silicon Engineering
+              </button>
+              <button class="tab-link" data-tab="tabAnalytics">
+                <span class="material-symbols-outlined">monitoring</span>
+                Data Analysis Charts
+              </button>
+            </div>
+
+            <!-- TAB CONTENTS -->
+            <div class="tab-container">
+              <!-- TAB: DAILY REFLECTION -->
+              <div id="tabDaily" class="tab-content active">
+                <div class="form-grid">
+                  <div
+                    class="form-section full-width sliders-container"
+                    style="
+                      display: grid;
+                      grid-template-columns: repeat(
+                        auto-fit,
+                        minmax(220px, 1fr)
+                      );
+                      gap: 20px;
+                    "
+                  >
+                    <div class="slider-group">
+                      <div class="slider-header">
+                        <label for="inputFocus">🎯 Focus & Productivity</label>
+                        <span class="slider-badge orange" id="badgeFocus"
+                          >0 / 10</span
+                        >
+                      </div>
+                      <input
+                        type="range"
+                        id="inputFocus"
+                        min="0"
+                        max="10"
+                        step="1"
+                        value="0"
+                      />
+                      <div class="slider-labels">
+                        <span>Unfocused</span>
+                        <span>Moderate</span>
+                        <span>Deep Flow</span>
+                      </div>
+                    </div>
+
+                    <div class="slider-group">
+                      <div class="slider-header">
+                        <label for="inputReflection"
+                          >🌱 Reflection & Growth</label
+                        >
+                        <span class="slider-badge purple" id="badgeReflection"
+                          >0 / 10</span
+                        >
+                      </div>
+                      <input
+                        type="range"
+                        id="inputReflection"
+                        min="0"
+                        max="10"
+                        step="1"
+                        value="0"
+                      />
+                      <div class="slider-labels">
+                        <span>Lost Routine</span>
+                        <span>Aligned</span>
+                        <span>Exceptional</span>
+                      </div>
+                    </div>
+
+                    <div class="slider-group">
+                      <div class="slider-header">
+                        <label for="inputSleep">😴 Sleep Duration</label>
+                        <span class="slider-badge blue" id="badgeSleep"
+                          >8.0 hrs</span
+                        >
+                      </div>
+                      <input
+                        type="range"
+                        id="inputSleep"
+                        min="0"
+                        max="14"
+                        step="0.5"
+                        value="8"
+                      />
+                      <div class="slider-labels">
+                        <span>Insomnia</span>
+                        <span>Target (7-9h)</span>
+                        <span>Oversleep</span>
+                      </div>
+                    </div>
+
+                    <div class="slider-group">
+                      <div class="slider-header">
+                        <label for="inputScreen">📵 Screen Time Control</label>
+                        <span class="slider-badge red" id="badgeScreen"
+                          >4.0 hrs</span
+                        >
+                      </div>
+                      <input
+                        type="range"
+                        id="inputScreen"
+                        min="0"
+                        max="16"
+                        step="0.5"
+                        value="4"
+                      />
+                      <div class="slider-labels">
+                        <span>Zero Screen</span>
+                        <span>Target (&lt;6h)</span>
+                        <span>High Exposure</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- HABIT CORRECTNESS MATRIX -->
+                  <div class="form-section full-width habit-matrix-section">
+                    <div class="section-title">
+                      <span class="material-symbols-outlined text-teal"
+                        >spa</span
+                      >
+                      <h3>Habit Correctness Matrix</h3>
+                      <span class="slider-badge green" id="badgeHabits"
+                        >0% Complete</span
+                      >
+                    </div>
+                    <p class="field-desc">
+                      Toggle healthy daily habits. Small continuous gains shape
+                      elite outcomes.
+                    </p>
+                    <div class="habit-chips-grid">
+                      <label class="habit-chip" data-habit="water">
+                        <input type="checkbox" id="habitWater" />
+                        <span class="habit-content">
+                          <span class="habit-icon">💧</span>
+                          <span class="habit-text">3L Water</span>
+                        </span>
+                      </label>
+                      <label class="habit-chip" data-habit="sleep">
+                        <input type="checkbox" id="habitSleep" />
+                        <span class="habit-content">
+                          <span class="habit-icon">😴</span>
+                          <span class="habit-text">7h+ Sleep</span>
+                        </span>
+                      </label>
+                      <label class="habit-chip" data-habit="exercise">
+                        <input type="checkbox" id="habitExercise" />
+                        <span class="habit-content">
+                          <span class="habit-icon">🏋️</span>
+                          <span class="habit-text">Exercise</span>
+                        </span>
+                      </label>
+                      <label class="habit-chip" data-habit="screen">
+                        <input type="checkbox" id="habitScreen" />
+                        <span class="habit-content">
+                          <span class="habit-icon">📵</span>
+                          <span class="habit-text">No Bed Screen</span>
+                        </span>
+                      </label>
+                      <label class="habit-chip" data-habit="read">
+                        <input type="checkbox" id="habitRead" />
+                        <span class="habit-content">
+                          <span class="habit-icon">📖</span>
+                          <span class="habit-text">Read Tech specs</span>
+                        </span>
+                      </label>
+                      <label class="habit-chip" data-habit="revise">
+                        <input type="checkbox" id="habitRevise" />
+                        <span class="habit-content">
+                          <span class="habit-icon">🧠</span>
+                          <span class="habit-text">Concept Review</span>
+                        </span>
+                      </label>
+                      <label class="habit-chip" data-habit="meditate">
+                        <input type="checkbox" id="habitMeditate" />
+                        <span class="habit-content">
+                          <span class="habit-icon">🧘</span>
+                          <span class="habit-text">Mindfulness</span>
+                        </span>
+                      </label>
+                      <label class="habit-chip" data-habit="bad-habits">
+                        <input type="checkbox" id="habitBadHabitsAvoided" />
+                        <span class="habit-content">
+                          <span class="habit-icon">🚫</span>
+                          <span class="habit-text">Bad Habits Avoided</span>
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <!-- DAILY ROUTINE ALIGNMENT WAVEFORM -->
+                  <div class="form-section full-width routine-waveform-section">
+                    <div class="section-title">
+                      <span class="material-symbols-outlined text-orange"
+                        >timeline</span
+                      >
+                      <h3>Daily Routine Chrono-Waveform</h3>
+                      <span class="slider-badge orange" id="badgeRoutine"
+                        >0% Routine Match</span
+                      >
+                    </div>
+                    <p class="field-desc">
+                      Check off routine slots as you complete them. Active
+                      blocks construct a solid chronogram waveform of your day!
+                    </p>
+
+                    <div class="routine-timeline-grid">
+                      <label class="routine-slot-card" data-slot="0">
+                        <input type="checkbox" name="routineSlots" value="0" />
+                        <div class="slot-visual">
+                          <span class="slot-time">05:00 - 08:00</span>
+                          <span class="slot-title">Morning Focus</span>
+                          <span class="slot-desc">Meditation / Planning</span>
+                          <div class="waveform-bar"></div>
+                        </div>
+                      </label>
+                      <label class="routine-slot-card" data-slot="1">
+                        <input type="checkbox" name="routineSlots" value="1" />
+                        <div class="slot-visual">
+                          <span class="slot-time">08:00 - 12:00</span>
+                          <span class="slot-title">Silicon Core</span>
+                          <span class="slot-desc">HDL Coding & DV Theory</span>
+                          <div class="waveform-bar"></div>
+                        </div>
+                      </label>
+                      <label class="routine-slot-card" data-slot="2">
+                        <input type="checkbox" name="routineSlots" value="2" />
+                        <div class="slot-visual">
+                          <span class="slot-time">12:00 - 15:00</span>
+                          <span class="slot-title">Academic & Math</span>
+                          <span class="slot-desc">DSP & Architecture Core</span>
+                          <div class="waveform-bar"></div>
+                        </div>
+                      </label>
+                      <label class="routine-slot-card" data-slot="3">
+                        <input type="checkbox" name="routineSlots" value="3" />
+                        <div class="slot-visual">
+                          <span class="slot-time">15:00 - 18:00</span>
+                          <span class="slot-title">Lab Practicals</span>
+                          <span class="slot-desc"
+                            >CAD Tools & Layout Design</span
+                          >
+                          <div class="waveform-bar"></div>
+                        </div>
+                      </label>
+                      <label class="routine-slot-card" data-slot="4">
+                        <input type="checkbox" name="routineSlots" value="4" />
+                        <div class="slot-visual">
+                          <span class="slot-time">18:00 - 21:00</span>
+                          <span class="slot-title">Reflection & Gym</span>
+                          <span class="slot-desc"
+                            >Cardio & Habit Correction</span
+                          >
+                          <div class="waveform-bar"></div>
+                        </div>
+                      </label>
+                      <label class="routine-slot-card" data-slot="5">
+                        <input type="checkbox" name="routineSlots" value="5" />
+                        <div class="slot-visual">
+                          <span class="slot-time">21:00 - 05:00</span>
+                          <span class="slot-title">PMO-Free Sleep</span>
+                          <span class="slot-desc">Deep Rest & Recovery</span>
+                          <div class="waveform-bar"></div>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="form-section">
+                    <div class="section-title">
+                      <span class="material-symbols-outlined text-purple"
+                        >history_toggle_off</span
+                      >
+                      <h3>Yesterday's Retrospective</h3>
+                    </div>
+                    <div class="input-group">
+                      <label for="inputYesterdayDone"
+                        >What I accomplished yesterday</label
+                      >
+                      <textarea
+                        id="inputYesterdayDone"
+                        placeholder="Describe highlights, milestones, and challenges conquered yesterday..."
+                      ></textarea>
+                    </div>
+                    <div class="input-group">
+                      <label for="inputYesterdayImprove"
+                        >What I could have improved yesterday</label
+                      >
+                      <textarea
+                        id="inputYesterdayImprove"
+                        placeholder="Where did I waste time? How can I correct it?"
+                      ></textarea>
+                    </div>
+                  </div>
+
+                  <div class="form-section">
+                    <div class="section-title">
+                      <span class="material-symbols-outlined text-orange"
+                        >today</span
+                      >
+                      <h3>Today's Current Operations</h3>
+                    </div>
+                    <div class="input-group">
+                      <label for="inputTodayDone">What I did today</label>
+                      <textarea
+                        id="inputTodayDone"
+                        placeholder="Outline active tasks accomplished, systems designed, documents finalized..."
+                      ></textarea>
+                    </div>
+                    <div class="input-group">
+                      <label for="inputTodayDoingNow"
+                        >What I am doing right NOW</label
+                      >
+                      <textarea
+                        id="inputTodayDoingNow"
+                        placeholder="Describe the current immediate task or flow state..."
+                      ></textarea>
+                    </div>
+                  </div>
+
+                  <div class="form-section">
+                    <div class="section-title">
+                      <span class="material-symbols-outlined text-teal"
+                        >rocket_launch</span
+                      >
+                      <h3>Tomorrow's Strategy</h3>
+                    </div>
+                    <div class="input-group">
+                      <label for="inputTomorrowDone"
+                        >What I will do tomorrow</label
+                      >
+                      <textarea
+                        id="inputTomorrowDone"
+                        placeholder="List crucial high-priority items that must be executed tomorrow..."
+                      ></textarea>
+                    </div>
+                  </div>
+
+                  <div class="form-section">
+                    <div class="section-title">
+                      <span class="material-symbols-outlined text-amber"
+                        >self_improvement</span
+                      >
+                      <h3>Areas to Optimize & Improve</h3>
+                    </div>
+                    <div class="input-group">
+                      <label for="inputTodayImprove"
+                        >Self-Correction Plan</label
+                      >
+                      <textarea
+                        id="inputTodayImprove"
+                        placeholder="What actions will I take to optimize focus and improve moving forward?"
+                      ></textarea>
+                    </div>
+                  </div>
+
+                  <div class="form-section full-width todo-checklist-section">
+                    <div class="section-title">
+                      <span class="material-symbols-outlined text-teal"
+                        >checklist</span
+                      >
+                      <h3>Action Item Checklist</h3>
+                    </div>
+                    <div class="todo-input-row">
+                      <input
+                        type="text"
+                        id="todoInput"
+                        placeholder="Enter high-impact action item..."
+                      />
+                      <button class="btn btn-secondary" id="btnAddTodo">
+                        <span class="material-symbols-outlined">add</span> ADD
+                      </button>
+                    </div>
+                    <ul class="todo-list" id="todoList">
+                      <!-- Dynamic checklist items -->
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- TAB: VLSI & SILICON ENGINEERING -->
+              <div id="tabVlsi" class="tab-content">
+                <div class="vlsi-container">
+                  <div class="vlsi-hero-banner">
+                    <div class="banner-icon">
+                      <span class="material-symbols-outlined">memory</span>
+                    </div>
+                    <div class="banner-text">
+                      <h2>Silicon Engineering Workflow Tracker</h2>
+                      <p>
+                        Record hardware synthesis, block simulation, design
+                        verification (DV), and physical design (PD) metrics.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="form-grid">
+                    <div class="form-section full-width">
+                      <label class="section-subtitle"
+                        >Select Focus Discipline</label
+                      >
+                      <div class="discipline-selector">
+                        <label class="discipline-card active">
+                          <input
+                            type="radio"
+                            name="vlsiType"
+                            value="dv"
+                            checked
+                          />
+                          <div class="disc-content">
+                            <span class="material-symbols-outlined"
+                              >bug_report</span
+                            >
+                            <h4>Design Verification (DV)</h4>
+                            <p>
+                              Simulation, assertion, coverage, testbenches, HDL
+                              logic validation
+                            </p>
+                          </div>
+                        </label>
+                        <label class="discipline-card">
+                          <input type="radio" name="vlsiType" value="pd" />
+                          <div class="disc-content">
+                            <span class="material-symbols-outlined"
+                              >grid_view</span
+                            >
+                            <h4>Physical Design (PD)</h4>
+                            <p>
+                              Synthesis, floorplanning, placement, CTS, routing,
+                              STA, timing closure
+                            </p>
+                          </div>
+                        </label>
+                        <label class="discipline-card">
+                          <input type="radio" name="vlsiType" value="none" />
+                          <div class="disc-content">
+                            <span class="material-symbols-outlined">block</span>
+                            <h4>None / General</h4>
+                            <p>
+                              Skipping hardware tasks for this tracking cycle
+                            </p>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+
+                    <!-- ACADEMIC COURSEWORK FOCUS -->
+                    <div class="form-section" id="academicCourseworkSection">
+                      <div class="section-title">
+                        <span class="material-symbols-outlined text-amber"
+                          >school</span
+                        >
+                        <h3>Academic Focus & Coursework</h3>
+                      </div>
+                      <p class="field-desc">
+                        Check active subjects analyzed or studied today:
+                      </p>
+                      <div class="checkbox-tag-grid">
+                        <label class="checkbox-tag academic">
+                          <input
+                            type="checkbox"
+                            name="academicFocus"
+                            value="VLSI & CAD/EDA"
+                          />
+                          <span>VLSI & CAD/EDA</span>
+                        </label>
+                        <label class="checkbox-tag academic">
+                          <input
+                            type="checkbox"
+                            name="academicFocus"
+                            value="Computer Architecture"
+                          />
+                          <span>Computer Architecture</span>
+                        </label>
+                        <label class="checkbox-tag academic">
+                          <input
+                            type="checkbox"
+                            name="academicFocus"
+                            value="DSP & Signals"
+                          />
+                          <span>DSP & Signals</span>
+                        </label>
+                        <label class="checkbox-tag academic">
+                          <input
+                            type="checkbox"
+                            name="academicFocus"
+                            value="Algorithms & Data Structures"
+                          />
+                          <span>Algorithms & DS</span>
+                        </label>
+                        <label class="checkbox-tag academic">
+                          <input
+                            type="checkbox"
+                            name="academicFocus"
+                            value="Analog/Digital IC Design"
+                          />
+                          <span>IC Design</span>
+                        </label>
+                        <label class="checkbox-tag academic">
+                          <input
+                            type="checkbox"
+                            name="academicFocus"
+                            value="Applied Math"
+                          />
+                          <span>Applied Math / Stats</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <!-- ACADEMIC STUDY LOGS -->
+                    <div class="form-section" id="academicLogsSection">
+                      <div class="section-title">
+                        <span class="material-symbols-outlined text-teal"
+                          >menu_book</span
+                        >
+                        <h3>Study & Academic Logs</h3>
+                      </div>
+                      <div class="input-row">
+                        <div class="input-group flex-3">
+                          <label for="inputAcademicTasks"
+                            >Academic prep, homework, or exam notes</label
+                          >
+                          <textarea
+                            id="inputAcademicTasks"
+                            placeholder="Document textbooks read, lab problems solved, syllabus milestones reached..."
+                          ></textarea>
+                        </div>
+                        <div class="input-group flex-1">
+                          <label for="inputAcademicHours"
+                            >⏱️ Academic Hours</label
+                          >
+                          <input
+                            type="number"
+                            id="inputAcademicHours"
+                            min="0"
+                            max="24"
+                            step="0.5"
+                            value="0"
+                          />
+                          <div class="academic-quick-toggles">
+                            <button
+                              type="button"
+                              class="btn-academic-toggle"
+                              data-val="1"
+                            >
+                              1h
+                            </button>
+                            <button
+                              type="button"
+                              class="btn-academic-toggle"
+                              data-val="2"
+                            >
+                              2h
+                            </button>
+                            <button
+                              type="button"
+                              class="btn-academic-toggle"
+                              data-val="4"
+                            >
+                              4h
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="form-section" id="vlsiLanguagesSection">
+                      <div class="section-title">
+                        <span class="material-symbols-outlined text-orange"
+                          >code</span
+                        >
+                        <h3>HDL & Verification Languages</h3>
+                      </div>
+                      <p class="field-desc">
+                        Check the languages executed during today's tasks:
+                      </p>
+                      <div class="checkbox-tag-grid">
+                        <label class="checkbox-tag">
+                          <input
+                            type="checkbox"
+                            name="vlsiLanguages"
+                            value="SystemVerilog"
+                          />
+                          <span>SystemVerilog</span>
+                        </label>
+                        <label class="checkbox-tag">
+                          <input
+                            type="checkbox"
+                            name="vlsiLanguages"
+                            value="Verilog"
+                          />
+                          <span>Verilog</span>
+                        </label>
+                        <label class="checkbox-tag">
+                          <input
+                            type="checkbox"
+                            name="vlsiLanguages"
+                            value="VHDL"
+                          />
+                          <span>VHDL</span>
+                        </label>
+                        <label class="checkbox-tag">
+                          <input
+                            type="checkbox"
+                            name="vlsiLanguages"
+                            value="cocotb"
+                          />
+                          <span>cocotb</span>
+                        </label>
+                        <label class="checkbox-tag">
+                          <input
+                            type="checkbox"
+                            name="vlsiLanguages"
+                            value="SystemC"
+                          />
+                          <span>SystemC</span>
+                        </label>
+                        <label class="checkbox-tag">
+                          <input
+                            type="checkbox"
+                            name="vlsiLanguages"
+                            value="Python"
+                          />
+                          <span>Python (Scripts)</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="form-section" id="vlsiMethodologiesSection">
+                      <div class="section-title">
+                        <span class="material-symbols-outlined text-purple"
+                          >schema</span
+                        >
+                        <h3>Methodologies & Operations</h3>
+                      </div>
+                      <p class="field-desc">
+                        Select engineering methodologies implemented:
+                      </p>
+                      <div class="checkbox-tag-grid">
+                        <label class="checkbox-tag">
+                          <input
+                            type="checkbox"
+                            name="vlsiMethodologies"
+                            value="UVM"
+                          />
+                          <span>UVM / OVM</span>
+                        </label>
+                        <label class="checkbox-tag">
+                          <input
+                            type="checkbox"
+                            name="vlsiMethodologies"
+                            value="Formal Verification"
+                          />
+                          <span>Formal Verification</span>
+                        </label>
+                        <label class="checkbox-tag">
+                          <input
+                            type="checkbox"
+                            name="vlsiMethodologies"
+                            value="Logic Synthesis"
+                          />
+                          <span>Logic Synthesis</span>
+                        </label>
+                        <label class="checkbox-tag">
+                          <input
+                            type="checkbox"
+                            name="vlsiMethodologies"
+                            value="CTS"
+                          />
+                          <span>CTS (Clock Tree)</span>
+                        </label>
+                        <label class="checkbox-tag">
+                          <input
+                            type="checkbox"
+                            name="vlsiMethodologies"
+                            value="Routing"
+                          />
+                          <span>Routing & Layout</span>
+                        </label>
+                        <label class="checkbox-tag">
+                          <input
+                            type="checkbox"
+                            name="vlsiMethodologies"
+                            value="STA"
+                          />
+                          <span>STA / Timing Close</span>
+                        </label>
+                        <label class="checkbox-tag">
+                          <input
+                            type="checkbox"
+                            name="vlsiMethodologies"
+                            value="DFT"
+                          />
+                          <span>DFT (Design For Test)</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="form-section full-width">
+                      <div class="section-title">
+                        <span class="material-symbols-outlined text-teal"
+                          >edit_note</span
+                        >
+                        <h3>Silicon Design Engineering Logs</h3>
+                      </div>
+                      <div class="input-row">
+                        <div class="input-group flex-3">
+                          <label for="inputVlsiTasks"
+                            >Verification/Physical Design Activity Notes</label
+                          >
+                          <textarea
+                            id="inputVlsiTasks"
+                            placeholder="Document bugs found, assertions added, simulation logs analyzed, timing path slacks resolved, clock trees configured..."
+                          ></textarea>
+                        </div>
+                        <div class="input-group flex-1">
+                          <label for="inputVlsiHours">⏱️ Focus Hours</label>
+                          <input
+                            type="number"
+                            id="inputVlsiHours"
+                            min="0"
+                            max="24"
+                            step="0.5"
+                            value="0"
+                          />
+                          <div class="hours-quick-toggles">
+                            <button
+                              type="button"
+                              class="btn-hour-toggle"
+                              data-val="1"
+                            >
+                              1h
+                            </button>
+                            <button
+                              type="button"
+                              class="btn-hour-toggle"
+                              data-val="2"
+                            >
+                              2h
+                            </button>
+                            <button
+                              type="button"
+                              class="btn-hour-toggle"
+                              data-val="4"
+                            >
+                              4h
+                            </button>
+                            <button
+                              type="button"
+                              class="btn-hour-toggle"
+                              data-val="8"
+                            >
+                              8h
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- TAB: DATA ANALYSIS CHARTS -->
+              <div id="tabAnalytics" class="tab-content">
+                <div class="analytics-container">
+                  <div class="analytics-header">
+                    <h2>Advance Metric Analysis Control</h2>
+                    <p>
+                      Comprehensive visualizations showing self-improvement
+                      metrics and VLSI engineering output trends.
+                    </p>
+                  </div>
+                  <div class="charts-grid">
+                    <div class="chart-card">
+                      <h3>7-Day Focus & Reflection Progression</h3>
+                      <div class="chart-wrapper">
+                        <canvas id="chartTrend"></canvas>
+                      </div>
+                    </div>
+                    <div class="chart-card">
+                      <h3>Discipline Hour Allocation</h3>
+                      <div class="chart-wrapper">
+                        <canvas id="chartAllocation"></canvas>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- FOOTER ACTIONS -->
+            <div class="workspace-footer">
+              <button
+                class="btn btn-danger"
+                id="btnReset"
+                title="Reset this form back to defaults"
+              >
+                <span class="material-symbols-outlined">restart_alt</span> Reset
+                Day
+              </button>
+              <div class="footer-status-msg" id="saveStatus">
+                All data secure and locally synced.
+              </div>
+              <button class="btn btn-primary" id="btnSave">
+                <span class="material-symbols-outlined">save</span> SAVE WORK
+              </button>
+            </div>
+          </section>
+        </main>
+      </div>
     </div>
 
     <!-- Toast notifications system -->
     <div id="toastContainer" class="toast-container"></div>
 
     <script src="app.js"></script>
-</body>
-
+  </body>
 </html>

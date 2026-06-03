@@ -24,10 +24,11 @@
 **MANX OS** is a highly optimized, reproducible, and declaratively managed operating system environment customized specifically for digital design, verification, and hardware description engineering. Rather than treating electronic design automation (EDA) tools as isolated, ad-hoc binaries, MANX OS models the entire hardware development suite as a first-class, version-controlled module in a Nix Flake structure.
 
 ### Key Architectural Pillars
-* **Silicon-Grade Reproducibility**: Complete system closures are pinned and version-controlled via `flake.lock`. You can deploy the exact same workspace across a primary workstation and a portable engineering laptop with identical behavior.
-* **Isolated EDA Execution**: Proprietary heavy toolchains (such as AMD Vivado and Vitis) run in an isolated high-performance container (Distrobox) utilizing native host Wayland window pass-through and direct JTAG `udev` hardware mapping.
-* **Optional Statelessness (Impermanence)**: Models the root directory (`/`) as a temporary ramdisk wiped on every boot, mapping persistent configurations, private certificates, ssh keys, and the `/home` directories directly to a `/persist` Btrfs subvolume.
-* **Consolidated Control Plane**: A custom management utility, `manx`, exposes a unified, color-coded interactive command suite for rebuilds, system package diffing, garbage collection, and binary cache pushing.
+
+- **Silicon-Grade Reproducibility**: Complete system closures are pinned and version-controlled via `flake.lock`. You can deploy the exact same workspace across a primary workstation and a portable engineering laptop with identical behavior.
+- **Isolated EDA Execution**: Proprietary heavy toolchains (such as AMD Vivado and Vitis) run in an isolated high-performance container (Distrobox) utilizing native host Wayland window pass-through and direct JTAG `udev` hardware mapping.
+- **Optional Statelessness (Impermanence)**: Models the root directory (`/`) as a temporary ramdisk wiped on every boot, mapping persistent configurations, private certificates, ssh keys, and the `/home` directories directly to a `/persist` Btrfs subvolume.
+- **Consolidated Control Plane**: A custom management utility, `manx`, exposes a unified, color-coded interactive command suite for rebuilds, system package diffing, garbage collection, and binary cache pushing.
 
 ```mermaid
 graph TD
@@ -107,21 +108,25 @@ To automate the partition structure, filesystem layouts, and encryption mappings
 </div>
 
 ### 🔒 Core Design Principles
-* **Dual LUKS Encryption Layers**: Direct TPM2 hardware integration unlocks both the system partition (`cryptsystem`) and the swap partition (`cryptswap`) automatically, maintaining high-fidelity security without manual passcode overhead at boot.
-* **Optimized Btrfs Storage Pool**: Custom filesystem parameters (`compress=zstd:3`, `noatime`, `discard=async`, `space_cache=v2`) maximize read/write performance and lifespan on NVMe SSD solid-state drives.
-* **Stateless Alignment**: Integrates directly with our Stage-1 initrd rollback script to mount Btrfs subvolumes (`home`, `nix`, `persist`, `srv`, `var/lib/...`) onto the designated system paths instantly on decryption.
+
+- **Dual LUKS Encryption Layers**: Direct TPM2 hardware integration unlocks both the system partition (`cryptsystem`) and the swap partition (`cryptswap`) automatically, maintaining high-fidelity security without manual passcode overhead at boot.
+- **Optimized Btrfs Storage Pool**: Custom filesystem parameters (`compress=zstd:3`, `noatime`, `discard=async`, `space_cache=v2`) maximize read/write performance and lifespan on NVMe SSD solid-state drives.
+- **Stateless Alignment**: Integrates directly with our Stage-1 initrd rollback script to mount Btrfs subvolumes (`home`, `nix`, `persist`, `srv`, `var/lib/...`) onto the designated system paths instantly on decryption.
 
 ### 🔌 Live Non-Destructive Migration (Physical GPT Re-labeling)
+
 If deploying onto an existing machine whose physical partitions are already aligned but missing the correct GPT partition names required by Disko (such as standard manually partitioned drives), you can perform a **live metadata migration** without formatting or data loss:
 
 1. **Re-label the Physical Partitions**:
    Assign the unique GPT partition names matching Disko's expected device symlinks:
+
    ```bash
    sudo nix-shell -p gptfdisk --run "sgdisk -c 1:disk-main-ESP -c 2:disk-main-system -c 3:disk-main-swap /dev/nvme0n1"
    ```
 
 2. **Reload `udev` Symlinks**:
    Instantly register the new labels in your live `/dev/disk/by-partlabel/` space:
+
    ```bash
    sudo udevadm trigger
    ```
@@ -131,7 +136,7 @@ If deploying onto an existing machine whose physical partitions are already alig
    ```bash
    ls -l /dev/disk/by-partlabel/
    ```
-   *Expected output:*
+   _Expected output:_
    ```text
    disk-main-ESP -> ../../nvme0n1p1
    disk-main-system -> ../../nvme0n1p2
@@ -154,15 +159,15 @@ The digital engineering suite is divided into logical processing pipelines, prov
 
 ### Detailed Component Registry
 
-| Pipeline Stage | Integrated Software Packages | Operational Objective |
-| :--- | :--- | :--- |
-| **01 / RTL & Lint** | `Google Verible`, `svlint`, `svls`, `veryl` | RTL static analysis, formatting standards, language servers, and modern design alternatives. |
-| **02 / Simulation** | `Verilator` (C++), `Icarus Verilog`, `GHDL`, `NVC`, `Surfer`, `GTKWave` | Cycle-accurate simulation, parallel testing, digital wave trace analysis, and pulse rendering. |
-| **03 / Verification** | `Cocotb` (Python), `Surelog` (SV UVM), `SymbiYosys` (SBY) | Co-simulation testbenches, formal verification assertions, and full UVM compilation. |
-| **04 / Synthesis** | `Yosys` Open Synthesis, `yosys-ghdl` plugin | RTL elaboration, optimization, and mapping to target technology netlists. |
-| **05 / IC Layout** | `Magic-VLSI`, `KLayout`, `XSchem`, `Ngspice` | Custom CMOS cell layouts, GDSII mask viewers, mixed-signal schematics, and SPICE simulations. |
-| **06 / FPGA Target** | `AMD Vivado Suite`, `AMD Vitis Platform`, `JTAG udev` | Heterogeneous FPGA target synthesis, placing, routing, hardware programming, and debugging. |
-| **07 / Expandable** | `OpenLane ASIC`, `Sky130 PDKs`, `Microsemi Tools` | Seamless extensibility support for custom ASIC toolchains, standard PDKs, and future hardware modules. |
+| Pipeline Stage        | Integrated Software Packages                                            | Operational Objective                                                                                  |
+| :-------------------- | :---------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------- |
+| **01 / RTL & Lint**   | `Google Verible`, `svlint`, `svls`, `veryl`                             | RTL static analysis, formatting standards, language servers, and modern design alternatives.           |
+| **02 / Simulation**   | `Verilator` (C++), `Icarus Verilog`, `GHDL`, `NVC`, `Surfer`, `GTKWave` | Cycle-accurate simulation, parallel testing, digital wave trace analysis, and pulse rendering.         |
+| **03 / Verification** | `Cocotb` (Python), `Surelog` (SV UVM), `SymbiYosys` (SBY)               | Co-simulation testbenches, formal verification assertions, and full UVM compilation.                   |
+| **04 / Synthesis**    | `Yosys` Open Synthesis, `yosys-ghdl` plugin                             | RTL elaboration, optimization, and mapping to target technology netlists.                              |
+| **05 / IC Layout**    | `Magic-VLSI`, `KLayout`, `XSchem`, `Ngspice`                            | Custom CMOS cell layouts, GDSII mask viewers, mixed-signal schematics, and SPICE simulations.          |
+| **06 / FPGA Target**  | `AMD Vivado Suite`, `AMD Vitis Platform`, `JTAG udev`                   | Heterogeneous FPGA target synthesis, placing, routing, hardware programming, and debugging.            |
+| **07 / Expandable**   | `OpenLane ASIC`, `Sky130 PDKs`, `Microsemi Tools`                       | Seamless extensibility support for custom ASIC toolchains, standard PDKs, and future hardware modules. |
 
 ---
 
@@ -193,14 +198,14 @@ The system operations workflow is completely centralized inside a high-fidelity 
 
 ### Reference Table
 
-| Verb | Under-the-hood Command Sequence | Engineering Safety Feature |
-| :--- | :--- | :--- |
-| `manx rebuild` | `nix fmt` ➔ Stages changes ➔ Runs Flake audit ➔ Evaluates NH switch ➔ `nvd` changes | **Security Shield**: Forcefully stages `variables.nix` / `secrets.yaml` so Nix can read them, but triggers a global reset trap to keep private keys unstaged immediately. |
-| `manx check` | Stages files ➔ `nix flake check` ➔ Automated Reset | Validates that the Nix configuration compiles and option definitions are valid without executing a build. |
-| `manx clean` | `nh clean all --keep 3` ➔ Garbage collects system/user store ➔ Hard-links duplicates | Reclaims storage blocks on your NVMe SSD. |
-| `manx bootstrap` | Analyzes partition filesystem ➔ Secures `/persist` mappings ➔ Secures SOPS age directories | Automatically builds the pristine `/blank` Btrfs snapshots and decryption keypaths for single-step provisioning. |
-| `manx vivado` | Distrobox engine initialization ➔ Icon mapping ➔ GUI entry | Enters the secure high-compatibility hardware design sandbox. |
-| `manx edit` | fuzzy-finds `*.nix` and `*.yaml` ➔ launches Neovim | Accelerates config development via rapid module navigation. |
+| Verb             | Under-the-hood Command Sequence                                                            | Engineering Safety Feature                                                                                                                                                |
+| :--------------- | :----------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `manx rebuild`   | `nix fmt` ➔ Stages changes ➔ Runs Flake audit ➔ Evaluates NH switch ➔ `nvd` changes        | **Security Shield**: Forcefully stages `variables.nix` / `secrets.yaml` so Nix can read them, but triggers a global reset trap to keep private keys unstaged immediately. |
+| `manx check`     | Stages files ➔ `nix flake check` ➔ Automated Reset                                         | Validates that the Nix configuration compiles and option definitions are valid without executing a build.                                                                 |
+| `manx clean`     | `nh clean all --keep 3` ➔ Garbage collects system/user store ➔ Hard-links duplicates       | Reclaims storage blocks on your NVMe SSD.                                                                                                                                 |
+| `manx bootstrap` | Analyzes partition filesystem ➔ Secures `/persist` mappings ➔ Secures SOPS age directories | Automatically builds the pristine `/blank` Btrfs snapshots and decryption keypaths for single-step provisioning.                                                          |
+| `manx vivado`    | Distrobox engine initialization ➔ Icon mapping ➔ GUI entry                                 | Enters the secure high-compatibility hardware design sandbox.                                                                                                             |
+| `manx edit`      | fuzzy-finds `*.nix` and `*.yaml` ➔ launches Neovim                                         | Accelerates config development via rapid module navigation.                                                                                                               |
 
 ---
 
@@ -246,7 +251,7 @@ The repository layout follows a **DRY (Don't Repeat Yourself)** host-module hier
 
 ## 📦 Distrobox EDA Sandbox Guide (AMD Vivado & Vitis)
 
-To run heavy, proprietary hardware design and verification frameworks like **AMD Xilinx Vivado & Vitis** without breaking NixOS's declarative and stateless nature, MANX OS deploys a high-compatibility high-performance container sandbox using **Distrobox** and **Podman/Docker**. 
+To run heavy, proprietary hardware design and verification frameworks like **AMD Xilinx Vivado & Vitis** without breaking NixOS's declarative and stateless nature, MANX OS deploys a high-compatibility high-performance container sandbox using **Distrobox** and **Podman/Docker**.
 
 This allows you to run Vivado with **native performance**, full hardware acceleration, Wayland screen rendering, and direct USB/JTAG device programming!
 
@@ -284,7 +289,7 @@ Setting up the EDA sandbox is extremely streamlined. Execute the following simpl
    ```bash
    distrobox enter manx-vivado -- sudo pacman -Syu --noconfirm git base-devel libx11 libxft libxrender libxtst libxi libxrandr fontconfig freetype2 ncurses
    ```
-</details>
+   </details>
 
 <details>
 <summary><b>⚡ 2. Installing AMD Vivado & Vitis</b></summary>
@@ -327,7 +332,9 @@ To program physical hardware targets (like Basys 3, Nexys, or custom boards) dir
 ## Deployment & Setup Guide
 
 ### 1. Repository Setup
+
 Clone the repository and copy the environment variables template for your specific host target:
+
 ```bash
 git clone https://github.com/techanand8/nix-config.git ~/nix-config
 cd ~/nix-config
@@ -340,17 +347,23 @@ cp hosts/laptop/variables.nix.example hosts/laptop/variables.nix
 ```
 
 ### 2. Configure Hardware Parameters
+
 Generate the physical hardware configuration for your target drive layouts, mount paths, and CPU/GPU properties:
+
 ```bash
 nixos-generate-config --show-hardware-config > hosts/manx/hardware-configuration.nix
 ```
+
 Open `hosts/manx/variables.nix` in your text editor and adjust the settings:
+
 - Update the `username` and default `timezone` / `locale`.
 - Set the `enableImpermanence` flag to `true` (if running Btrfs stateless rollback) or `false`.
 - Input the exact disk UUIDs and LUKS target paths.
 
 ### 3. Initialize and Apply Configuration
+
 Deploy the system configurations:
+
 ```bash
 # Using the custom utility:
 manx rebuild
@@ -372,7 +385,7 @@ To prevent duplicate builds between the heavy primary workstation and the batter
    cachixName = "your-cache-subdomain";
    cachixPublicKey = "your-cache-subdomain.cachix.org-1:your-public-key-here=";
    ```
-On every successful `manx rebuild` run, the workstation will compile and automatically push new closures to the cache. The laptop will then fetch these pre-compiled closures, saving CPU and battery power!
+   On every successful `manx rebuild` run, the workstation will compile and automatically push new closures to the cache. The laptop will then fetch these pre-compiled closures, saving CPU and battery power!
 
 ---
 
@@ -385,13 +398,15 @@ On every successful `manx rebuild` run, the workstation will compile and automat
 The **MANX OS** environment is a culmination of exceptional open-source contributions. We extend our deepest gratitude to the following visionaries whose work forms the backbone of this workstation:
 
 ### Core Frameworks & Logic
-*   **[Illogical Impulse](https://github.com/Illogical-Impulse)**: For the foundational keybindings, meticulous window rules.
-*   **[Omarchy Linux](https://github.com/basecamp/omarchy)**: And the visionary screensaver logic I taken from here.
-*   **[Ambxst Project](https://github.com/Axenide/Ambxst)**: For the sophisticated **Hyprland** shell framework and the aesthetic direction that defines the Ambxst experience.
-*   **[ZaneyOS](https://github.com/Zaney/ZaneyOS)**: For the declarative structural inspiration and the clean organizational patterns that make this system mathematically reproducible.
+
+- **[Illogical Impulse](https://github.com/Illogical-Impulse)**: For the foundational keybindings, meticulous window rules.
+- **[Omarchy Linux](https://github.com/basecamp/omarchy)**: And the visionary screensaver logic I taken from here.
+- **[Ambxst Project](https://github.com/Axenide/Ambxst)**: For the sophisticated **Hyprland** shell framework and the aesthetic direction that defines the Ambxst experience.
+- **[ZaneyOS](https://github.com/Zaney/ZaneyOS)**: For the declarative structural inspiration and the clean organizational patterns that make this system mathematically reproducible.
 
 ### Engineering & Tooling
-*   **The VLSI Community**: Our work is powered by the giants of open-source silicon design. Endless thanks to the maintainers of **Yosys**, **Verilator**, **Magic-VLSI**, and the **OpenLane** project. It is your commitment to open hardware that makes this workstation possible.
+
+- **The VLSI Community**: Our work is powered by the giants of open-source silicon design. Endless thanks to the maintainers of **Yosys**, **Verilator**, **Magic-VLSI**, and the **OpenLane** project. It is your commitment to open hardware that makes this workstation possible.
 
 ---
 
