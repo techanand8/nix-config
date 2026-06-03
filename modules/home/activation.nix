@@ -28,7 +28,9 @@
       fi
 
       # Permanent Fix: Automatically patch the ambxst core config for gradient syntax
-      $DRY_RUN_CMD sed -i 's/inactive_border = "rgb(\([0-9a-fA-F]*\)) rgb(\([0-9a-fA-F]*\))",/inactive_border = { colors = {"rgb(\1)", "rgb(\2)"}, angle = 45 },/' $HOME/.local/share/ambxst/hyprland.lua
+      if [ -f "$HOME/.local/share/ambxst/hyprland.lua" ]; then
+        $DRY_RUN_CMD sed -i 's/inactive_border = "rgb(\([0-9a-fA-F]*\)) rgb(\([0-9a-fA-F]*\))",/inactive_border = { colors = {"rgb(\1)", "rgb(\2)"}, angle = 45 },/' $HOME/.local/share/ambxst/hyprland.lua
+      fi
 
       # Set local wallpaper path as default
       if [ -f "$HOME/.cache/ambxst/wallpapers.json" ]; then

@@ -238,10 +238,13 @@
 
       -- ############ EDA & VLSI ENGINEERING TOOLING WINDOW RULES ############
       -- Float and center all secondary Vivado/Vitis popups and dialog windows
-      hl.window_rule({ match = { class = "vivado", title = "^(?!Vivado).*$" }, float = true })
-      hl.window_rule({ match = { class = "vivado", title = "^(?!Vivado).*$" }, center = true })
-      hl.window_rule({ match = { class = "Vivado", title = "^(?!Vivado).*$" }, float = true })
-      hl.window_rule({ match = { class = "Vivado", title = "^(?!Vivado).*$" }, center = true })
+      -- We float all Vivado windows first, then tile only the main window (which starts with 'Vivado' in the title)
+      hl.window_rule({ match = { class = "vivado" }, float = true })
+      hl.window_rule({ match = { class = "vivado" }, center = true })
+      hl.window_rule({ match = { class = "Vivado" }, float = true })
+      hl.window_rule({ match = { class = "Vivado" }, center = true })
+      hl.window_rule({ match = { class = "vivado", title = "^Vivado" }, tile = true })
+      hl.window_rule({ match = { class = "Vivado", title = "^Vivado" }, tile = true })
 
       -- Float physical design editors so they don't get squished by tiling layouts
       hl.window_rule({ match = { class = "magic" }, float = true })
@@ -365,6 +368,12 @@
       # Configurable repository for Cartoon Shell (which has no native flake)
       CARTOON_REPO="https://github.com/mailong2401/cartoon-shell.git"
 
+      # Detect if UWSM is active
+      UWSM_CMD=""
+      if command -v uwsm >/dev/null 2>&1 && [[ "$UWSM_SESS" != "" ]]; then
+          UWSM_CMD="uwsm app -- "
+      fi
+
       print_usage() {
           echo -e "\e[1;36m❄️ MANX Shell Engine\e[0m"
           echo -e "Current Active Shell: \e[1;32m$CURRENT_PREF\e[0m\n"
@@ -401,16 +410,16 @@
       export QML2_IMPORT_PATH="${pkgs.qt6.qt5compat.out}/lib/qt-6/qml:${pkgs.qt6.qtmultimedia.out}/lib/qt-6/qml:${pkgs.qt6.qtshadertools.out}/lib/qt-6/qml:${pkgs.kdePackages.kirigami.unwrapped}/lib/qt-6/qml:${pkgs.kdePackages.qqc2-desktop-style.out}/lib/qt-6/qml:$QML2_IMPORT_PATH"
 
       # 3. Safe Shutdown of Current Shell/Quickshell Instances
-      # We kill BOTH potential shells to ensure a clean transition without overlapping bars or gaps
-      pkill -f quickshell || true
-      pkill -f qs || true
-      pkill -f ambxst || true
+      # Use -x (exact match) instead of -f to avoid killing this script if "ambxst" is in the cmdline
+      pkill -x quickshell || true
+      pkill -x qs || true
+      pkill -x ambxst || true
       sleep 0.5
 
       # 4. Launch Target Shell
       case "$TARGET_SHELL" in
           ambxst)
-              ambxst & disown
+              $UWSM_CMD ambxst & disown
               ;;
           cartoon)
               CARTOON_PATH="$HOME/.config/quickshell/cartoon-shell"
@@ -418,7 +427,7 @@
                   ${pkgs.libnotify}/bin/notify-send -t 5000 "MANX OS Shell Engine" "Cartoon Shell path not found. Cloning from GitHub..." -i system-run &
                   ${pkgs.git}/bin/git clone "$CARTOON_REPO" "$CARTOON_PATH"
               fi
-              quickshell --path "$CARTOON_PATH" & disown
+              $UWSM_CMD quickshell --path "$CARTOON_PATH" & disown
               ;;
       esac
 
@@ -433,11 +442,14 @@
       # MANX OS Shell Loader - Invoked at Hyprland Boot
       # Respects user preference saved via manx-shell-toggle.
 
+      # Wait for the graphical session environment and socket to settle
+      sleep 2
+
       PREF_FILE="$HOME/.config/manx-shell-pref"
       TARGET_SHELL=$(cat "$PREF_FILE" 2>/dev/null || echo "ambxst")
 
       # Use the toggle script to ensure consistent launch logic and setup
-      exec bash $HOME/.local/bin/manx-shell-toggle "$TARGET_SHELL"
+      exec bash $HOME/.local/bin/manx-shell-toggle "$TARGET_SHELL" > /tmp/manx-shell-load.log 2>&1
     '';
   };
 
