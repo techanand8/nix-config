@@ -75,6 +75,7 @@ in
 
     # --- Editors & Terminal ---
     vscode-fhs
+    antigravity-fhs
     zed-editor
     yazi
     fastfetch

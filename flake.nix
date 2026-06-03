@@ -62,12 +62,6 @@
     # Declarative Flatpaks
     nix-flatpak.url = "github:gmodena/nix-flatpak";
 
-    # Google Antigravity (IDE)
-    antigravity-nix = {
-      url = "github:jacopone/antigravity-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     # OpenLane 2 - Digital ASIC implementation flow
     openlane.url = "github:efabless/openlane2";
   };
@@ -156,88 +150,6 @@
                       });
                     })
                   ];
-
-                  # --- BUBBLEWRAP FHS WRAPPER FOR ANTIGRAVITY IDE ---
-                  antigravity-fhs = (final.buildFHSEnv or final.buildFHSUserEnv) {
-                    name = "antigravity-fhs";
-                    targetPkgs =
-                      pkgs: with pkgs; [
-                        # Core GNU/C++ Development Toolchains
-                        gcc
-                        gnumake
-                        cmake
-                        binutils
-                        git
-                        pkg-config
-                        gdb
-                        zlib
-
-                        # Python & Deep Learning Ecosystem
-                        python3
-                        python3Packages.pip
-                        python3Packages.virtualenv
-                        python3Packages.setuptools
-
-                        # Silicon & VLSI Hardware Engineering Toolchains
-                        verilator
-                        iverilog
-                        yosys
-                        gtkwave
-                        surfer
-                        verible
-                        svls
-                        python3Packages.cocotb
-
-                        # Cross-Compilation Toolchains (RISC-V & ARM)
-                        gcc-arm-embedded
-                        pkgsCross.riscv64-embedded.buildPackages.gcc
-
-                        # GTK / GNOME & Electron Desktop Integration
-                        gtk3
-                        atk
-                        at-spi2-atk
-                        at-spi2-core
-                        gdk-pixbuf
-                        pango
-                        cairo
-                        libdrm
-                        libnotify
-                        xdg-utils
-                        udev
-                        expat
-                        cups
-                        gsettings-desktop-schemas
-
-                        # Graphics, Audio, and OS Library Bindings
-                        libx11
-                        libxcomposite
-                        libxdamage
-                        libxext
-                        libxfixes
-                        libxi
-                        libxrandr
-                        libxrender
-                        libxtst
-                        libxcb
-                        libxshmfence
-                        libGL
-                        libva
-                        libxkbcommon
-                        nss
-                        nspr
-                        alsa-lib
-                        dbus
-                        glib
-                        icu
-                        openssl
-                        curl
-                        stdenv.cc.cc.lib
-                        zstd
-                      ];
-                    runScript = "${
-                      inputs.antigravity-nix.packages.${final.stdenv.hostPlatform.system}.default
-                    }/bin/antigravity";
-                  };
                 })
               ];
             }
