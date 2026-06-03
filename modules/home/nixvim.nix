@@ -172,6 +172,7 @@
           };
         };
         pyright.enable = true;
+        ruff.enable = true; # High-performance Python linter/formatter LSP
         lua_ls.enable = true;
       };
       keymaps.lspBuf = {
@@ -195,6 +196,11 @@
           nix = [ "nixfmt" ];
           verilog = [ "verible-verilog-format" ];
           systemverilog = [ "verible-verilog-format" ];
+          python = [
+            "ruff_format"
+            "ruff_fix"
+            "ruff_organize_imports"
+          ];
         };
       };
     };
