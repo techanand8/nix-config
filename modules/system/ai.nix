@@ -28,6 +28,7 @@
     # 3. qwen2.5-coder:7b     - Fast logic and reasoning model
     # 4. mistral              - Lightweight speedster
     loadModels = [
+      "gemma4:12b"
       "deepseek-coder:6.7b"
       "llama3.1"
       "qwen2.5-coder:7b"
