@@ -525,7 +525,11 @@
               ;;
       esac
 
-      $HYPRCTL keyword "$ZOOM_OPTION" "$NEW_ZOOM"
+      if [ "$ZOOM_OPTION" = "cursor:zoom_factor" ]; then
+          $HYPRCTL eval "hl.config({ cursor = { zoom_factor = $NEW_ZOOM } })"
+      else
+          $HYPRCTL eval "hl.config({ misc = { cursor_zoom_factor = $NEW_ZOOM } })"
+      fi
     '';
   };
 
