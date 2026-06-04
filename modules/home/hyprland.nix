@@ -289,6 +289,10 @@
       hl.bind("Print", hl.dsp.exec_cmd("ambxst run screenshot"))
       hl.bind("SUPER + L", hl.dsp.exec_cmd("loginctl lock-session"))
       hl.bind("SUPER + G", hl.dsp.exec_cmd("bash $HOME/.local/bin/manx-toggle-grayscale"))
+      hl.bind("SUPER + equal", hl.dsp.exec_cmd("bash $HOME/.local/bin/manx-zoom in"))
+      hl.bind("SUPER + plus", hl.dsp.exec_cmd("bash $HOME/.local/bin/manx-zoom in"))
+      hl.bind("SUPER + minus", hl.dsp.exec_cmd("bash $HOME/.local/bin/manx-zoom out"))
+      hl.bind("SUPER + BackSpace", hl.dsp.exec_cmd("bash $HOME/.local/bin/manx-zoom reset"))
     '';
 
     "hypr/hyprland/plugins.lua".text = ''
@@ -476,6 +480,52 @@
           $HYPRCTL eval 'hl.config({ decoration = { screen_shader = "" } })'
           ${pkgs.libnotify}/bin/notify-send -t 1500 "Zen Focus Mode" "Standard color profile restored" -i info
       fi
+    '';
+  };
+
+  home.file.".local/bin/manx-zoom" = {
+    executable = true;
+    text = ''
+      #!/usr/bin/env bash
+      HYPRCTL="${pkgs.hyprland}/bin/hyprctl"
+      JQ="${pkgs.jq}/bin/jq"
+
+      # Try getting from cursor:zoom_factor first
+      ZOOM_OPTION="cursor:zoom_factor"
+      CURRENT_ZOOM=$($HYPRCTL getoption "$ZOOM_OPTION" -j 2>/dev/null | $JQ -r '.float' 2>/dev/null)
+
+      # Fallback to misc:cursor_zoom_factor
+      if [ -z "$CURRENT_ZOOM" ] || [ "$CURRENT_ZOOM" = "null" ]; then
+          ZOOM_OPTION="misc:cursor_zoom_factor"
+          CURRENT_ZOOM=$($HYPRCTL getoption "$ZOOM_OPTION" -j 2>/dev/null | $JQ -r '.float' 2>/dev/null)
+      fi
+
+      # Fallback if both fail
+      if [ -z "$CURRENT_ZOOM" ] || [ "$CURRENT_ZOOM" = "null" ]; then
+          ZOOM_OPTION="cursor:zoom_factor"
+          CURRENT_ZOOM=1.0
+      fi
+
+      ACTION=$1
+      STEP=0.25
+
+      case "$ACTION" in
+          in)
+              NEW_ZOOM=$(awk -v cur="$CURRENT_ZOOM" -v step="$STEP" 'BEGIN { print cur + step }')
+              ;;
+          out)
+              NEW_ZOOM=$(awk -v cur="$CURRENT_ZOOM" -v step="$STEP" 'BEGIN { val = cur - step; if (val < 1.0) val = 1.0; print val }')
+              ;;
+          reset)
+              NEW_ZOOM=1.0
+              ;;
+          *)
+              echo "Usage: $0 {in|out|reset}"
+              exit 1
+              ;;
+      esac
+
+      $HYPRCTL keyword "$ZOOM_OPTION" "$NEW_ZOOM"
     '';
   };
 
