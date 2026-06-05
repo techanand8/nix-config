@@ -26,6 +26,19 @@ nixi_*.json
 undo/
 .DS_Store
 
+# --- EDA & VIVADO JUNK ---
+vivado*.log
+vivado*.jou
+vivado*.pb
+.Xil/
+xsim.dir/
+xsim*.log
+xsim*.jou
+xvhdl.log
+xvhdl.pb
+xvlog.log
+xvlog.pb
+
 # End of .gitignore
 .aider*
 aider
