@@ -109,16 +109,16 @@
     window-rule {
         match app-id=r#"^pentablet$"#
         open-floating true
-        default-floating-width 800
-        default-floating-height 600
+        default-column-width { fixed 800; }
+        default-window-height { fixed 600; }
     }
 
     // Float Polkit Authentication Dialogs
     window-rule {
         match app-id=r#"^hyprpolkitagent$"#
         open-floating true
-        default-floating-width 450
-        default-floating-height 250
+        default-column-width { fixed 450; }
+        default-window-height { fixed 250; }
     }
 
     // Float Screensaver
@@ -141,16 +141,16 @@
         match app-id=r#"^amberol$"#
         match app-id=r#"^io\.github\.AlistairMilne\.Amberol$"#
         open-floating true
-        default-floating-width 360
-        default-floating-height 520
+        default-column-width { fixed 360; }
+        default-window-height { fixed 520; }
     }
 
     // Float Spotube Dashboard
     window-rule {
         match app-id=r#"^spotube$"#
         open-floating true
-        default-floating-width 950
-        default-floating-height 650
+        default-column-width { fixed 950; }
+        default-window-height { fixed 650; }
     }
 
     // ############ KEYBINDINGS ############
