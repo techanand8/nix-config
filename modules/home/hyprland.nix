@@ -404,9 +404,9 @@
       # Check if the target shell is actually running to avoid skipping startup on login
       IS_RUNNING="false"
       if [[ "$TARGET_SHELL" == "ambxst" ]]; then
-          pgrep -x ambxst >/dev/null && IS_RUNNING="true"
+          pgrep -f "quickshell.*shell.qml" >/dev/null && IS_RUNNING="true"
       elif [[ "$TARGET_SHELL" == "cartoon" ]]; then
-          pgrep -x quickshell >/dev/null && IS_RUNNING="true"
+          pgrep -f "quickshell.*cartoon-shell" >/dev/null && IS_RUNNING="true"
       elif [[ "$TARGET_SHELL" == "noctalia" ]]; then
           pgrep -f "noctalia-shell" >/dev/null && IS_RUNNING="true"
       fi
@@ -434,10 +434,10 @@
       ${pkgs.libnotify}/bin/notify-send -t 2000 "MANX OS Shell Engine" "Switching desktop layout to: ''${TARGET_SHELL^}..." -i preferences-desktop-theme &
 
       # 3. Safe Shutdown of Current Shell Instances
-      # Use pkill -x to match only the exact process name, avoiding self-termination
-      pkill -x quickshell || true
-      pkill -x ambxst || true
-      pkill -f noctalia-shell || true
+      # Use pkill -f to match the full command line, avoiding wrapper/truncation issues on NixOS
+      pkill -f "quickshell.*cartoon-shell" || true
+      pkill -f "quickshell.*shell.qml" || true
+      pkill -f "noctalia-shell" || true
       sleep 0.8
 
       # 4. Launch Target Shell
