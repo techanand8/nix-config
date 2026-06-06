@@ -20,6 +20,7 @@
     ./shell.nix # Zsh, Zoxide, Aliases
     ./git.nix # Git Settings
     ./hyprland.nix # Pure Lua Desktop logic
+    ./niri.nix # Niri Desktop configuration
     ./starship.nix # Terminal Prompt logic
     ./yazi.nix # File Manager logic
     ./nixvim.nix # Neovim IDE logic

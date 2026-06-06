@@ -70,6 +70,12 @@
 
     # OpenLane 2 - Digital ASIC implementation flow
     openlane.url = "github:efabless/openlane2";
+
+    # Noctalia Shell - Wayland compositor shell
+    noctalia = {
+      url = "github:noctalia-dev/noctalia-shell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -215,6 +221,7 @@
             ./hosts/${hostname}/configuration.nix
             inputs.disko.nixosModules.disko
             inputs.ambxst.nixosModules.default
+            inputs.noctalia.nixosModules.default
             inputs.home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;

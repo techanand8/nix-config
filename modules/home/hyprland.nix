@@ -381,9 +381,10 @@
       print_usage() {
           echo -e "\e[1;36m❄️ MANX Shell Engine\e[0m"
           echo -e "Current Active Shell: \e[1;32m$CURRENT_PREF\e[0m\n"
-          echo -e "Usage: \e[1mmanx-shell-toggle [ambxst | cartoon]\e[0m"
+          echo -e "Usage: \e[1mmanx-shell-toggle [ambxst | cartoon | noctalia]\e[0m"
           echo -e "  - \e[33mambxst\e[0m    : Main Ambxst QML shell (Default)"
           echo -e "  - \e[33mcartoon\e[0m   : Cartoon Shell QuickShell panel"
+          echo -e "  - \e[33mnoctalia\e[0m  : Noctalia minimal distractions panel"
       }
 
       if [[ -z "$1" ]]; then
@@ -393,13 +394,20 @@
 
       TARGET_SHELL=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 
+      if [[ -n "$NIRI_SOCKET" || "$XDG_CURRENT_DESKTOP" == *"niri"* || "$XDG_CURRENT_DESKTOP" == *"Niri"* ]]; then
+          if [[ "$TARGET_SHELL" == "ambxst" ]]; then
+              ${pkgs.libnotify}/bin/notify-send -t 3000 "MANX OS Shell Engine" "Ambxst shell is not supported under Niri. Using Noctalia instead." -i dialog-warning
+              TARGET_SHELL="noctalia"
+          fi
+      fi
+
       if [[ "$TARGET_SHELL" == "$CURRENT_PREF" ]]; then
           echo "Shell already active: $TARGET_SHELL"
           exit 0
       fi
 
       case "$TARGET_SHELL" in
-          ambxst|cartoon)
+          ambxst|cartoon|noctalia)
               ;;
           *)
               echo -e "\e[1;31mError: Unknown shell target '$1'\e[0m"
@@ -419,6 +427,7 @@
       # Use pkill -x to match only the exact process name, avoiding self-termination
       pkill -x quickshell || true
       pkill -x ambxst || true
+      pkill -f noctalia-shell || true
       sleep 0.8
 
       # 4. Launch Target Shell
@@ -434,12 +443,17 @@
               fi
               $UWSM_CMD quickshell --path "$CARTOON_PATH" & disown
               ;;
+          noctalia)
+              $UWSM_CMD qs -c noctalia-shell & disown
+              ;;
       esac
 
-      # 5. Force Hyprland Reload to recalibrate layout reservations/gaps
+      # 5. Force Desktop Reload to recalibrate layout reservations/gaps
       (
           sleep 2.0
-          ${pkgs.hyprland}/bin/hyprctl reload
+          if [[ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]]; then
+              ${pkgs.hyprland}/bin/hyprctl reload
+          fi
           ${pkgs.libnotify}/bin/notify-send -t 1500 "MANX OS Shell Engine" "''${TARGET_SHELL^} Shell Loaded Successfully!" -i info
       ) &
     '';
@@ -449,14 +463,20 @@
     executable = true;
     text = ''
       #!/usr/bin/env bash
-      # MANX OS Shell Loader - Invoked at Hyprland Boot
-      # Respects user preference saved via manx-shell-toggle.
+      # MANX OS Shell Loader - Invoked at session startup
+      # Respects user preference on Hyprland, but forces Noctalia on Niri.
 
       # Wait for the graphical session environment and socket to settle
       sleep 2
 
-      PREF_FILE="$HOME/.config/manx-shell-pref"
-      TARGET_SHELL=$(cat "$PREF_FILE" 2>/dev/null || echo "ambxst")
+      if [[ -n "$NIRI_SOCKET" || "$XDG_CURRENT_DESKTOP" == *"niri"* || "$XDG_CURRENT_DESKTOP" == *"Niri"* ]]; then
+          # Force Noctalia on Niri since Ambxst only works properly under Hyprland
+          TARGET_SHELL="noctalia"
+      else
+          # Respect preference in Hyprland
+          PREF_FILE="$HOME/.config/manx-shell-pref"
+          TARGET_SHELL=$(cat "$PREF_FILE" 2>/dev/null || echo "ambxst")
+      fi
 
       # Use the toggle script to ensure consistent launch logic and setup
       exec bash $HOME/.local/bin/manx-shell-toggle "$TARGET_SHELL" > /tmp/manx-shell-load.log 2>&1
@@ -467,6 +487,11 @@
     executable = true;
     text = ''
       #!/usr/bin/env bash
+      if [[ "$XDG_CURRENT_DESKTOP" == *"niri"* || "$XDG_CURRENT_DESKTOP" == *"Niri"* ]]; then
+          ${pkgs.libnotify}/bin/notify-send -t 2000 "Zen Focus Mode" "Grayscale screen filter is not supported natively in Niri yet." -i dialog-warning
+          exit 0
+      fi
+
       HYPRCTL="${pkgs.hyprland}/bin/hyprctl"
       SHADER_PATH="$HOME/.config/hypr/shaders/grayscale.frag"
 
@@ -487,8 +512,43 @@
     executable = true;
     text = ''
       #!/usr/bin/env bash
-      HYPRCTL="${pkgs.hyprland}/bin/hyprctl"
       JQ="${pkgs.jq}/bin/jq"
+      ACTION=$1
+      STEP=0.25
+
+      if [[ "$XDG_CURRENT_DESKTOP" == *"niri"* || "$XDG_CURRENT_DESKTOP" == *"Niri"* ]]; then
+          FOCUSED_OUTPUT=$(niri msg -j focused-output | $JQ -r '.name' 2>/dev/null)
+          if [ -z "$FOCUSED_OUTPUT" ] || [ "$FOCUSED_OUTPUT" = "null" ]; then
+              ${pkgs.libnotify}/bin/notify-send -t 1500 "MANX Zoom" "No active output found in Niri" -i dialog-warning
+              exit 1
+          fi
+          
+          CURRENT_ZOOM=$(niri msg -j outputs | $JQ -r --arg name "$FOCUSED_OUTPUT" '.[] | select(.name == $name) | .scale' 2>/dev/null)
+          if [ -z "$CURRENT_ZOOM" ] || [ "$CURRENT_ZOOM" = "null" ]; then
+              CURRENT_ZOOM=1.0
+          fi
+
+          case "$ACTION" in
+              in)
+                  NEW_ZOOM=$(awk -v cur="$CURRENT_ZOOM" -v step="$STEP" 'BEGIN { print cur + step }')
+                  ;;
+              out)
+                  NEW_ZOOM=$(awk -v cur="$CURRENT_ZOOM" -v step="$STEP" 'BEGIN { val = cur - step; if (val < 1.0) val = 1.0; print val }')
+                  ;;
+              reset)
+                  NEW_ZOOM=1.0
+                  ;;
+              *)
+                  echo "Usage: $0 {in|out|reset}"
+                  exit 1
+                  ;;
+          esac
+          
+          niri msg output "$FOCUSED_OUTPUT" scale "$NEW_ZOOM"
+          exit 0
+      fi
+
+      HYPRCTL="${pkgs.hyprland}/bin/hyprctl"
 
       # Try getting from cursor:zoom_factor first
       ZOOM_OPTION="cursor:zoom_factor"
@@ -505,9 +565,6 @@
           ZOOM_OPTION="cursor:zoom_factor"
           CURRENT_ZOOM=1.0
       fi
-
-      ACTION=$1
-      STEP=0.25
 
       case "$ACTION" in
           in)

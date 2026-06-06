@@ -17,6 +17,7 @@
     ../../modules/system/users.nix
     ../../modules/system/secrets.nix
     ../../modules/system/hyprland.nix
+    ../../modules/system/niri.nix
     ../../modules/system/scripts.nix
     ../../modules/system/xppen.nix
     ../../modules/system/fonts.nix
