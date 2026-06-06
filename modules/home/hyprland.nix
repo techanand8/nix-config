@@ -401,8 +401,18 @@
           fi
       fi
 
-      if [[ "$TARGET_SHELL" == "$CURRENT_PREF" ]]; then
-          echo "Shell already active: $TARGET_SHELL"
+      # Check if the target shell is actually running to avoid skipping startup on login
+      IS_RUNNING="false"
+      if [[ "$TARGET_SHELL" == "ambxst" ]]; then
+          pgrep -x ambxst >/dev/null && IS_RUNNING="true"
+      elif [[ "$TARGET_SHELL" == "cartoon" ]]; then
+          pgrep -x quickshell >/dev/null && IS_RUNNING="true"
+      elif [[ "$TARGET_SHELL" == "noctalia" ]]; then
+          pgrep -f "noctalia-shell" >/dev/null && IS_RUNNING="true"
+      fi
+
+      if [[ "$TARGET_SHELL" == "$CURRENT_PREF" && "$IS_RUNNING" == "true" ]]; then
+          echo "Shell already active and running: $TARGET_SHELL"
           exit 0
       fi
 
