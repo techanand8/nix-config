@@ -300,6 +300,6 @@
 
   <!-- Bottom Technical Details (Footer Redesigned & Centered) -->
   <g transform="translate(400, 235)">
-    <text x="0" y="0" class="decor-text-green-bold" text-anchor="middle">STATUS: ACTIVE</text>
+    <text x="0" y="0" class="decor-text-green-bold" text-anchor="middle">STATUS: INACTIVE</text>
   </g>
 </svg>
